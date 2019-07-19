@@ -8,11 +8,9 @@ defmodule LearnIpcEx.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      LearnIpcEx.Connection
+      {LearnIpcEx.Connection, [name: LearnIpcEx.Connection]}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: LearnIpcEx.Supervisor]
     Supervisor.start_link(children, opts)
   end

@@ -5,19 +5,14 @@ defmodule LearnIpcEx.Connection do
             consumer_specs: %{}
 
   use GenServer
-  use AMQP
+  @amqp_adapter Application.get_env(:learn_ipc_ex, :amqp_adapter)
 
-  def start_link(state) do
-    GenServer.start_link(
-      __MODULE__,
-      :ok,
-      name: __MODULE__
-    )
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
   def init(:ok) do
-    send(self(), :open_amqp_connection)
-    {:ok, %__MODULE__{}}
+    {:ok, %__MODULE__{}, {:continue, :open_amqp_connection}}
   end
 
   def channel do
@@ -29,6 +24,11 @@ defmodule LearnIpcEx.Connection do
     GenServer.call(__MODULE__, {:consume, opts})
   end
 
+  def handle_continue(:open_amqp_connection, state) do
+    {:ok, state} = rabbitmq_connect(state)
+    {:noreply, state}
+  end
+
   def handle_call(:channel, _from, state = %{channel: channel}) do
     {:reply, channel, state}
   end
@@ -38,22 +38,17 @@ defmodule LearnIpcEx.Connection do
         _from,
         state = %{channel: channel, consumer_specs: specs}
       ) do
-    case bind_queue(channel, spec) do
+    case @amqp_adapter.bind_queue(channel, spec) do
       :ok ->
         %{consumer: consumer} = spec
         consumer_ref = Process.monitor(consumer)
 
-        consumer_specs = Map.put(spec, consumer_ref, spec)
+        consumer_specs = Map.put(specs, consumer_ref, spec)
         {:reply, {:ok, channel}, %{state | consumer_specs: consumer_specs}}
 
       {:error, error} ->
         {:reply, {:error, error}, state}
     end
-  end
-
-  def handle_info(:open_amqp_connection, state = %{consumer_specs: consumer_specs}) do
-    {:ok, state} = rabbitmq_connect(state)
-    {:noreply, state}
   end
 
   def handle_info(
@@ -74,27 +69,14 @@ defmodule LearnIpcEx.Connection do
   end
 
   def terminate(_reason, %{connection: connection}) do
-    Connection.close(connection)
+    @amqp_adapter.close_connection(connection)
     {:stop, :normal}
   end
 
   defp rabbitmq_connect(%{consumer_specs: consumer_specs} = state) do
-    {:ok, connection} = Connection.open("amqp://guest:guest@host.docker.internal:5672")
+    {:ok, %{connection: connection, channel: channel}} = @amqp_adapter.connect()
     connection_ref = Process.monitor(connection.pid)
-    {:ok, channel} = Channel.open(connection)
-    for {_ref, spec} <- consumer_specs, do: :ok = bind_queue(channel, spec)
+    for {_ref, spec} <- consumer_specs, do: :ok = @amqp_adapter.bind_queue(channel, spec)
     {:ok, %{state | connection: connection, connection_ref: connection_ref, channel: channel}}
-  end
-
-  defp bind_queue(channel, %{exchange: exchange, queue: queue, consumer: consumer}) do
-    with {:ok, _} <- Queue.declare(channel, queue, durable: true),
-         :ok <- Exchange.declare(channel, exchange, :fanout, durable: true),
-         :ok <- Queue.bind(channel, queue, exchange),
-         {:ok, _consumer_tag} <- Basic.consume(channel, queue, consumer) do
-      :ok
-    else
-      error ->
-        {:error, error}
-    end
   end
 end
