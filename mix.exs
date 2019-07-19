@@ -22,7 +22,8 @@ defmodule LearnIpcEx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:amqp, "~> 1.2"}
+      {:amqp, "~> 1.2"},
+      {:mox, "~> 0.5", only: :test}
     ]
   end
 end

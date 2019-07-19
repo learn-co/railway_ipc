@@ -1,11 +1,12 @@
 defmodule LearnIpcEx.Connection do
+  @amqp_adapter Application.get_env(:learn_ipc_ex, :amqp_adapter)
+
   defstruct connection: nil,
             connection_ref: nil,
             channel: nil,
             consumer_specs: %{}
 
   use GenServer
-  @amqp_adapter Application.get_env(:learn_ipc_ex, :amqp_adapter)
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, opts)

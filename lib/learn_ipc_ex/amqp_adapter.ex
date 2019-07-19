@@ -1,5 +1,6 @@
 defmodule LearnIpcEx.AMQPAdapter do
   use AMQP
+  @behaviour LearnIpcEx.StreamBehaviour
   @rabbitmq_connection_url Application.get_env(:learn_ipc_ex, :rabbitmq_connection_url)
 
   def connect do
