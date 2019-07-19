@@ -8,8 +8,7 @@ defmodule LearnIpcEx.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Starts a worker by calling: LearnIpcEx.Worker.start_link(arg)
-      # {LearnIpcEx.Worker, arg}
+      LearnIpcEx.Connection
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
