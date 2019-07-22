@@ -69,7 +69,12 @@ defmodule LearnIpcEx.Connection do
     {:noreply, %{state | consumer_specs: consumer_specs}}
   end
 
-  def terminate(_reason, %{connection: connection}) do
+  def terminate(reason, %{connection: nil}) do
+    IO.inspect reason
+    {:stop, :normal}
+  end
+  def terminate(reason, %{connection: connection}) do
+    IO.inspect reason
     @amqp_adapter.close_connection(connection)
     {:stop, :normal}
   end
