@@ -28,7 +28,8 @@ defmodule LearnIpcEx.MixProject do
       {:mox, "~> 0.5", only: :test},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
       {:protobuf, "~> 0.5.3"},
-      {:google_protos, "~> 0.1"}
+      {:google_protos, "~> 0.1"},
+      {:jason, "~> 1.1"}
     ]
   end
 
