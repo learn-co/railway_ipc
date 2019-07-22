@@ -16,13 +16,13 @@ defmodule LearnIpcEx.Connection do
     {:ok, %__MODULE__{}, {:continue, :open_amqp_connection}}
   end
 
-  def channel do
-    GenServer.call(__MODULE__, :channel)
+  def channel(connection \\ __MODULE__) do
+    GenServer.call(connection, :channel)
   end
 
-  def consume(opts) do
-    opts = Map.put(opts, :consumer, self())
-    GenServer.call(__MODULE__, {:consume, opts})
+  def consume(connection \\ __MODULE__, spec) do
+    spec = Map.put(spec, :consumer, self())
+    GenServer.call(connection, {:consume, spec})
   end
 
   def handle_continue(:open_amqp_connection, state) do

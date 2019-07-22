@@ -4,7 +4,8 @@ defmodule LearnIpcEx.AMQPAdapter do
   @rabbitmq_connection_url Application.get_env(:learn_ipc_ex, :rabbitmq_connection_url)
 
   def connect do
-    with {:ok, connection} when not is_nil(connection) <- Connection.open(@rabbitmq_connection_url),
+    with {:ok, connection} when not is_nil(connection) <-
+           Connection.open(@rabbitmq_connection_url),
          {:ok, channel} <- Channel.open(connection) do
       {:ok, %{connection: connection, channel: channel}}
     else

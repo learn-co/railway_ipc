@@ -1,9 +1,14 @@
 defmodule LearnIpcEx.Publisher do
   defmacro __using__(opts) do
     quote do
-      def publish(message, opts \\ []) do
+      def publish(message, defaults \\ []) do
         LearnIpcEx.Connection.channel()
-        |> AMQP.Basic.publish(unquote(Keyword.get(opts, :exchange)), "", Jason.encode!(message), opts)
+        |> AMQP.Basic.publish(
+          unquote(Keyword.get(opts, :exchange)),
+          "",
+          Jason.encode!(message),
+          defaults
+        )
       end
 
       def publish_test do

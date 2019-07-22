@@ -3,5 +3,9 @@ defmodule LearnIpcEx.StreamBehaviour do
 
   @callback close_connection(connection :: map() | nil) :: any()
 
-  @callback bind_queue(channel :: map(), %{exchange: binary(), queue: binary(), consumer: binary()}) :: :ok | {:error, any()}
+  @callback bind_queue(channel :: map(), %{
+              exchange: binary(),
+              queue: binary(),
+              consumer: binary()
+            }) :: :ok | {:error, any()}
 end
