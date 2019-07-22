@@ -55,6 +55,36 @@ defmodule LearnIpcEx.ConnectionTest do
        )
 
     {:ok, pid} = Connection.start_link()
-    Connection.consume(pid, spec)
+    {:ok, returned_channel} = Connection.consume(pid, spec)
+    assert returned_channel == channel
+  end
+  test "returns error if consume request fails" do
+    channel = %{name: "some channel"}
+    spec = %{exchange: "experts", queue: "are_es", consumer: self()}
+    StreamMock
+    |> expect(
+         :connect,
+         fn ->
+           {
+             :ok,
+             %{
+               connection: %{
+                 pid: self()
+               },
+               channel: channel
+             }
+           }
+         end
+       )
+    |> expect(
+         :bind_queue,
+         fn ^channel, ^spec ->
+           {:error, "Something Asploded"}
+         end
+       )
+
+    {:ok, pid} = Connection.start_link()
+    {:error, reason} = Connection.consume(pid, spec)
+    assert reason == "Something Asploded"
   end
 end

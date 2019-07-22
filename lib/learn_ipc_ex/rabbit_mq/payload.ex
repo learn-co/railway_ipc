@@ -1,5 +1,5 @@
 defmodule LearnIpcEx.RabbitMQ.Payload do
-  defstruct [:type, :message]
+  @behaviour LearnIpcEx.PayloadBehaviour
   import LearnIpcEx.Utils, only: [module_defined?: 1]
 
   def decode(payload) when not is_binary(payload) do

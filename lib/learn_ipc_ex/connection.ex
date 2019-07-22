@@ -1,5 +1,5 @@
 defmodule LearnIpcEx.Connection do
-  @amqp_adapter Application.get_env(:learn_ipc_ex, :amqp_adapter)
+  @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter)
 
   defstruct connection: nil,
             connection_ref: nil,
@@ -13,7 +13,7 @@ defmodule LearnIpcEx.Connection do
   end
 
   def init(:ok) do
-    {:ok, %__MODULE__{}, {:continue, :open_amqp_connection}}
+    {:ok, %__MODULE__{}, {:continue, :open_connection}}
   end
 
   def channel(connection \\ __MODULE__) do
@@ -25,8 +25,8 @@ defmodule LearnIpcEx.Connection do
     GenServer.call(connection, {:consume, spec})
   end
 
-  def handle_continue(:open_amqp_connection, state) do
-    {:ok, state} = rabbitmq_connect(state)
+  def handle_continue(:open_connection, state) do
+    {:ok, state} = connect(state)
     {:noreply, state}
   end
 
@@ -39,7 +39,7 @@ defmodule LearnIpcEx.Connection do
         _from,
         state = %{channel: channel, consumer_specs: specs}
       ) do
-    case @amqp_adapter.bind_queue(channel, spec) do
+    case @stream_adapter.bind_queue(channel, spec) do
       :ok ->
         %{consumer: consumer} = spec
         consumer_ref = Process.monitor(consumer)
@@ -57,7 +57,7 @@ defmodule LearnIpcEx.Connection do
         %{connection_ref: connection_ref} = state
       )
       when ref == connection_ref do
-    {:ok, state} = rabbitmq_connect(state)
+    {:ok, state} = connect(state)
     {:noreply, state}
   end
 
@@ -70,19 +70,18 @@ defmodule LearnIpcEx.Connection do
   end
 
   def terminate(reason, %{connection: nil}) do
-    IO.inspect reason
-    {:stop, :normal}
-  end
-  def terminate(reason, %{connection: connection}) do
-    IO.inspect reason
-    @amqp_adapter.close_connection(connection)
     {:stop, :normal}
   end
 
-  defp rabbitmq_connect(%{consumer_specs: consumer_specs} = state) do
-    {:ok, %{connection: connection, channel: channel}} = @amqp_adapter.connect()
+  def terminate(reason, %{connection: connection}) do
+    @stream_adapter.close_connection(connection)
+    {:stop, :normal}
+  end
+
+  defp connect(%{consumer_specs: consumer_specs} = state) do
+    {:ok, %{connection: connection, channel: channel}} = @stream_adapter.connect()
     connection_ref = Process.monitor(connection.pid)
-    for {_ref, spec} <- consumer_specs, do: :ok = @amqp_adapter.bind_queue(channel, spec)
+    for {_ref, spec} <- consumer_specs, do: :ok = @stream_adapter.bind_queue(channel, spec)
     {:ok, %{state | connection: connection, connection_ref: connection_ref, channel: channel}}
   end
 end

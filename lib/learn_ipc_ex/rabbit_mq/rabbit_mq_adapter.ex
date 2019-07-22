@@ -1,4 +1,4 @@
-defmodule LearnIpcEx.AMQPAdapter do
+defmodule LearnIpcEx.RabbitMQ.RabbitMQAdapter do
   use AMQP
   @behaviour LearnIpcEx.StreamBehaviour
   @rabbitmq_connection_url Application.get_env(:learn_ipc_ex, :rabbitmq_connection_url)
@@ -14,14 +14,6 @@ defmodule LearnIpcEx.AMQPAdapter do
     end
   end
 
-  def close_connection(nil) do
-    :ok
-  end
-
-  def close_connection(connection) do
-    Connection.close(connection)
-  end
-
   def bind_queue(channel, %{exchange: exchange, queue: queue, consumer: consumer}) do
     with {:ok, _} <- Queue.declare(channel, queue, durable: true),
          :ok <- Exchange.declare(channel, exchange, :fanout, durable: true),
@@ -33,4 +25,21 @@ defmodule LearnIpcEx.AMQPAdapter do
         {:error, error}
     end
   end
+
+  def ack(channel, delivery_tag) do
+    Basic.ack(channel, delivery_tag)
+  end
+
+  def publish(channel, exchange, payload) do
+    Basic.publish(channel, exchange, "", payload)
+  end
+
+  def close_connection(nil) do
+    :ok
+  end
+
+  def close_connection(connection) do
+    Connection.close(connection)
+  end
+
 end
