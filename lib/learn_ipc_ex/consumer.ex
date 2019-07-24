@@ -23,7 +23,7 @@ defmodule LearnIpcEx.Consumer do
       end
 
       def handle_info({:basic_deliver, payload, meta}, state = %{channel: channel}) do
-        with {:ok, %{message: message}} <- @payload_converter.decode(payload),
+        with {:ok, message} <- @payload_converter.decode(payload),
              :ok <- __MODULE__.handle_in(message, meta) do
           @stream_adapter.ack(channel, meta.delivery_tag)
         else
