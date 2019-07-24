@@ -6,7 +6,6 @@ defmodule LearnIpcEx.Application do
   use Application
 
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
       {LearnIpcEx.Connection, [name: LearnIpcEx.Connection]}
     ]

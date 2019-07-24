@@ -3,8 +3,8 @@ defmodule LearnIpcEx.Consumer do
     quote do
       require Logger
       use GenServer
-      @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter)
-      @payload_converter Application.get_env(:learn_ipc_ex, :payload_converter)
+      @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter, LearnIpcEx.RabbitMQ.RabbitMQAdapter)
+      @payload_converter Application.get_env(:learn_ipc_ex, :payload_converter, LearnIpcEx.RabbitMQ.Payload)
 
       alias LearnIpcEx.Connection, as: IpcConn
 

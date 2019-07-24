@@ -1,5 +1,5 @@
 defmodule LearnIpcEx.Connection do
-  @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter)
+  @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter, LearnIpcEx.RabbitMQ.RabbitMQAdapter)
 
   defstruct connection: nil,
             connection_ref: nil,
