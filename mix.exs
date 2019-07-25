@@ -30,7 +30,8 @@ defmodule RailwayIpc.MixProject do
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
       {:protobuf, "~> 0.5.3"},
       {:google_protos, "~> 0.1"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
