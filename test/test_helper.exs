@@ -1,6 +1,6 @@
-Application.load(:learn_ipc_ex)
+Application.load(:railway_ipc)
 
-for app <- Application.spec(:learn_ipc_ex, :applications) do
+for app <- Application.spec(:railway_ipc, :applications) do
   Application.ensure_all_started(app)
 end
 

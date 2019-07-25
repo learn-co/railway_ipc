@@ -1,4 +1,4 @@
-defmodule LearnIpc.Commands.CreateBatch do
+defmodule Commands.CreateBatch do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -7,7 +7,7 @@ defmodule LearnIpc.Commands.CreateBatch do
                correlation_id: integer,
                uuid:           String.t,
                type:           String.t,
-               data:           LearnIpc.Commands.CreateBatch.Data.t | nil
+               data:           Commands.CreateBatch.Data.t | nil
              }
   defstruct [:user_id, :correlation_id, :uuid, :type, :data]
 
@@ -15,10 +15,10 @@ defmodule LearnIpc.Commands.CreateBatch do
   field :correlation_id, 2, type: :int32
   field :uuid, 3, type: :string
   field :type, 4, type: :string
-  field :data, 5, type: LearnIpc.Commands.CreateBatch.Data
+  field :data, 5, type: Commands.CreateBatch.Data
 end
 
-defmodule LearnIpc.Commands.CreateBatch.Data do
+defmodule Commands.CreateBatch.Data do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

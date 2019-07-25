@@ -1,31 +1,31 @@
-defmodule LearnIpcEx.RabbitMQ.PayloadTest do
+defmodule RailwayIpc.RabbitMQ.PayloadTest do
   use ExUnit.Case
-  alias LearnIpcEx.RabbitMQ.Payload
+  alias RailwayIpc.RabbitMQ.Payload
 
   test "properly encodes type" do
-    command = LearnIpc.Commands.CreateBatch.new(uuid: "123123")
+    command = Commands.CreateBatch.new(uuid: "123123")
     encoded_type = Payload.encode_type(command)
-    assert encoded_type == "LearnIpc::Commands::CreateBatch"
+    assert encoded_type == "Commands::CreateBatch"
   end
 
   test "properly encodes struct" do
-    command = LearnIpc.Commands.CreateBatch.new(uuid: "123123")
+    command = Commands.CreateBatch.new(uuid: "123123")
     encoded_message = Payload.encode_message(command)
     assert encoded_message == "GgYxMjMxMjM="
   end
 
   test "encodes payloads properly" do
-    command = LearnIpc.Commands.CreateBatch.new(uuid: "123123")
+    command = Commands.CreateBatch.new(uuid: "123123")
     {:ok, encoded} = Payload.encode(command)
-    assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"LearnIpc::Commands::CreateBatch\"}"
+    assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Commands::CreateBatch\"}"
   end
 
   test "properly decodes message" do
-    command = LearnIpc.Commands.CreateBatch.new(uuid: "123123")
+    command = Commands.CreateBatch.new(uuid: "123123")
     {:ok, encoded} = Payload.encode(command)
     {:ok, decoded} = Payload.decode(encoded)
 
-    assert decoded.__struct__ == LearnIpc.Commands.CreateBatch
+    assert decoded.__struct__ == Commands.CreateBatch
     assert decoded.uuid == "123123"
   end
 

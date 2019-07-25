@@ -1,2 +1,0 @@
-defmodule LearnIpcEx do
-end

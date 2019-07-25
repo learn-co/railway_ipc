@@ -1,0 +1,2 @@
+defmodule RailwayIpc do
+end

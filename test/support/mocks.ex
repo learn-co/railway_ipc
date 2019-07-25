@@ -1,3 +1,3 @@
-Mox.defmock(LearnIpcEx.StreamMock, for: LearnIpcEx.StreamBehaviour)
-Mox.defmock(LearnIpcEx.PayloadMock, for: LearnIpcEx.PayloadBehaviour)
+Mox.defmock(RailwayIpc.StreamMock, for: RailwayIpc.StreamBehaviour)
+Mox.defmock(RailwayIpc.PayloadMock, for: RailwayIpc.PayloadBehaviour)
 

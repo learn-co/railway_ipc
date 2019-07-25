@@ -1,4 +1,4 @@
-defmodule LearnIpcEx.Application do
+defmodule RailwayIpc.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -7,10 +7,10 @@ defmodule LearnIpcEx.Application do
 
   def start(_type, _args) do
     children = [
-      {LearnIpcEx.Connection, [name: LearnIpcEx.Connection]}
+      {RailwayIpc.Connection, [name: RailwayIpc.Connection]}
     ]
 
-    opts = [strategy: :one_for_one, name: LearnIpcEx.Supervisor]
+    opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

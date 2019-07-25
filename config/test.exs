@@ -1,5 +1,5 @@
 use Mix.Config
 
-config :learn_ipc_ex,
-       stream_adapter: LearnIpcEx.StreamMock,
-       payload_converter: LearnIpcEx.PayloadMock
+config :railway_ipc,
+       stream_adapter: RailwayIpc.StreamMock,
+       payload_converter: RailwayIpc.PayloadMock

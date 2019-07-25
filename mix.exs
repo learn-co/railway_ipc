@@ -1,9 +1,9 @@
-defmodule LearnIpcEx.MixProject do
+defmodule RailwayIpc.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :learn_ipc_ex,
+      app: :railway_ipc,
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
@@ -17,7 +17,7 @@ defmodule LearnIpcEx.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {LearnIpcEx.Application, []}
+      mod: {RailwayIpc.Application, []}
     ]
   end
 

@@ -1,6 +1,6 @@
-defmodule LearnIpcEx.RabbitMQ.Payload do
-  @behaviour LearnIpcEx.PayloadBehaviour
-  import LearnIpcEx.Utils, only: [module_defined?: 1]
+defmodule RailwayIpc.RabbitMQ.Payload do
+  @behaviour RailwayIpc.PayloadBehaviour
+  import RailwayIpc.Utils, only: [module_defined?: 1]
 
   def decode(payload) when not is_binary(payload) do
     {:error, "Malformed JSON given: #{payload}. Must be a string"}

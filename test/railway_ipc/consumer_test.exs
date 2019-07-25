@@ -1,13 +1,13 @@
-defmodule LearnIpcEx.ConsumerTest do
+defmodule RailwayIpc.ConsumerTest do
   use ExUnit.Case
   import Mox
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias LearnIpcEx.Test.BatchConsumer
-  alias LearnIpcEx.Connection
-  alias LearnIpcEx.PayloadMock
-  alias LearnIpcEx.StreamMock
+  alias RailwayIpc.Test.BatchConsumer
+  alias RailwayIpc.Connection
+  alias RailwayIpc.PayloadMock
+  alias RailwayIpc.StreamMock
 
   setup do
     StreamMock

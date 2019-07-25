@@ -1,11 +1,11 @@
-defmodule LearnIpcEx.ConnectionTest do
+defmodule RailwayIpc.ConnectionTest do
   use ExUnit.Case
   import Mox
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias LearnIpcEx.Connection
-  alias LearnIpcEx.StreamMock
+  alias RailwayIpc.Connection
+  alias RailwayIpc.StreamMock
 
   test "Connects to stream correctly" do
     channel = %{name: "some channel"}

@@ -1,21 +1,7 @@
-defmodule LearnIpcEx.Config do
-  def config do
-    Application.get_all_env(:learn_ipc_ex)
-  end
-
-  def get_config(key) do
-    config[key] |> process
-  end
-
-  defp process({:system, env}) do
-    System.get_env(env)
-  end
-  defp process(value), do: value
-end
-defmodule LearnIpcEx.RabbitMQ.RabbitMQAdapter do
+defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   use AMQP
-  @behaviour LearnIpcEx.StreamBehaviour
-  @rabbitmq_connection_url LearnIpcEx.Config.get_config(:rabbitmq_connection_url)
+  @behaviour RailwayIpc.StreamBehaviour
+  @rabbitmq_connection_url RailwayIpc.Config.get_config(:rabbitmq_connection_url)
 
   def connect do
     with {:ok, connection} when not is_nil(connection) <-

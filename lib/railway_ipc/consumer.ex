@@ -1,12 +1,12 @@
-defmodule LearnIpcEx.Consumer do
+defmodule RailwayIpc.Consumer do
   defmacro __using__(opts) do
     quote do
       require Logger
       use GenServer
-      @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter, LearnIpcEx.RabbitMQ.RabbitMQAdapter)
-      @payload_converter Application.get_env(:learn_ipc_ex, :payload_converter, LearnIpcEx.RabbitMQ.Payload)
+      @stream_adapter Application.get_env(:railway_ipc, :stream_adapter, RailwayIpc.RabbitMQ.RabbitMQAdapter)
+      @payload_converter Application.get_env(:railway_ipc, :payload_converter, RailwayIpc.RabbitMQ.Payload)
 
-      alias LearnIpcEx.Connection, as: IpcConn
+      alias RailwayIpc.Connection, as: Connection
 
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)
@@ -35,7 +35,7 @@ defmodule LearnIpcEx.Consumer do
       end
 
       def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
-        {:ok, channel} = IpcConn.consume(%{exchange: exchange, queue: queue})
+        {:ok, channel} = Connection.consume(%{exchange: exchange, queue: queue})
         {:noreply, %{channel: channel}}
       end
 

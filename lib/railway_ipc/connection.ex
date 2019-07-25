@@ -1,5 +1,5 @@
-defmodule LearnIpcEx.Connection do
-  @stream_adapter Application.get_env(:learn_ipc_ex, :stream_adapter, LearnIpcEx.RabbitMQ.RabbitMQAdapter)
+defmodule RailwayIpc.Connection do
+  @stream_adapter Application.get_env(:railway_ipc, :stream_adapter, RailwayIpc.RabbitMQ.RabbitMQAdapter)
 
   defstruct connection: nil,
             connection_ref: nil,
@@ -69,11 +69,11 @@ defmodule LearnIpcEx.Connection do
     {:noreply, %{state | consumer_specs: consumer_specs}}
   end
 
-  def terminate(reason, %{connection: nil}) do
+  def terminate(_reason, %{connection: nil}) do
     {:stop, :normal}
   end
 
-  def terminate(reason, %{connection: connection}) do
+  def terminate(_reason, %{connection: connection}) do
     @stream_adapter.close_connection(connection)
     {:stop, :normal}
   end
