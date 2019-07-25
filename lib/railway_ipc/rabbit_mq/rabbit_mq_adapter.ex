@@ -1,11 +1,11 @@
 defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   use AMQP
   @behaviour RailwayIpc.StreamBehaviour
-  @rabbitmq_connection_url RailwayIpc.Config.get_config(:rabbitmq_connection_url)
 
   def connect do
+    rabbitmq_connection_url = System.get_env("RABBITMQ_CONNECTION_URL")
     with {:ok, connection} when not is_nil(connection) <-
-           Connection.open(@rabbitmq_connection_url),
+           Connection.open(rabbitmq_connection_url),
          {:ok, channel} <- Channel.open(connection) do
       {:ok, %{connection: connection, channel: channel}}
     else
