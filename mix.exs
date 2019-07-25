@@ -9,7 +9,8 @@ defmodule RailwayIpc.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      package: package()
     ]
   end
 
@@ -41,4 +42,13 @@ defmodule RailwayIpc.MixProject do
 
   defp elixirc_paths(:test), do: ["test/support", "lib"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp package() do
+    [
+      name: "RailwayIpc",
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/learn-co/railway_ipc"}
+    ]
+  end
 end
