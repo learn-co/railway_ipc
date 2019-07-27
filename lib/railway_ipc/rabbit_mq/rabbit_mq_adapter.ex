@@ -4,17 +4,41 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
 
   def connect do
     rabbitmq_connection_url = System.get_env("RABBITMQ_CONNECTION_URL")
+
     with {:ok, connection} when not is_nil(connection) <-
-           Connection.open(rabbitmq_connection_url),
-         {:ok, channel} <- Channel.open(connection) do
-      {:ok, %{connection: connection, channel: channel}}
+           Connection.open(rabbitmq_connection_url) do
+      {:ok, connection}
     else
       error ->
         {:error, error}
     end
   end
 
-  def bind_queue(channel, %{exchange: exchange, queue: queue, consumer: consumer}) do
+  def get_channel_from_cache(connection, channels, consumer_module) do
+    with {:cache, channel} when is_nil(channel) <- {:cache, Map.get(channels, consumer_module)},
+         {:ok, channel} <- get_channel(connection) do
+      {:ok, Map.put(channels, consumer_module, channel), channel}
+    else
+      {:cache, channel} ->
+        {:ok, channels, channel}
+
+      {:error, _error} = e ->
+        e
+    end
+  end
+
+  def get_channel(connection) do
+    Channel.open(connection)
+  end
+
+  def bind_queue(
+        channel,
+        %{
+          exchange: exchange,
+          queue: queue,
+          consumer_pid: consumer
+        }
+      ) do
     with {:ok, _} <- Queue.declare(channel, queue, durable: true),
          :ok <- Exchange.declare(channel, exchange, :fanout, durable: true),
          :ok <- Queue.bind(channel, queue, exchange),
@@ -41,5 +65,4 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   def close_connection(connection) do
     Connection.close(connection)
   end
-
 end

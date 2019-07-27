@@ -1,12 +1,16 @@
 defmodule RailwayIpc.Connection do
-  @stream_adapter Application.get_env(:railway_ipc, :stream_adapter, RailwayIpc.RabbitMQ.RabbitMQAdapter)
+  @stream_adapter Application.get_env(
+                    :railway_ipc,
+                    :stream_adapter,
+                    RailwayIpc.RabbitMQ.RabbitMQAdapter
+                  )
 
   defstruct connection: nil,
-            connection_ref: nil,
-            channel: nil,
-            consumer_specs: %{}
+            publisher_channel: nil,
+            consumer_channels: %{}
 
   use GenServer
+  require Logger
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, opts)
@@ -16,57 +20,55 @@ defmodule RailwayIpc.Connection do
     {:ok, %__MODULE__{}, {:continue, :open_connection}}
   end
 
-  def channel(connection \\ __MODULE__) do
-    GenServer.call(connection, :channel)
+  def publisher_channel(connection \\ __MODULE__) do
+    GenServer.call(connection, :publisher_channel)
   end
 
   def consume(connection \\ __MODULE__, spec) do
-    spec = Map.put(spec, :consumer, self())
     GenServer.call(connection, {:consume, spec})
   end
 
   def handle_continue(:open_connection, state) do
-    {:ok, state} = connect(state)
-    {:noreply, state}
+    case connect(state) do
+      {:ok, state} ->
+        {:noreply, state}
+
+      {:error, _error} ->
+        Logger.error("Failed to connect to rabbit")
+
+        5
+        |> :timer.seconds()
+        |> :timer.sleep()
+
+        {:noreply, state, {:continue, :open_connection}}
+    end
   end
 
-  def handle_call(:channel, _from, state = %{channel: channel}) do
+  def handle_call(:publisher_channel, _from, state = %{publisher_channel: channel}) do
     {:reply, channel, state}
   end
 
   def handle_call(
         {:consume, spec},
         _from,
-        state = %{channel: channel, consumer_specs: specs}
+        state = %{
+          consumer_channels: channels,
+          connection: connection
+        }
       ) do
-    case @stream_adapter.bind_queue(channel, spec) do
-      :ok ->
-        %{consumer: consumer} = spec
-        consumer_ref = Process.monitor(consumer)
-
-        consumer_specs = Map.put(specs, consumer_ref, spec)
-        {:reply, {:ok, channel}, %{state | consumer_specs: consumer_specs}}
-
-      {:error, error} ->
-        {:reply, {:error, error}, state}
+    try do
+      with {:ok, channels, channel} <-
+             @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
+           :ok <- @stream_adapter.bind_queue(channel, spec) do
+        {:reply, {:ok, channel}, %{state | consumer_channels: channels}}
+      else
+        {:error, error} ->
+          {:reply, {:error, error}, state}
+      end
+    rescue
+      e ->
+        IO.inspect(e)
     end
-  end
-
-  def handle_info(
-        {:DOWN, ref, :process, _pid, _reason},
-        %{connection_ref: connection_ref} = state
-      )
-      when ref == connection_ref do
-    {:ok, state} = connect(state)
-    {:noreply, state}
-  end
-
-  def handle_info(
-        {:DOWN, ref, :process, _pid, _reason},
-        %{consumer_specs: consumer_specs} = state
-      ) do
-    {_, consumer_specs} = pop_in(consumer_specs, [ref])
-    {:noreply, %{state | consumer_specs: consumer_specs}}
   end
 
   def terminate(_reason, %{connection: nil}) do
@@ -78,10 +80,13 @@ defmodule RailwayIpc.Connection do
     {:stop, :normal}
   end
 
-  defp connect(%{consumer_specs: consumer_specs} = state) do
-    {:ok, %{connection: connection, channel: channel}} = @stream_adapter.connect()
-    connection_ref = Process.monitor(connection.pid)
-    for {_ref, spec} <- consumer_specs, do: :ok = @stream_adapter.bind_queue(channel, spec)
-    {:ok, %{state | connection: connection, connection_ref: connection_ref, channel: channel}}
+  defp connect(state) do
+    with {:ok, connection} <- @stream_adapter.connect(),
+         {:ok, channel} <- @stream_adapter.get_channel(connection) do
+      Process.monitor(connection.pid)
+      {:ok, %{state | connection: connection, publisher_channel: channel}}
+    else
+      {:error, _error} = e -> e
+    end
   end
 end

@@ -30,10 +30,14 @@ defmodule RailwayIpc.RabbitMQ.PayloadTest do
   end
 
   test "returns an error if given bad JSON" do
-    json = %{bogus_key: "Banana"}
-           |> Jason.encode!
+    json =
+      %{bogus_key: "Banana"}
+      |> Jason.encode!()
+
     {:error, reason} = Payload.decode(json)
-    assert reason == "Missing keys: {\"bogus_key\":\"Banana\"}. Expecting type and encoded_message keys"
+
+    assert reason ==
+             "Missing keys: {\"bogus_key\":\"Banana\"}. Expecting type and encoded_message keys"
   end
 
   test "returns an error if given bad data" do
@@ -42,13 +46,15 @@ defmodule RailwayIpc.RabbitMQ.PayloadTest do
   end
 
   test "returns an error if anything other than a string given" do
-    {:error, reason} = Payload.decode(123123)
+    {:error, reason} = Payload.decode(123_123)
     assert reason == "Malformed JSON given: 123123. Must be a string"
   end
 
   test "returns an error if the module is unknown after decoding" do
-    json = %{type: "BogusModule", encoded_message: ""}
-           |> Jason.encode!
+    json =
+      %{type: "BogusModule", encoded_message: ""}
+      |> Jason.encode!()
+
     {:error, reason} = Payload.decode(json)
     assert reason == "Unknown message type BogusModule"
   end
