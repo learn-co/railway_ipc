@@ -7,8 +7,12 @@ defmodule RailwayIpc.Connection.Supervisor do
 
   def init(additional_children) do
     children = [
-                 {RailwayIpc.Connection, name: RailwayIpc.Connection}
-               ] ++ additional_children
+      {RailwayIpc.Connection, name: RailwayIpc.Connection},
+      %{
+        id: Supervisor,
+        start: {Supervisor, :start_link, [additional_children, [name: RailwayIpc.Consumers.Supervisor, strategy: :one_for_one]]}
+      }
+    ]
     Supervisor.init(children, strategy: :rest_for_one)
   end
 end
