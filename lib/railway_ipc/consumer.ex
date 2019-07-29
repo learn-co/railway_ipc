@@ -37,7 +37,7 @@ defmodule RailwayIpc.Consumer do
           @stream_adapter.ack(channel, meta.delivery_tag)
         else
           {:error, error} ->
-            Logger.error("Failed to log message #{payload}, error #{error}")
+            Logger.error("Failed to process message #{payload}, error #{error}")
             @stream_adapter.ack(channel, meta.delivery_tag)
         end
 
