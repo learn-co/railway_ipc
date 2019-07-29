@@ -10,9 +10,12 @@ defmodule RailwayIpc.Connection.Supervisor do
       {RailwayIpc.Connection, name: RailwayIpc.Connection},
       %{
         id: Supervisor,
-        start: {Supervisor, :start_link, [additional_children, [name: RailwayIpc.Consumers.Supervisor, strategy: :one_for_one]]}
+        start:
+          {Supervisor, :start_link,
+           [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
       }
     ]
-    Supervisor.init(children, strategy: :one_for_all)
+
+    Supervisor.init(children, strategy: :rest_for_all)
   end
 end

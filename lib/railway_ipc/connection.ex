@@ -56,18 +56,13 @@ defmodule RailwayIpc.Connection do
           connection: connection
         }
       ) do
-    try do
-      with {:ok, channels, channel} <-
-             @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
-           :ok <- @stream_adapter.bind_queue(channel, spec) do
-        {:reply, {:ok, channel}, %{state | consumer_channels: channels}}
-      else
-        {:error, error} ->
-          {:reply, {:error, error}, state}
-      end
-    rescue
-      e ->
-        IO.inspect(e)
+    with {:ok, channels, channel} <-
+           @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
+         :ok <- @stream_adapter.bind_queue(channel, spec) do
+      {:reply, {:ok, channel}, %{state | consumer_channels: channels}}
+    else
+      {:error, error} ->
+        {:reply, {:error, error}, state}
     end
   end
 
