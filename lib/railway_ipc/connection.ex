@@ -44,6 +44,10 @@ defmodule RailwayIpc.Connection do
     end
   end
 
+  def handle_info({:DOWN, _ref, :process, _object, _reason}, state) do
+    {:stop, :normal, state}
+  end
+
   def handle_call(:publisher_channel, _from, state = %{publisher_channel: channel}) do
     {:reply, channel, state}
   end
@@ -59,6 +63,7 @@ defmodule RailwayIpc.Connection do
     with {:ok, channels, channel} <-
            @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
          :ok <- @stream_adapter.bind_queue(channel, spec) do
+      Process.monitor(channel.pid)
       {:reply, {:ok, channel}, %{state | consumer_channels: channels}}
     else
       {:error, error} ->
@@ -79,6 +84,7 @@ defmodule RailwayIpc.Connection do
     with {:ok, connection} <- @stream_adapter.connect(),
          {:ok, channel} <- @stream_adapter.get_channel(connection) do
       Process.monitor(connection.pid)
+      Process.monitor(channel.pid)
       {:ok, %{state | connection: connection, publisher_channel: channel}}
     else
       {:error, _error} = e -> e
