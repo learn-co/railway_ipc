@@ -16,6 +16,6 @@ defmodule RailwayIpc.Connection.Supervisor do
       }
     ]
 
-    Supervisor.init(children, strategy: :rest_for_all)
+    Supervisor.init(children, strategy: :rest_for_one)
   end
 end
