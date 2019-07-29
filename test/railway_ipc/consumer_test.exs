@@ -12,19 +12,24 @@ defmodule RailwayIpc.ConsumerTest do
   setup do
     StreamMock
     |> stub(
-         :connect,
-         fn ->
-           {
-             :ok,
-             %{
-               connection: %{
-                 pid: self()
-               },
-               channel: "Channel Info"
-             }
-           }
-         end
-       )
+      :connect,
+      fn ->
+        {:ok, %{pid: self()}}
+      end
+    )
+    |> stub(
+      :get_channel,
+      fn _conn ->
+        {:ok, "Channel Info"}
+      end
+    )
+    |> stub(
+      :get_channel_from_cache,
+      fn connection, channels, consumer_module ->
+        {:ok, %{BatchConsumer => "Channel Info"}, "Channel Info"}
+      end
+    )
+
     Connection.start_link(name: Connection)
     :ok
   end
@@ -38,11 +43,17 @@ defmodule RailwayIpc.ConsumerTest do
   test "acks message when successful" do
     StreamMock
     |> expect(
-         :bind_queue,
-         fn "Channel Info", %{consumer: _pid, exchange: "experts", queue: "are_es_tee"} ->
-           :ok
-         end
-       )
+      :bind_queue,
+      fn "Channel Info",
+         %{
+           consumer_module: BatchConsumer,
+           consumer_pid: _pid,
+           exchange: "experts",
+           queue: "are_es_tee"
+         } ->
+        :ok
+      end
+    )
     |> expect(:ack, fn "Channel Info", "tag" -> :ok end)
 
     {:ok, pid} = BatchConsumer.start_link(:ok)
@@ -51,17 +62,25 @@ defmodule RailwayIpc.ConsumerTest do
     PayloadMock
     |> expect(:decode, fn ^message -> {:ok, %{message: message}} end)
 
-    send pid, {:basic_deliver, message, %{delivery_tag: "tag"}}
-    Process.sleep(100) # yey async programming
+    send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
+    # yey async programming
+    Process.sleep(100)
   end
+
   test "acks message even if there's an issue with the payload" do
     StreamMock
     |> expect(
-         :bind_queue,
-         fn "Channel Info", %{consumer: _pid, exchange: "experts", queue: "are_es_tee"} ->
-           :ok
-         end
-       )
+      :bind_queue,
+      fn "Channel Info",
+         %{
+           consumer_module: BatchConsumer,
+           consumer_pid: _pid,
+           exchange: "experts",
+           queue: "are_es_tee"
+         } ->
+        :ok
+      end
+    )
     |> expect(:ack, fn "Channel Info", "tag" -> :ok end)
 
     {:ok, pid} = BatchConsumer.start_link(:ok)
@@ -70,7 +89,8 @@ defmodule RailwayIpc.ConsumerTest do
     PayloadMock
     |> expect(:decode, fn ^message -> {:error, "Kaboom"} end)
 
-    send pid, {:basic_deliver, message, %{delivery_tag: "tag"}}
-    Process.sleep(100) # yey async programming
+    send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
+    # yey async programming
+    Process.sleep(100)
   end
 end

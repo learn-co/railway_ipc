@@ -3,8 +3,17 @@ defmodule RailwayIpc.Consumer do
     quote do
       require Logger
       use GenServer
-      @stream_adapter Application.get_env(:railway_ipc, :stream_adapter, RailwayIpc.RabbitMQ.RabbitMQAdapter)
-      @payload_converter Application.get_env(:railway_ipc, :payload_converter, RailwayIpc.RabbitMQ.Payload)
+
+      @stream_adapter Application.get_env(
+                        :railway_ipc,
+                        :stream_adapter,
+                        RailwayIpc.RabbitMQ.RabbitMQAdapter
+                      )
+      @payload_converter Application.get_env(
+                           :railway_ipc,
+                           :payload_converter,
+                           RailwayIpc.RabbitMQ.Payload
+                         )
 
       alias RailwayIpc.Connection, as: Connection
 
@@ -31,18 +40,27 @@ defmodule RailwayIpc.Consumer do
             Logger.error("Failed to log message #{payload}, error #{error}")
             @stream_adapter.ack(channel, meta.delivery_tag)
         end
+
         {:noreply, state}
       end
 
       def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
-        {:ok, channel} = Connection.consume(%{exchange: exchange, queue: queue})
+        {:ok, channel} =
+          Connection.consume(%{
+            exchange: exchange,
+            queue: queue,
+            consumer_pid: self(),
+            consumer_module: __MODULE__
+          })
+
         {:noreply, %{channel: channel}}
       end
 
       def handle_in(_payload, _meta) do
         :ok
       end
-      defoverridable [handle_in: 2]
+
+      defoverridable handle_in: 2
     end
   end
 end
