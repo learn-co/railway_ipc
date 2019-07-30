@@ -16,6 +16,7 @@ defmodule RailwayIpc.Consumer do
                          )
 
       alias RailwayIpc.Connection, as: Connection
+      alias RailwayIpc.Core.Consumer
 
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)
@@ -27,40 +28,20 @@ defmodule RailwayIpc.Consumer do
         {:ok, state, {:continue, :start_consuming}}
       end
 
-      def handle_info({:basic_consume_ok, _payload}, state) do
-        {:noreply, state}
-      end
-
-      def handle_info({:basic_deliver, payload, meta}, state = %{channel: channel}) do
-        case @payload_converter.decode(payload) do
-          {:ok, message} ->
-            message
-            |> __MODULE__.handle_in(meta)
-            |> post_processing(channel, message, meta)
-          {:error, error} ->
-            Logger.error("Failed to process message #{payload}, error #{error}")
-            @stream_adapter.ack(channel, meta.delivery_tag)
+      def handle_info({:basic_consume_ok, _payload}, state), do: {:noreply, state}
+      def handle_info({:basic_deliver, payload, %{delivery_tag: delivery_tag}}, state = %{channel: channel}) do
+        ack_function = fn ->
+          @stream_adapter.ack(channel, delivery_tag)
         end
+        reply_function = fn reply_to, reply ->
+          @stream_adapter.reply(
+            channel,
+            reply_to,
+            reply
+          )
+        end
+        Consumer.process(payload, __MODULE__, ack_function, reply_function)
         {:noreply, state}
-      end
-
-      def post_processing(:ok, channel, _message, meta) do
-        @stream_adapter.ack(channel, meta.delivery_tag)
-      end
-
-      def post_processing({:reply, reply}, channel, %{reply_to: reply_to}, meta) do
-        {:ok, reply} = @payload_converter.encode(reply)
-        @stream_adapter.reply(
-          channel,
-          reply_to,
-          reply
-        )
-        @stream_adapter.ack(channel, meta.delivery_tag)
-      end
-
-      def post_processing({:error, error}, channel, _message, meta) do
-        Logger.error("Failed to process message, error #{error}")
-        @stream_adapter.ack(channel, meta.delivery_tag)
       end
 
       def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
@@ -77,11 +58,11 @@ defmodule RailwayIpc.Consumer do
         {:noreply, %{channel: channel}}
       end
 
-      def handle_in(_payload, _meta) do
+      def handle_in(_payload) do
         :ok
       end
 
-      defoverridable handle_in: 2
+      defoverridable handle_in: 1
     end
   end
 end
