@@ -32,26 +32,47 @@ defmodule RailwayIpc.Consumer do
       end
 
       def handle_info({:basic_deliver, payload, meta}, state = %{channel: channel}) do
-        with {:ok, message} <- @payload_converter.decode(payload),
-             :ok <- __MODULE__.handle_in(message, meta) do
-          @stream_adapter.ack(channel, meta.delivery_tag)
-        else
+        case @payload_converter.decode(payload) do
+          {:ok, message} ->
+            message
+            |> __MODULE__.handle_in(meta)
+            |> post_processing(channel, message, meta)
           {:error, error} ->
             Logger.error("Failed to process message #{payload}, error #{error}")
             @stream_adapter.ack(channel, meta.delivery_tag)
         end
-
         {:noreply, state}
+      end
+
+      def post_processing(:ok, channel, _message, meta) do
+        @stream_adapter.ack(channel, meta.delivery_tag)
+      end
+
+      def post_processing({:reply, reply}, channel, %{reply_to: reply_to}, meta) do
+        {:ok, reply} = @payload_converter.encode(reply)
+        @stream_adapter.reply(
+          channel,
+          reply_to,
+          reply
+        )
+        @stream_adapter.ack(channel, meta.delivery_tag)
+      end
+
+      def post_processing({:error, error}, channel, _message, meta) do
+        Logger.error("Failed to process message, error #{error}")
+        @stream_adapter.ack(channel, meta.delivery_tag)
       end
 
       def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
         {:ok, channel} =
-          Connection.consume(%{
-            exchange: exchange,
-            queue: queue,
-            consumer_pid: self(),
-            consumer_module: __MODULE__
-          })
+          Connection.consume(
+            %{
+              exchange: exchange,
+              queue: queue,
+              consumer_pid: self(),
+              consumer_module: __MODULE__
+            }
+          )
 
         {:noreply, %{channel: channel}}
       end

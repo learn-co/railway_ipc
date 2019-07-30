@@ -8,7 +8,7 @@ defmodule RailwayIpc.ConnectionTest do
   alias RailwayIpc.StreamMock
 
   test "Connects to stream correctly" do
-    channel = %{name: "some channel"}
+    channel = %{pid: self()}
     connection = %{pid: self()}
 
     StreamMock
@@ -30,7 +30,7 @@ defmodule RailwayIpc.ConnectionTest do
   end
 
   test "consumes exchange and queue" do
-    channel = %{name: "some channel"}
+    channel = %{pid: self()}
     connection = %{pid: self()}
 
     spec = %{
@@ -75,7 +75,7 @@ defmodule RailwayIpc.ConnectionTest do
   end
 
   test "returns error if consume request fails" do
-    channel = %{name: "some channel"}
+    channel = %{pid: self()}
     connection = %{pid: self()}
     spec = %{exchange: "experts", queue: "are_es", consumer_pid: self(), consumer_module: AModule}
 

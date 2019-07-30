@@ -20,13 +20,13 @@ defmodule RailwayIpc.ConsumerTest do
     |> stub(
       :get_channel,
       fn _conn ->
-        {:ok, "Channel Info"}
+        {:ok, %{pid: self()}}
       end
     )
     |> stub(
       :get_channel_from_cache,
       fn connection, channels, consumer_module ->
-        {:ok, %{BatchConsumer => "Channel Info"}, "Channel Info"}
+        {:ok, %{BatchConsumer => %{pid: self()}}, %{pid: self()}}
       end
     )
 
@@ -44,7 +44,7 @@ defmodule RailwayIpc.ConsumerTest do
     StreamMock
     |> expect(
       :bind_queue,
-      fn "Channel Info",
+      fn %{pid: _pid},
          %{
            consumer_module: BatchConsumer,
            consumer_pid: _pid,
@@ -54,7 +54,7 @@ defmodule RailwayIpc.ConsumerTest do
         :ok
       end
     )
-    |> expect(:ack, fn "Channel Info", "tag" -> :ok end)
+    |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
     {:ok, pid} = BatchConsumer.start_link(:ok)
     message = "My Message"
@@ -71,7 +71,7 @@ defmodule RailwayIpc.ConsumerTest do
     StreamMock
     |> expect(
       :bind_queue,
-      fn "Channel Info",
+      fn %{pid: _pid},
          %{
            consumer_module: BatchConsumer,
            consumer_pid: _pid,
@@ -81,7 +81,7 @@ defmodule RailwayIpc.ConsumerTest do
         :ok
       end
     )
-    |> expect(:ack, fn "Channel Info", "tag" -> :ok end)
+    |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
     {:ok, pid} = BatchConsumer.start_link(:ok)
     message = "My Message"
