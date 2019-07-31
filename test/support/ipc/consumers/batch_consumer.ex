@@ -1,3 +1,3 @@
-defmodule RailwayIpc.Test.BatchConsumer do
-  use RailwayIpc.Consumer, exchange: "experts", queue: "are_es_tee"
+defmodule RailwayIpc.Test.BatchEventsConsumer do
+  use RailwayIpc.EventsConsumer, exchange: "experts", queue: "are_es_tee"
 end

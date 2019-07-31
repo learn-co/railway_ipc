@@ -1,7 +1,7 @@
-defmodule RailwayIpc.Core.ConsumerTest do
+defmodule RailwayIpc.Core.EventsConsumerTest do
   use ExUnit.Case
   import Mox
-  alias RailwayIpc.Core.Consumer
+  alias RailwayIpc.Core.EventsConsumer
 
   test "acks message if it processes well" do
     payload = "Working"
@@ -14,7 +14,7 @@ defmodule RailwayIpc.Core.ConsumerTest do
        )
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
-    Consumer.process(
+    EventsConsumer.process(
       payload,
       __MODULE__,
       fn ->
@@ -40,7 +40,7 @@ defmodule RailwayIpc.Core.ConsumerTest do
        )
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
-    Consumer.process(
+    EventsConsumer.process(
       payload,
       __MODULE__,
       fn ->
@@ -66,7 +66,7 @@ defmodule RailwayIpc.Core.ConsumerTest do
        )
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
-    Consumer.process(
+    EventsConsumer.process(
       payload,
       __MODULE__,
       fn ->
@@ -98,7 +98,7 @@ defmodule RailwayIpc.Core.ConsumerTest do
        )
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
-    Consumer.process(
+    EventsConsumer.process(
       payload,
       __MODULE__,
       fn ->

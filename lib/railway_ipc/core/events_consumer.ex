@@ -1,4 +1,4 @@
-defmodule RailwayIpc.Core.Consumer do
+defmodule RailwayIpc.Core.EventsConsumer do
   require Logger
   @payload_converter Application.get_env(
                        :railway_ipc,

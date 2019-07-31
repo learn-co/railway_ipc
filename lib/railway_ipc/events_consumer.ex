@@ -1,4 +1,4 @@
-defmodule RailwayIpc.Consumer do
+defmodule RailwayIpc.EventsConsumer do
   defmacro __using__(opts) do
     quote do
       require Logger
@@ -16,7 +16,7 @@ defmodule RailwayIpc.Consumer do
                          )
 
       alias RailwayIpc.Connection, as: Connection
-      alias RailwayIpc.Core.Consumer
+      alias RailwayIpc.Core.EventsConsumer
 
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)
@@ -40,7 +40,7 @@ defmodule RailwayIpc.Consumer do
             reply
           )
         end
-        Consumer.process(payload, __MODULE__, ack_function, reply_function)
+        EventsConsumer.process(payload, __MODULE__, ack_function, reply_function)
         {:noreply, state}
       end
 
