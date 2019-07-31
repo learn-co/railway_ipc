@@ -76,7 +76,7 @@ defmodule RailwayIpc.Connection do
   end
 
   def terminate(reason, %{connection: connection}) do
-    IO.inspect reason
+    IO.inspect(reason)
     @stream_adapter.close_connection(connection)
     {:stop, :normal}
   end

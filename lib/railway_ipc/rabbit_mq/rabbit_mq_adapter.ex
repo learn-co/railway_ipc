@@ -55,6 +55,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def create_queue(channel, queue, opts \\ [])
+
   def create_queue(channel, "anonymous", opts) do
     Queue.declare(channel, "", opts)
   end

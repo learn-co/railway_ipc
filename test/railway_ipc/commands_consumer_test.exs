@@ -1,10 +1,10 @@
-defmodule RailwayIpc.EventsConsumerTest do
+defmodule RailwayIpc.CommandsConsumerTest do
   use ExUnit.Case
   import Mox
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.Test.BatchEventsConsumer
+  alias RailwayIpc.Test.BatchCommandsConsumer
   alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
@@ -29,7 +29,7 @@ defmodule RailwayIpc.EventsConsumerTest do
         {
           :ok,
           %{
-            BatchEventsConsumer => %{
+            BatchCommandsConsumer => %{
               pid: self()
             }
           },
@@ -43,31 +43,41 @@ defmodule RailwayIpc.EventsConsumerTest do
   end
 
   test "starts and names process" do
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
-    found_pid = Process.whereis(BatchEventsConsumer)
+    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
+    found_pid = Process.whereis(BatchCommandsConsumer)
     assert found_pid == pid
   end
 
   test "acks message when successful" do
+    {:ok, command} =
+      Commands.DoAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
+
+    {:ok, event} = Events.AThingWasDone.new(correlation_id: "123") |> Payload.encode()
+
     StreamMock
     |> expect(
       :bind_queue,
       fn %{pid: _conn_pid},
          %{
-           consumer_module: BatchEventsConsumer,
+           consumer_module: BatchCommandsConsumer,
            consumer_pid: _pid,
-           exchange: "experts",
+           exchange: "commands_exchange",
            queue: "are_es_tee"
          } ->
         :ok
       end
     )
+    |> expect(
+      :publish,
+      fn _channel, "events_exchange", ^event ->
+        :ok
+      end
+    )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
-    {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
+    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
 
-    send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
+    send(pid, {:basic_deliver, command, %{delivery_tag: "tag"}})
     # yey async programming
     Process.sleep(100)
   end
@@ -78,9 +88,9 @@ defmodule RailwayIpc.EventsConsumerTest do
       :bind_queue,
       fn %{pid: _conn_pid},
          %{
-           consumer_module: BatchEventsConsumer,
+           consumer_module: BatchCommandsConsumer,
            consumer_pid: _pid,
-           exchange: "experts",
+           exchange: "commands_exchange",
            queue: "are_es_tee"
          } ->
         :ok
@@ -88,8 +98,9 @@ defmodule RailwayIpc.EventsConsumerTest do
     )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
+    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
+
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
     Process.sleep(100)

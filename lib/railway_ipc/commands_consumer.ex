@@ -1,4 +1,4 @@
-defmodule RailwayIpc.EventsConsumer do
+defmodule RailwayIpc.CommandsConsumer do
   defmacro __using__(opts) do
     quote do
       require Logger
@@ -11,12 +11,18 @@ defmodule RailwayIpc.EventsConsumer do
                       )
 
       alias RailwayIpc.Connection, as: Connection
-      alias RailwayIpc.Core.EventsConsumer
+      alias RailwayIpc.Core.CommandsConsumer
 
       def start_link(_state) do
-        exchange = Keyword.get(unquote(opts), :exchange)
+        commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
+        events_exchange = Keyword.get(unquote(opts), :events_exchange)
         queue = Keyword.get(unquote(opts), :queue)
-        GenServer.start_link(__MODULE__, %{exchange: exchange, queue: queue}, name: __MODULE__)
+
+        GenServer.start_link(
+          __MODULE__,
+          %{commands_exchange: commands_exchange, events_exchange: events_exchange, queue: queue},
+          name: __MODULE__
+        )
       end
 
       def init(state) do
@@ -27,17 +33,25 @@ defmodule RailwayIpc.EventsConsumer do
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{channel: channel}
+            state = %{channel: channel, events_exchange: exchange}
           ) do
         ack_function = fn ->
           @stream_adapter.ack(channel, delivery_tag)
         end
 
-        EventsConsumer.process(payload, __MODULE__, ack_function)
+        publish_function = fn event ->
+          @stream_adapter.publish(
+            channel,
+            exchange,
+            event
+          )
+        end
+
+        CommandsConsumer.process(payload, __MODULE__, ack_function, publish_function)
         {:noreply, state}
       end
 
-      def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
+      def handle_continue(:start_consuming, %{commands_exchange: exchange, queue: queue} = state) do
         {:ok, channel} =
           Connection.consume(%{
             exchange: exchange,

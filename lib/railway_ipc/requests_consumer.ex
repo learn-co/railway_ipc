@@ -1,4 +1,4 @@
-defmodule RailwayIpc.EventsConsumer do
+defmodule RailwayIpc.RequestsConsumer do
   defmacro __using__(opts) do
     quote do
       require Logger
@@ -11,7 +11,7 @@ defmodule RailwayIpc.EventsConsumer do
                       )
 
       alias RailwayIpc.Connection, as: Connection
-      alias RailwayIpc.Core.EventsConsumer
+      alias RailwayIpc.Core.RequestsConsumer
 
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)
@@ -33,7 +33,15 @@ defmodule RailwayIpc.EventsConsumer do
           @stream_adapter.ack(channel, delivery_tag)
         end
 
-        EventsConsumer.process(payload, __MODULE__, ack_function)
+        reply_function = fn reply_to, reply ->
+          @stream_adapter.reply(
+            channel,
+            reply_to,
+            reply
+          )
+        end
+
+        RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)
         {:noreply, state}
       end
 
@@ -46,7 +54,7 @@ defmodule RailwayIpc.EventsConsumer do
             consumer_module: __MODULE__
           })
 
-        {:noreply, Map.put(state, :channel, channel)}
+        {:noreply, %{channel: channel}}
       end
 
       def handle_in(_payload) do

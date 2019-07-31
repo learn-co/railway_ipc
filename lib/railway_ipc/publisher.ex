@@ -6,14 +6,11 @@ defmodule RailwayIpc.Publisher do
                         :stream_adapter,
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
-      @payload_converter Application.get_env(
-                           :railway_ipc,
-                           :payload_converter,
-                           RailwayIpc.RabbitMQ.Payload
-                         )
+
+      alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        {:ok, message} = @payload_converter.encode(message)
+        {:ok, message} = Payload.encode(message)
 
         @stream_adapter.publish(
           RailwayIpc.Connection.publisher_channel(),
@@ -24,12 +21,14 @@ defmodule RailwayIpc.Publisher do
 
       def publish_sync(message, timeout \\ :timer.seconds(5)) do
         channel = RailwayIpc.Connection.publisher_channel()
-        {:ok, %{queue: callback_queue}} = @stream_adapter.create_queue(
-          channel,
-          "anonymous",
-          exclusive: true,
-          auto_delete: true
-        )
+
+        {:ok, %{queue: callback_queue}} =
+          @stream_adapter.create_queue(
+            channel,
+            "anonymous",
+            exclusive: true,
+            auto_delete: true
+          )
 
         @stream_adapter.subscribe(channel, callback_queue)
 
@@ -39,7 +38,8 @@ defmodule RailwayIpc.Publisher do
 
         receive do
           {:basic_deliver, payload, _meta} = msg ->
-            {:ok, decoded_message} = @payload_converter.decode(payload)
+            {:ok, decoded_message} = Payload.decode(payload)
+
             if decoded_message.correlation_id == message.correlation_id do
               {:ok, decoded_message}
             end
