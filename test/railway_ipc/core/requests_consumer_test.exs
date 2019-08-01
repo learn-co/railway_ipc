@@ -5,10 +5,19 @@ defmodule RailwayIpc.Core.RequestsConsumerTest do
 
   test "acks and replies when reply tuple returned" do
     {:ok, request} =
-      Requests.RequestAThing.new(correlation_id: "123123", reply_to: "8675309")
+      Requests.RequestAThing.new(
+        correlation_id: "123123",
+        context: %{"request_context" => "req_value"},
+        reply_to: "8675309"
+      )
       |> Payload.encode()
 
-    {:ok, response} = Responses.RequestedThing.new(correlation_id: "123123") |> Payload.encode()
+    {:ok, response} =
+      Responses.RequestedThing.new(
+        correlation_id: "123123",
+        context: %{"request_context" => "req_value", "resp_key" => "resp_value"}
+      )
+      |> Payload.encode()
 
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
@@ -28,6 +37,6 @@ defmodule RailwayIpc.Core.RequestsConsumerTest do
   end
 
   def handle_in(%Requests.RequestAThing{}) do
-    {:reply, Responses.RequestedThing.new()}
+    {:reply, Responses.RequestedThing.new(context: %{"resp_key" => "resp_value"})}
   end
 end

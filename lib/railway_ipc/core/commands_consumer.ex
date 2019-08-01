@@ -21,21 +21,29 @@ defmodule RailwayIpc.Core.CommandsConsumer do
   end
 
   def post_processing({:emit, event}, original_message, ack_func, publish_func) do
-    event = Map.put(event, :correlation_id, original_message.correlation_id)
+    {:ok, event} =
+      event
+      |> update_context(original_message)
+      |> update_correlation_id(original_message)
+      |> Payload.encode()
 
-    context =
-      case event.context do
-        nil ->
-          Map.merge(%{}, original_message.context)
-
-        context ->
-          Map.merge(context, original_message.context)
-      end
-
-    Map.put(event, :context, context)
-
-    {:ok, event} = Payload.encode(event)
     publish_func.(event)
     ack_func.()
+  end
+
+  defp update_context(new_event, previous_event) do
+    new_event
+    |> update_in([Access.key!(:context)], &merge_context(&1, previous_event.context))
+  end
+
+  defp merge_context(nil, prev_context), do: prev_context
+
+  defp merge_context(new_context, prev_context) do
+    Map.merge(new_context, prev_context)
+  end
+
+  defp update_correlation_id(event, %{correlation_id: correlation_id}) do
+    event
+    |> Map.put(:correlation_id, correlation_id)
   end
 end

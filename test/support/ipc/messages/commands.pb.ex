@@ -10,10 +10,10 @@ defmodule Commands.DoAThing do
         }
   defstruct [:user_uuid, :correlation_id, :uuid, :context]
 
-  field :user_uuid, 1, type: :string
-  field :correlation_id, 2, type: :string
-  field :uuid, 3, type: :string
-  field :context, 4, repeated: true, type: Commands.DoAThing.ContextEntry, map: true
+  field(:user_uuid, 1, type: :string)
+  field(:correlation_id, 2, type: :string)
+  field(:uuid, 3, type: :string)
+  field(:context, 4, repeated: true, type: Commands.DoAThing.ContextEntry, map: true)
 end
 
 defmodule Commands.DoAThing.ContextEntry do
@@ -26,6 +26,6 @@ defmodule Commands.DoAThing.ContextEntry do
         }
   defstruct [:key, :value]
 
-  field :key, 1, type: :string
-  field :value, 2, type: :string
+  field(:key, 1, type: :string)
+  field(:value, 2, type: :string)
 end

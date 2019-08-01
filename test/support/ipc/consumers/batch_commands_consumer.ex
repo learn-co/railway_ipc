@@ -5,6 +5,6 @@ defmodule RailwayIpc.Test.BatchCommandsConsumer do
     queue: "are_es_tee"
 
   def handle_in(_payload) do
-    {:emit, Events.AThingWasDone.new}
+    {:emit, Events.AThingWasDone.new()}
   end
 end

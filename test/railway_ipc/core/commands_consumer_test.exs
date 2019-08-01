@@ -5,11 +5,16 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
 
   test "acks message if it processes well" do
     {:ok, payload} =
-      Commands.DoAThing.new(correlation_id: "123")
+      Commands.DoAThing.new(correlation_id: "123", context: %{"req_key" => "req_val"})
       |> Payload.encode()
 
-    {:ok, event} = Events.AThingWasDone.new(correlation_id: "123")
-                   |> Payload.encode()
+    {:ok, event} =
+      Events.AThingWasDone.new(
+        correlation_id: "123",
+        context: %{"req_key" => "req_val", "resp_key" => "resp_val"}
+      )
+      |> Payload.encode()
+
     {:ok, state} = Agent.start_link(fn -> %{acked: false, event_emitted: false} end)
 
     CommandsConsumer.process(
@@ -47,6 +52,6 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
   end
 
   def handle_in(%Commands.DoAThing{}) do
-    {:emit, Events.AThingWasDone.new()}
+    {:emit, Events.AThingWasDone.new(context: %{"resp_key" => "resp_val"})}
   end
 end

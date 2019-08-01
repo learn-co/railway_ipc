@@ -11,11 +11,11 @@ defmodule Requests.RequestAThing do
         }
   defstruct [:user_uuid, :correlation_id, :uuid, :reply_to, :context]
 
-  field :user_uuid, 1, type: :string
-  field :correlation_id, 2, type: :string
-  field :uuid, 3, type: :string
-  field :reply_to, 4, type: :string
-  field :context, 5, repeated: true, type: Requests.RequestAThing.ContextEntry, map: true
+  field(:user_uuid, 1, type: :string)
+  field(:correlation_id, 2, type: :string)
+  field(:uuid, 3, type: :string)
+  field(:reply_to, 4, type: :string)
+  field(:context, 5, repeated: true, type: Requests.RequestAThing.ContextEntry, map: true)
 end
 
 defmodule Requests.RequestAThing.ContextEntry do
@@ -28,6 +28,6 @@ defmodule Requests.RequestAThing.ContextEntry do
         }
   defstruct [:key, :value]
 
-  field :key, 1, type: :string
-  field :value, 2, type: :string
+  field(:key, 1, type: :string)
+  field(:value, 2, type: :string)
 end
