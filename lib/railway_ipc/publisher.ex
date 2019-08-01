@@ -10,7 +10,10 @@ defmodule RailwayIpc.Publisher do
       alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        {:ok, message} = Payload.encode(message)
+        {:ok, message} =
+          message
+          |> Map.put(:uuid, UUID.uuid1)
+          |> Payload.encode
 
         @stream_adapter.publish(
           RailwayIpc.Connection.publisher_channel(),
