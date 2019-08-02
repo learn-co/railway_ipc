@@ -64,7 +64,7 @@ defmodule RailwayIpc.Core.Payload do
 
   def decode_message(module, encoded_message) do
     encoded_message
-    |> Base.decode64!()
+    |> Base.decode64!(ignore: :whitespace)
     |> module.decode
   end
 end
