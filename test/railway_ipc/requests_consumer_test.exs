@@ -52,7 +52,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
     {:ok, request} =
       Requests.RequestAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
 
-    {:ok, response} = Responses.RequestedThing.new(correlation_id: "123") |> Payload.encode()
+    response = Responses.RequestedThing.new(correlation_id: "123")
 
     StreamMock
     |> expect(
@@ -69,7 +69,10 @@ defmodule RailwayIpc.RequestsConsumerTest do
     )
     |> expect(
       :reply,
-      fn _channel, "8675309", ^response ->
+      fn _channel, "8675309", encoded ->
+        {:ok, decoded} = encoded |> Payload.decode
+        response = Map.put(response, :uuid, decoded.uuid)
+        assert response == decoded
         :ok
       end
     )
@@ -79,7 +82,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     send(pid, {:basic_deliver, request, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(100)
+    Process.sleep(500)
   end
 
   test "acks message even if there's an issue with the payload" do
@@ -103,6 +106,6 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(100)
+    Process.sleep(500)
   end
 end

@@ -12,31 +12,31 @@ defmodule RailwayIpc.CommandsConsumerTest do
   setup do
     StreamMock
     |> stub(
-      :connect,
-      fn ->
-        {:ok, %{pid: self()}}
-      end
-    )
+         :connect,
+         fn ->
+           {:ok, %{pid: self()}}
+         end
+       )
     |> stub(
-      :get_channel,
-      fn _conn ->
-        {:ok, %{pid: self()}}
-      end
-    )
+         :get_channel,
+         fn _conn ->
+           {:ok, %{pid: self()}}
+         end
+       )
     |> stub(
-      :get_channel_from_cache,
-      fn _connection, _channels, _consumer_module ->
-        {
-          :ok,
-          %{
-            BatchCommandsConsumer => %{
-              pid: self()
-            }
-          },
-          %{pid: self()}
-        }
-      end
-    )
+         :get_channel_from_cache,
+         fn _connection, _channels, _consumer_module ->
+           {
+             :ok,
+             %{
+               BatchCommandsConsumer => %{
+                 pid: self()
+               }
+             },
+             %{pid: self()}
+           }
+         end
+       )
 
     Connection.start_link(name: Connection)
     :ok
@@ -50,52 +50,56 @@ defmodule RailwayIpc.CommandsConsumerTest do
 
   test "acks message when successful" do
     {:ok, command} =
-      Commands.DoAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
+      Commands.DoAThing.new(correlation_id: "123", reply_to: "8675309")
+      |> Payload.encode()
 
-    {:ok, event} = Events.AThingWasDone.new(correlation_id: "123") |> Payload.encode()
+    event = Events.AThingWasDone.new(correlation_id: "123")
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: BatchCommandsConsumer,
-           consumer_pid: _pid,
-           exchange: "commands_exchange",
-           queue: "are_es_tee"
-         } ->
-        :ok
-      end
-    )
+         :bind_queue,
+         fn %{pid: _conn_pid},
+            %{
+              consumer_module: BatchCommandsConsumer,
+              consumer_pid: _pid,
+              exchange: "commands_exchange",
+              queue: "are_es_tee"
+            } ->
+           :ok
+         end
+       )
     |> expect(
-      :publish,
-      fn _channel, "events_exchange", ^event ->
-        :ok
-      end
-    )
+         :publish,
+         fn _channel, "events_exchange", encoded ->
+           {:ok, decoded} = encoded |> Payload.decode
+           event = Map.put(event, :uuid, decoded.uuid)
+           assert event == decoded
+           :ok
+         end
+       )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
     {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
 
     send(pid, {:basic_deliver, command, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(100)
+    Process.sleep(500)
   end
 
   test "acks message even if there's an issue with the payload" do
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: BatchCommandsConsumer,
-           consumer_pid: _pid,
-           exchange: "commands_exchange",
-           queue: "are_es_tee"
-         } ->
-        :ok
-      end
-    )
+         :bind_queue,
+         fn %{pid: _conn_pid},
+            %{
+              consumer_module: BatchCommandsConsumer,
+              consumer_pid: _pid,
+              exchange: "commands_exchange",
+              queue: "are_es_tee"
+            } ->
+           :ok
+         end
+       )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
     {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
@@ -103,6 +107,6 @@ defmodule RailwayIpc.CommandsConsumerTest do
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(100)
+    Process.sleep(500)
   end
 end

@@ -12,12 +12,11 @@ defmodule RailwayIpc.Core.RequestsConsumerTest do
       )
       |> Payload.encode()
 
-    {:ok, response} =
+    response =
       Responses.RequestedThing.new(
         correlation_id: "123123",
         context: %{"request_context" => "req_value", "resp_key" => "resp_value"}
       )
-      |> Payload.encode()
 
     {:ok, state} = Agent.start_link(fn -> %{acked: false, replied: false} end)
 
@@ -27,7 +26,7 @@ defmodule RailwayIpc.Core.RequestsConsumerTest do
       fn ->
         Agent.update(state, &Map.put(&1, :acked, true))
       end,
-      fn "8675309", ^response ->
+      fn ^response, "8675309" ->
         Agent.update(state, &Map.put(&1, :replied, true))
       end
     )

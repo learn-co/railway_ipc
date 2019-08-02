@@ -21,13 +21,10 @@ defmodule RailwayIpc.Core.CommandsConsumer do
   end
 
   def post_processing({:emit, event}, original_message, ack_func, publish_func) do
-    {:ok, event} =
       event
       |> update_context(original_message)
       |> update_correlation_id(original_message)
-      |> Payload.encode()
-
-    publish_func.(event)
+      |> publish_func.()
     ack_func.()
   end
 

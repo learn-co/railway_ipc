@@ -33,12 +33,8 @@ defmodule RailwayIpc.RequestsConsumer do
           @stream_adapter.ack(channel, delivery_tag)
         end
 
-        reply_function = fn reply_to, reply ->
-          @stream_adapter.reply(
-            channel,
-            reply_to,
-            reply
-          )
+        reply_function = fn reply, reply_to ->
+          RailwayIpc.Publisher.reply(channel, reply_to, reply)
         end
 
         RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)

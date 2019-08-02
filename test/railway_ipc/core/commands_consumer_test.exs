@@ -8,12 +8,11 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
       Commands.DoAThing.new(correlation_id: "123", context: %{"req_key" => "req_val"})
       |> Payload.encode()
 
-    {:ok, event} =
+    event =
       Events.AThingWasDone.new(
         correlation_id: "123",
         context: %{"req_key" => "req_val", "resp_key" => "resp_val"}
       )
-      |> Payload.encode()
 
     {:ok, state} = Agent.start_link(fn -> %{acked: false, event_emitted: false} end)
 

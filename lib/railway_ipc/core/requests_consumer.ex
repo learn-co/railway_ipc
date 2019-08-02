@@ -16,18 +16,15 @@ defmodule RailwayIpc.Core.RequestsConsumer do
   end
 
   def post_processing(
-        {:reply, event},
+        {:reply, reply},
         %{reply_to: reply_to} = original_message,
         ack_func,
         reply_func
       ) do
-    {:ok, event} =
-      event
+      reply
       |> update_context(original_message)
       |> update_correlation_id(original_message)
-      |> Payload.encode()
-
-    reply_func.(reply_to, event)
+      |> reply_func.(reply_to)
     ack_func.()
   end
 

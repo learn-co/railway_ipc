@@ -43,7 +43,7 @@ defmodule RailwayIpc.PublisherTest do
     |> stub(
       :publish,
       fn (_channel,_exchange, message) ->
-        {:ok, decoded} = Payload.decode(message)
+        {:ok, _decoded} = Payload.decode(message)
       end
     )
     :ok

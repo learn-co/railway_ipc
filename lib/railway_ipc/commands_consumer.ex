@@ -40,11 +40,7 @@ defmodule RailwayIpc.CommandsConsumer do
         end
 
         publish_function = fn event ->
-          @stream_adapter.publish(
-            channel,
-            exchange,
-            event
-          )
+          RailwayIpc.Publisher.publish(channel, exchange, event)
         end
 
         CommandsConsumer.process(payload, __MODULE__, ack_function, publish_function)

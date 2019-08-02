@@ -1,4 +1,36 @@
 defmodule RailwayIpc.Publisher do
+  @stream_adapter Application.get_env(
+                    :railway_ipc,
+                    :stream_adapter,
+                    RailwayIpc.RabbitMQ.RabbitMQAdapter
+                  )
+  alias RailwayIpc.Core.Payload
+  def publish(channel, exchange, message) do
+    {:ok, message} =
+      message
+      |> Map.put(:uuid, UUID.uuid1)
+      |> Payload.encode
+
+    @stream_adapter.publish(
+      channel,
+      exchange,
+      message
+    )
+  end
+
+  def reply(channel, queue, reply) do
+    {:ok, reply} =
+      reply
+      |> Map.put(:uuid, UUID.uuid1)
+      |> Payload.encode
+
+    @stream_adapter.reply(
+      channel,
+      queue,
+      reply
+    )
+  end
+
   defmacro __using__(opts) do
     quote do
       @stream_adapter Application.get_env(
@@ -10,16 +42,9 @@ defmodule RailwayIpc.Publisher do
       alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        {:ok, message} =
-          message
-          |> Map.put(:uuid, UUID.uuid1)
-          |> Payload.encode
-
-        @stream_adapter.publish(
-          RailwayIpc.Connection.publisher_channel(),
-          unquote(Keyword.get(opts, :exchange)),
-          message
-        )
+        channel = RailwayIpc.Connection.publisher_channel()
+        exchange = unquote(Keyword.get(opts, :exchange))
+        RailwayIpc.Publisher.publish(channel, exchange, message)
       end
 
       def publish_sync(message, timeout \\ :timer.seconds(5)) do
