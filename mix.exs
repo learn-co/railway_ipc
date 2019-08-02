@@ -31,7 +31,8 @@ defmodule RailwayIpc.MixProject do
       {:protobuf, "~> 0.5.3"},
       {:google_protos, "~> 0.1"},
       {:jason, "~> 1.1"},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:elixir_uuid, "~> 1.2"}
     ]
   end
 

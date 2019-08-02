@@ -1,4 +1,4 @@
-defmodule RailwayIpc.RabbitMQ.Payload do
+defmodule RailwayIpc.Core.Payload do
   @behaviour RailwayIpc.PayloadBehaviour
   import RailwayIpc.Utils, only: [module_defined?: 1]
 

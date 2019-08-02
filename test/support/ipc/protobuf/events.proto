@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package events;
+
+message AThingWasDone {
+  string user_uuid = 1;
+  string correlation_id = 2;
+  string uuid = 3;
+  map<string, string> context = 4;
+}
+
+message FailedToDoAThing {
+  string user_uuid = 1;
+  string correlation_id = 2;
+  string uuid = 3;
+  map<string, string> context = 4;
+}
+

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package responses;
+
+message RequestedThing {
+  string user_uuid = 1;
+  string correlation_id = 2;
+  string uuid = 3;
+  map<string, string> context = 4;
+}

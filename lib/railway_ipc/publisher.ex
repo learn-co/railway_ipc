@@ -1,4 +1,34 @@
 defmodule RailwayIpc.Publisher do
+  @stream_adapter Application.get_env(
+                    :railway_ipc,
+                    :stream_adapter,
+                    RailwayIpc.RabbitMQ.RabbitMQAdapter
+                  )
+  alias RailwayIpc.Core.Payload
+  def publish(channel, exchange, message) do
+    @stream_adapter.publish(
+      channel,
+      exchange,
+      prepare_message(message)
+    )
+  end
+
+  def reply(channel, queue, reply) do
+    @stream_adapter.reply(
+      channel,
+      queue,
+      prepare_message(reply)
+    )
+  end
+
+  def prepare_message(message) do
+    {:ok, message} =
+      message
+      |> Map.put(:uuid, UUID.uuid1)
+      |> Payload.encode
+    message
+  end
+
   defmacro __using__(opts) do
     quote do
       @stream_adapter Application.get_env(
@@ -6,20 +36,43 @@ defmodule RailwayIpc.Publisher do
                         :stream_adapter,
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
-      @payload_converter Application.get_env(
-                           :railway_ipc,
-                           :payload_converter,
-                           RailwayIpc.RabbitMQ.Payload
-                         )
+
+      alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        {:ok, message} = @payload_converter.encode(message)
+        channel = RailwayIpc.Connection.publisher_channel()
+        exchange = unquote(Keyword.get(opts, :exchange))
+        RailwayIpc.Publisher.publish(channel, exchange, message)
+      end
 
-        @stream_adapter.publish(
-          RailwayIpc.Connection.publisher_channel(),
-          unquote(Keyword.get(opts, :exchange)),
-          message
-        )
+      def publish_sync(message, timeout \\ :timer.seconds(5)) do
+        channel = RailwayIpc.Connection.publisher_channel()
+
+        {:ok, %{queue: callback_queue}} =
+          @stream_adapter.create_queue(
+            channel,
+            "anonymous",
+            exclusive: true,
+            auto_delete: true
+          )
+
+        @stream_adapter.subscribe(channel, callback_queue)
+
+        message
+        |> Map.put(:reply_to, callback_queue)
+        |> publish
+
+        receive do
+          {:basic_deliver, payload, _meta} = msg ->
+            {:ok, decoded_message} = Payload.decode(payload)
+
+            if decoded_message.correlation_id == message.correlation_id do
+              {:ok, decoded_message}
+            end
+        after
+          timeout ->
+            {:error, :timeout}
+        end
       end
     end
   end

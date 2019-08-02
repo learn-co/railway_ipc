@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package requests;
+
+message RequestAThing {
+  string user_uuid = 1;
+  string correlation_id = 2;
+  string uuid = 3;
+  string reply_to = 4;
+  map<string, string> context = 5;
+}

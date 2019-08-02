@@ -39,15 +39,29 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
           consumer_pid: consumer
         }
       ) do
-    with {:ok, _} <- Queue.declare(channel, queue, durable: true),
+    with {:ok, _} <- create_queue(channel, queue, durable: true),
          :ok <- Exchange.declare(channel, exchange, :fanout, durable: true),
          :ok <- Queue.bind(channel, queue, exchange),
-         {:ok, _consumer_tag} <- Basic.consume(channel, queue, consumer) do
+         {:ok, _consumer_tag} <- subscribe(channel, queue, consumer) do
       :ok
     else
       error ->
         {:error, error}
     end
+  end
+
+  def subscribe(channel, queue, consumer \\ self()) do
+    Basic.consume(channel, queue, consumer)
+  end
+
+  def create_queue(channel, queue, opts \\ [])
+
+  def create_queue(channel, "anonymous", opts) do
+    Queue.declare(channel, "", opts)
+  end
+
+  def create_queue(channel, queue, opts) do
+    Queue.declare(channel, queue, opts)
   end
 
   def ack(channel, delivery_tag) do
@@ -56,6 +70,10 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
 
   def publish(channel, exchange, payload) do
     Basic.publish(channel, exchange, "", payload)
+  end
+
+  def reply(channel, queue, payload) do
+    Basic.publish(channel, "", queue, payload)
   end
 
   def close_connection(nil) do
