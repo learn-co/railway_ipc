@@ -29,6 +29,13 @@ defmodule RailwayIpc.Core.PayloadTest do
     assert decoded.uuid == "123123"
   end
 
+  test "properly decodes message with whitespace" do
+    encoded = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Commands::DoAThing\"}\n"
+    {:ok, decoded} = Payload.decode(encoded)
+
+    assert decoded.__struct__ == Commands.DoAThing
+  end
+
   test "returns an error if given bad JSON" do
     json =
       %{bogus_key: "Banana"}
