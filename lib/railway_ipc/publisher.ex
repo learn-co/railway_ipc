@@ -6,29 +6,27 @@ defmodule RailwayIpc.Publisher do
                   )
   alias RailwayIpc.Core.Payload
   def publish(channel, exchange, message) do
-    {:ok, message} =
-      message
-      |> Map.put(:uuid, UUID.uuid1)
-      |> Payload.encode
-
     @stream_adapter.publish(
       channel,
       exchange,
-      message
+      prepare_message(message)
     )
   end
 
   def reply(channel, queue, reply) do
-    {:ok, reply} =
-      reply
-      |> Map.put(:uuid, UUID.uuid1)
-      |> Payload.encode
-
     @stream_adapter.reply(
       channel,
       queue,
-      reply
+      prepare_message(reply)
     )
+  end
+
+  def prepare_message(message) do
+    {:ok, message} =
+      message
+      |> Map.put(:uuid, UUID.uuid1)
+      |> Payload.encode
+    message
   end
 
   defmacro __using__(opts) do

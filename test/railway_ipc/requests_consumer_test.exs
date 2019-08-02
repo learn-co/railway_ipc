@@ -82,7 +82,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     send(pid, {:basic_deliver, request, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(500)
+    Process.sleep(100)
   end
 
   test "acks message even if there's an issue with the payload" do
@@ -106,6 +106,6 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(500)
+    Process.sleep(100)
   end
 end
