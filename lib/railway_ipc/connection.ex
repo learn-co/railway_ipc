@@ -6,18 +6,23 @@ defmodule RailwayIpc.Connection do
                   )
 
   defstruct connection: nil,
+            stream_connection_url: nil,
             publisher_channel: nil,
             consumer_channels: %{}
 
   use GenServer
   require Logger
 
-  def start_link(opts \\ []) do
+  def start_link do
+    GenServer.start_link(__MODULE__, :ok)
+  end
+
+  def start_link(opts) when is_list(opts) do
     GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  def init(:ok) do
-    {:ok, %__MODULE__{}, {:continue, :open_connection}}
+  def start_link(stream_connection_url, opts \\ []) do
+    GenServer.start_link(__MODULE__, stream_connection_url, opts)
   end
 
   def publisher_channel(connection \\ __MODULE__) do
@@ -26,6 +31,14 @@ defmodule RailwayIpc.Connection do
 
   def consume(connection \\ __MODULE__, spec) do
     GenServer.call(connection, {:consume, spec})
+  end
+
+  def init(:ok) do
+    {:ok, %__MODULE__{}, {:continue, :open_connection}}
+  end
+
+  def init(stream_connection_url) do
+    {:ok, %__MODULE__{stream_connection_url: stream_connection_url}, {:continue, :open_connection}}
   end
 
   def handle_continue(:open_connection, state) do
@@ -80,6 +93,16 @@ defmodule RailwayIpc.Connection do
     {:stop, :normal}
   end
 
+  defp connect(%__MODULE__{stream_connection_url: connection_url} = state) when not is_nil(connection_url)  do
+    with {:ok, connection} <- @stream_adapter.connect(connection_url),
+         {:ok, channel} <- @stream_adapter.get_channel(connection) do
+      Process.monitor(connection.pid)
+      Process.monitor(channel.pid)
+      {:ok, %{state | connection: connection, publisher_channel: channel}}
+    else
+      {:error, _error} = e -> e
+    end
+  end
   defp connect(state) do
     with {:ok, connection} <- @stream_adapter.connect(),
          {:ok, channel} <- @stream_adapter.get_channel(connection) do

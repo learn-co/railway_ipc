@@ -14,6 +14,16 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     end
   end
 
+  def connect(rabbitmq_connection_url) do
+    with {:ok, connection} when not is_nil(connection) <-
+           Connection.open(rabbitmq_connection_url) do
+      {:ok, connection}
+    else
+      error ->
+        {:error, error}
+    end
+  end
+
   def get_channel_from_cache(connection, channels, consumer_module) do
     with {:cache, channel} when is_nil(channel) <- {:cache, Map.get(channels, consumer_module)},
          {:ok, channel} <- get_channel(connection) do
