@@ -17,12 +17,12 @@ defmodule RailwayIpc.Connection do
     GenServer.start_link(__MODULE__, :ok)
   end
 
-  def start_link(opts) when is_list(opts) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+  def start_link([stream_connection_url, opts]) do
+    GenServer.start_link(__MODULE__, stream_connection_url, opts)
   end
 
-  def start_link(stream_connection_url, opts \\ []) do
-    GenServer.start_link(__MODULE__, stream_connection_url, opts)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
   def publisher_channel(connection \\ __MODULE__) do
@@ -38,7 +38,8 @@ defmodule RailwayIpc.Connection do
   end
 
   def init(stream_connection_url) do
-    {:ok, %__MODULE__{stream_connection_url: stream_connection_url}, {:continue, :open_connection}}
+    {:ok, %__MODULE__{stream_connection_url: stream_connection_url},
+     {:continue, :open_connection}}
   end
 
   def handle_continue(:open_connection, state) do
@@ -93,7 +94,8 @@ defmodule RailwayIpc.Connection do
     {:stop, :normal}
   end
 
-  defp connect(%__MODULE__{stream_connection_url: connection_url} = state) when not is_nil(connection_url)  do
+  defp connect(%__MODULE__{stream_connection_url: connection_url} = state)
+       when not is_nil(connection_url) do
     with {:ok, connection} <- @stream_adapter.connect(connection_url),
          {:ok, channel} <- @stream_adapter.get_channel(connection) do
       Process.monitor(connection.pid)
@@ -103,6 +105,7 @@ defmodule RailwayIpc.Connection do
       {:error, _error} = e -> e
     end
   end
+
   defp connect(state) do
     with {:ok, connection} <- @stream_adapter.connect(),
          {:ok, channel} <- @stream_adapter.get_channel(connection) do

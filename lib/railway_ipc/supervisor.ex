@@ -5,22 +5,25 @@ defmodule RailwayIpc.Connection.Supervisor do
     Supervisor.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def start_link(additional_children) when is_list(additional_children) do
-    Supervisor.start_link(__MODULE__, additional_children, name: __MODULE__)
+  def start_link([stream_connection_url, additional_children])
+      when is_binary(stream_connection_url) do
+    Supervisor.start_link(__MODULE__, {stream_connection_url, additional_children},
+      name: __MODULE__
+    )
   end
 
-  def start_link(stream_connection_url, additional_children \\ []) do
-    Supervisor.start_link(__MODULE__, {stream_connection_url, additional_children}, name: __MODULE__)
+  def start_link(additional_children) do
+    Supervisor.start_link(__MODULE__, additional_children, name: __MODULE__)
   end
 
   def init({stream_connection_url, additional_children}) do
     children = [
-      {RailwayIpc.Connection, [stream_connection_url, name: RailwayIpc.Connection]},
+      {RailwayIpc.Connection, [stream_connection_url, [name: RailwayIpc.Connection]]},
       %{
         id: Supervisor,
         start:
           {Supervisor, :start_link,
-          [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
+           [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
       }
     ]
 
@@ -34,7 +37,7 @@ defmodule RailwayIpc.Connection.Supervisor do
         id: Supervisor,
         start:
           {Supervisor, :start_link,
-          [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
+           [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
       }
     ]
 

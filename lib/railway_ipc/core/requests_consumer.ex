@@ -21,10 +21,11 @@ defmodule RailwayIpc.Core.RequestsConsumer do
         ack_func,
         reply_func
       ) do
-      reply
-      |> update_context(original_message)
-      |> update_correlation_id(original_message)
-      |> reply_func.(reply_to)
+    reply
+    |> update_context(original_message)
+    |> update_correlation_id(original_message)
+    |> reply_func.(reply_to)
+
     ack_func.()
   end
 

@@ -5,6 +5,7 @@ defmodule RailwayIpc.Publisher do
                     RailwayIpc.RabbitMQ.RabbitMQAdapter
                   )
   alias RailwayIpc.Core.Payload
+
   def publish(channel, exchange, message) do
     @stream_adapter.publish(
       channel,
@@ -24,8 +25,9 @@ defmodule RailwayIpc.Publisher do
   def prepare_message(message) do
     {:ok, message} =
       message
-      |> Map.put(:uuid, UUID.uuid1)
-      |> Payload.encode
+      |> Map.put(:uuid, UUID.uuid1())
+      |> Payload.encode()
+
     message
   end
 
