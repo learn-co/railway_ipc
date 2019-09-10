@@ -1,6 +1,7 @@
 defmodule RailwayIpc.UtilsTest do
   use ExUnit.Case
   alias RailwayIpc.Utils
+
   test "returns false if module not defined" do
     refute Utils.module_defined?(Something.That.Is.Not.Defined)
     refute Utils.module_defined?(Something)
