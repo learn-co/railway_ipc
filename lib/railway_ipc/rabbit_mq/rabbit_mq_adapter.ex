@@ -10,7 +10,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
 
   def connect do
     with {:ok, connection} when not is_nil(connection) <-
-           Connection.open(connection_url) do
+           Connection.open(connection_url()) do
       {:ok, connection}
     else
       error ->
