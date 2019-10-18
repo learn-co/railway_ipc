@@ -5,3 +5,4 @@ for app <- Application.spec(:railway_ipc, :applications) do
 end
 
 ExUnit.start()
+Ecto.Adapters.SQL.Sandbox.mode(RailwayIpc.Dev.Repo, :manual)

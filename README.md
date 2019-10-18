@@ -15,7 +15,16 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/railway_ipc](https://hexdocs.pm/railway_ipc).
+## Getting Started
 
+Run the mix task to generate the migrations to add the published messages and consumed messages tables to your app's DB:
+
+```bash
+mix railway_ipc.generate_migrations
+mix ecto.migrate
+```
+
+Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
+and published on [HexDocs](https://hexdocs.pm).
+Once published, the docs can
+be found at [https://hexdocs.pm/railway_ipc](https://hexdocs.pm/railway_ipc).

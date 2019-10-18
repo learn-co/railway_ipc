@@ -2,6 +2,7 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
   use ExUnit.Case
   alias RailwayIpc.Core.CommandsConsumer
   alias RailwayIpc.Core.Payload
+  import Mox
 
   test "acks message if it processes well" do
     {:ok, payload} =
@@ -16,9 +17,26 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
 
     {:ok, state} = Agent.start_link(fn -> %{acked: false, event_emitted: false} end)
 
+    commands_exchange = "commands:exchange"
+    queue = "queue"
+
+    handle_module = __MODULE__
+    message_module = RailwayIpc.Core.CommandMessage
+
+    RailwayIpcMock
+    |> expect(:process_consumed_message, fn ^payload,
+                                            ^handle_module,
+                                            ^commands_exchange,
+                                            ^queue,
+                                            ^message_module ->
+      {:emit, %RailwayIpc.MessageConsumption{outbound_message: event}}
+    end)
+
     CommandsConsumer.process(
       payload,
       __MODULE__,
+      commands_exchange,
+      queue,
       fn ->
         Agent.update(state, &Map.put(&1, :acked, true))
       end,
@@ -35,9 +53,27 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
     payload = "{\"encoded_message\":\"\",\"type\":\"Commands::SomeUnknownThing\"}"
     {:ok, state} = Agent.start_link(fn -> %{acked: false, event_emitted: false} end)
 
+    commands_exchange = "commands:exchange"
+    queue = "queue"
+
+    handle_module = __MODULE__
+    message_module = RailwayIpc.Core.CommandMessage
+
+    RailwayIpcMock
+    |> expect(:process_consumed_message, fn ^payload,
+                                            ^handle_module,
+                                            ^commands_exchange,
+                                            ^queue,
+                                            ^message_module ->
+      {:error,
+       %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
+    end)
+
     CommandsConsumer.process(
       payload,
       __MODULE__,
+      commands_exchange,
+      queue,
       fn ->
         Agent.update(state, &Map.put(&1, :acked, true))
       end,

@@ -23,17 +23,18 @@ defmodule RailwayIpc.EventsConsumer do
         {:ok, state, {:continue, :start_consuming}}
       end
 
-      def handle_info({:basic_consume_ok, _payload}, state), do: {:noreply, state}
+      def handle_info({:basic_consume_ok, _payload}, %{exchange: exchange, queue: queue} = state),
+        do: {:noreply, state}
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{channel: channel}
+            state = %{channel: channel, exchange: exchange, queue: queue}
           ) do
         ack_function = fn ->
           @stream_adapter.ack(channel, delivery_tag)
         end
 
-        EventsConsumer.process(payload, __MODULE__, ack_function)
+        EventsConsumer.process(payload, __MODULE__, exchange, queue, ack_function)
         {:noreply, state}
       end
 
