@@ -4,13 +4,19 @@ defmodule RailwayIpc.Publisher do
                     :stream_adapter,
                     RailwayIpc.RabbitMQ.RabbitMQAdapter
                   )
+
   alias RailwayIpc.Core.Payload
+  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc)
 
   def publish(channel, exchange, message) do
+    {:ok, %{encoded_message: encoded_message}} =
+      message
+      |> @railway_ipc.process_published_message(exchange)
+
     @stream_adapter.publish(
       channel,
       exchange,
-      prepare_message(message)
+      encoded_message
     )
   end
 

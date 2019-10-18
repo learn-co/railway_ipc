@@ -8,6 +8,7 @@ defmodule RailwayIpc.EventsConsumerTest do
   alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
+  alias RailwayIpc.MessageConsumption
 
   setup do
     StreamMock
@@ -49,15 +50,20 @@ defmodule RailwayIpc.EventsConsumerTest do
   end
 
   test "acks message when successful" do
+    consumer_module = BatchEventsConsumer
+    exchange = "experts"
+    queue = "are_es_tee"
+    message_module = RailwayIpc.Core.EventMessage
+
     StreamMock
     |> expect(
       :bind_queue,
       fn %{pid: _conn_pid},
          %{
-           consumer_module: BatchEventsConsumer,
+           consumer_module: ^consumer_module,
            consumer_pid: _pid,
-           exchange: "experts",
-           queue: "are_es_tee"
+           exchange: ^exchange,
+           queue: ^queue
          } ->
         :ok
       end
@@ -67,21 +73,35 @@ defmodule RailwayIpc.EventsConsumerTest do
     {:ok, pid} = BatchEventsConsumer.start_link(:ok)
     {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
 
+    RailwayIpcMock
+    |> expect(:process_consumed_message, fn ^message,
+                                            ^consumer_module,
+                                            ^exchange,
+                                            ^queue,
+                                            ^message_module ->
+      {:ok, %MessageConsumption{}}
+    end)
+
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
     Process.sleep(100)
   end
 
   test "acks message even if there's an issue with the payload" do
+    consumer_module = BatchEventsConsumer
+    exchange = "experts"
+    queue = "are_es_tee"
+    message_module = RailwayIpc.Core.EventMessage
+
     StreamMock
     |> expect(
       :bind_queue,
       fn %{pid: _conn_pid},
          %{
-           consumer_module: BatchEventsConsumer,
+           consumer_module: ^consumer_module,
            consumer_pid: _pid,
-           exchange: "experts",
-           queue: "are_es_tee"
+           exchange: ^exchange,
+           queue: ^queue
          } ->
         :ok
       end
@@ -90,6 +110,16 @@ defmodule RailwayIpc.EventsConsumerTest do
 
     {:ok, pid} = BatchEventsConsumer.start_link(:ok)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
+
+    RailwayIpcMock
+    |> expect(:process_consumed_message, fn ^message,
+                                            ^consumer_module,
+                                            ^exchange,
+                                            ^queue,
+                                            ^message_module ->
+      {:ok, %MessageConsumption{}}
+    end)
+
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
     # yey async programming
     Process.sleep(100)

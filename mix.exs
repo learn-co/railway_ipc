@@ -32,13 +32,16 @@ defmodule RailwayIpc.MixProject do
       {:google_protos, "~> 0.1"},
       {:jason, "~> 1.1"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"},
+      {:ex_machina, "~> 2.3", only: :test}
     ]
   end
 
   defp aliases do
     [
-      test: "test --no-start"
+      test: ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
   end
 
