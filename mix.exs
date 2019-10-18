@@ -4,7 +4,7 @@ defmodule RailwayIpc.MixProject do
   def project do
     [
       app: :railway_ipc,
-      version: "0.1.5",
+      version: "0.1.6",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -32,7 +32,9 @@ defmodule RailwayIpc.MixProject do
       {:google_protos, "~> 0.1"},
       {:jason, "~> 1.1"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:elixir_uuid, "~> 1.2"}
+      {:elixir_uuid, "~> 1.2"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"}
     ]
   end
 
