@@ -30,7 +30,7 @@ defmodule RailwayIpc.MessagePublishingTest do
       message = Events.AThingWasDone.new(%{user_uuid: Ecto.UUID.generate()})
       exchange = "exchange"
       published_message_record = build(:published_message)
-      
+
       RailwayIpc.PersistenceMock
       |> expect(:insert_published_message, fn ^message, ^exchange ->
         {:ok, published_message_record}

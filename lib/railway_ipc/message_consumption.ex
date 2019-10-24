@@ -32,10 +32,11 @@ defmodule RailwayIpc.MessageConsumption do
   def decode_message({:ok, message_consumption}, message_module) do
     case do_decode_message(message_consumption, message_module) do
       {:ok, message} ->
-        {:ok, update(message_consumption, %{inbound_message: message})}
-
-      {status, _reason} = result ->
-        {status, update(message_consumption, %{result: Result.new(result)})}
+        handle_decode_success(message_consumption, message)
+      {:unknown_message_type, %{type: type} = message} ->
+        handle_unknown_message_type(message_consumption, message, type)
+      {:error, error} ->
+        handle_decode_failure(message_consumption, error)
     end
   end
 
@@ -46,14 +47,25 @@ defmodule RailwayIpc.MessageConsumption do
   def persist_message({:ok, message_consumption}) do
     case MessageAccess.persist_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
-        {:ok, update(message_consumption, %{persisted_message: persisted_message})}
+        handle_persistence_success(message_consumption, persisted_message)
+
       {status, _reason} = result ->
         {status, update(message_consumption, %{result: Result.new(result)})}
     end
   end
 
-  def persist_message({status, message_consumption}) do
-    {status, message_consumption}
+  def persist_message({:skip, message_consumption}) do
+    case MessageAccess.persist_consumed_message(message_consumption) do
+      {:ok, persisted_message} ->
+        {:skip, update(message_consumption, %{persisted_message: persisted_message})}
+
+      {status, _reason} = result ->
+        {status, update(message_consumption, %{result: Result.new(result)})}
+    end
+  end
+
+  def persist_message({:error, message_consumption}) do
+    {:error, message_consumption}
   end
 
   def handle_message(
@@ -66,14 +78,10 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case handle_module.handle_in(decoded_message) do
       :ok ->
-        {:ok,
-         update(message_consumption, %{
-           result: Result.new(%{status: :handled}),
-           persisted_message: mark_persisted_message_handled(persisted_message)
-         })}
+      handle_processed_success(message_consumption, persisted_message)
 
       {:error, _error} = result ->
-        {:error, update(message_consumption, %{result: Result.new(result)})}
+        handle_error(message_consumption, result)
     end
   end
 
@@ -87,11 +95,7 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case CommandMessageHandler.handle_message(decoded_message, handle_module) do
       :ok ->
-        {:ok,
-         update(message_consumption, %{
-           result: Result.new(%{status: :handled}),
-           persisted_message: mark_persisted_message_handled(persisted_message)
-         })}
+      handle_processed_success(message_consumption, persisted_message)
 
       {:emit, event} ->
         {:emit,
@@ -102,7 +106,7 @@ defmodule RailwayIpc.MessageConsumption do
          })}
 
       {:error, _error} = result ->
-        {:error, update(message_consumption, %{result: Result.new(result)})}
+        handle_error(message_consumption, result)
     end
   end
 
@@ -117,5 +121,39 @@ defmodule RailwayIpc.MessageConsumption do
 
   defp mark_persisted_message_handled(persisted_message) do
     MessageAccess.consumed_message_success(persisted_message)
+  end
+
+  defp handle_decode_success(message_consumption, inbound_message) do
+    {:ok, update(message_consumption, %{inbound_message: inbound_message})}
+  end
+
+  defp handle_unknown_message_type(message_consumption, inbound_message, type) do
+    {:skip,
+     update(message_consumption, %{
+       inbound_message: inbound_message,
+       result:
+         Result.new(%{status: :skip, reason: "Unknown message of type: #{type}"})
+     })}
+  end
+
+  defp handle_decode_failure(message_consumption, error) do
+    {:error,
+     update(message_consumption, %{result: Result.new(%{status: :error, reason: error})})}
+  end
+
+  defp handle_persistence_success(message_consumption, persisted_message) do
+    {:ok, update(message_consumption, %{persisted_message: persisted_message})}
+  end
+
+  defp handle_processed_success(message_consumption, persisted_message) do
+    {:ok,
+     update(message_consumption, %{
+       result: Result.new(%{status: :handled}),
+       persisted_message: mark_persisted_message_handled(persisted_message)
+     })}
+  end
+
+  defp handle_error(message_consumption, result) do
+    {:error, update(message_consumption, %{result: Result.new(result)})}
   end
 end

@@ -2,6 +2,8 @@ defmodule RailwayIpc.Core.Payload do
   @behaviour RailwayIpc.PayloadBehaviour
   import RailwayIpc.Utils, only: [module_defined?: 1]
 
+  alias RailwayIpc.Core.GenericMessage
+
   def decode(payload) when not is_binary(payload) do
     {:error, "Malformed JSON given: #{payload}. Must be a string"}
   end
@@ -22,9 +24,9 @@ defmodule RailwayIpc.Core.Payload do
       {:decode_json, {:error, _}} ->
         {:error, "Malformed JSON given: #{payload}"}
 
-      {:check_module_exists, false} ->
-        %{"type" => type} = Jason.decode!(payload)
-        {:error, "Unknown message type #{type}"}
+      {:check_module_exists, false, } ->
+        %{"encoded_message" => encoded_message, "type" => type} = Jason.decode!(payload)
+        {:unknown_message_type, decode_message(GenericMessage, encoded_message), type}
     end
   end
 

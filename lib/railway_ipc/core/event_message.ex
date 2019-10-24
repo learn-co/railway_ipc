@@ -1,5 +1,5 @@
 defmodule RailwayIpc.Core.EventMessage do
-  defstruct ~w[encoded_message decoded_message]a
+  defstruct ~w[encoded_message decoded_message type]a
 
   alias RailwayIpc.Core.Payload
 
@@ -15,6 +15,10 @@ defmodule RailwayIpc.Core.EventMessage do
       {:ok, decoded_message} ->
         message = update(command_message, %{decoded_message: decoded_message})
         {:ok, message}
+
+      {:unknown_message_type, decoded_message, type} ->
+        message = update(command_message, %{decoded_message: decoded_message, type: type})
+        {:unknown_message_type, message}
 
       {:error, error} ->
         {:error, error}

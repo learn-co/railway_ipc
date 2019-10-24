@@ -17,6 +17,7 @@ defmodule RailwayIpc.Publisher do
           exchange,
           encoded_message
         )
+
       {:error, error} ->
         Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
     end

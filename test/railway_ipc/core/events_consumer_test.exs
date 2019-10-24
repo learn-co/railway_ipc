@@ -55,7 +55,8 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
                                             ^exchange,
                                             ^queue,
                                             ^message_module ->
-      {:error, %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
+      {:error,
+       %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)
 
     EventsConsumer.process(
@@ -87,7 +88,8 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
                                             ^exchange,
                                             ^queue,
                                             ^message_module ->
-      {:ok, %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
+      {:ok,
+       %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)
 
     EventsConsumer.process(

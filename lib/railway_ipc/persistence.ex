@@ -40,16 +40,18 @@ defmodule RailwayIpc.Persistence do
 
   def get_published_message(message_uuid) do
     query =
-      from m in PublishedMessage,
-      where: m.uuid == ^message_uuid
+      from(m in PublishedMessage,
+        where: m.uuid == ^message_uuid
+      )
 
     @repo.one(query)
   end
 
   def get_consumed_message(message_uuid) do
     query =
-      from m in ConsumedMessage,
-      where: m.uuid == ^message_uuid
+      from(m in ConsumedMessage,
+        where: m.uuid == ^message_uuid
+      )
 
     @repo.one(query)
   end

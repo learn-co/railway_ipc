@@ -35,7 +35,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
         nil
       end)
 
-
       RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
         {:ok, consumed_message}
@@ -137,7 +136,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       ]
     end
 
-    test "returns an error tuple when message type is unknown", %{
+    test "returns a skip tuple when message type is unknown", %{
       exchange: exchange,
       queue: queue,
       message_module: message_module
@@ -145,11 +144,11 @@ defmodule RailwayIpc.MessageConsumptionTest do
       payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
-      {:error, struct} =
+      {:skip, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.persisted_message == nil
-      assert struct.result.reason == "Unknown message type Events::SomeUnknownThing"
+      assert struct.persisted_message != nil
+      assert struct.result.reason == "Unknown message of type: Events::SomeUnknownThing"
     end
 
     test "returns an error tuple when persistence fails", %{
@@ -297,7 +296,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       ]
     end
 
-    test "returns an error tuple when message type is unknown", %{
+    test "returns a skip tuple when message type is unknown", %{
       exchange: exchange,
       queue: queue,
       message_module: message_module
@@ -305,11 +304,11 @@ defmodule RailwayIpc.MessageConsumptionTest do
       payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
-      {:error, struct} =
+      {:skip, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.persisted_message == nil
-      assert struct.result.reason == "Unknown message type Events::SomeUnknownThing"
+      assert struct.persisted_message != nil
+      assert struct.result.reason == "Unknown message of type: Events::SomeUnknownThing"
     end
 
     test "returns an error tuple when persistence fails", %{

@@ -65,7 +65,8 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
                                             ^commands_exchange,
                                             ^queue,
                                             ^message_module ->
-      {:error, %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
+      {:error,
+       %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)
 
     CommandsConsumer.process(

@@ -21,7 +21,11 @@ defmodule RailwayIpc.Core.CommandsConsumer do
     ack_func.()
   end
 
-  def post_processing({:error, %{result: %{reason: reason}, payload: payload}}, ack_func, _publish_func) do
+  def post_processing(
+        {:error, %{result: %{reason: reason}, payload: payload}},
+        ack_func,
+        _publish_func
+      ) do
     Logger.error("Failed to process message #{payload}, error #{reason}")
     ack_func.()
   end
