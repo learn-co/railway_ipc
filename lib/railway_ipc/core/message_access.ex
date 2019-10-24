@@ -2,6 +2,7 @@ defmodule RailwayIpc.Core.MessageAccess do
   @persistence Application.get_env(:railway_ipc, :persistence)
 
   def persist_published_message(%{uuid: uuid} = message, exchange) do
+    # rescue
     case @persistence.get_published_message(uuid) do
       nil ->
         @persistence.insert_published_message(message, exchange)
@@ -17,7 +18,7 @@ defmodule RailwayIpc.Core.MessageAccess do
       persisted_message = %{status: status} when status in ["pending", "unknown_message_type"] ->
         add_lock_to_message(persisted_message)
       %{status: status} when status in ["success", "ignore"] ->
-        {:error, "Message with uuid: #{uuid} and status: #{status} already exists"}
+        {:skip, "Message with uuid: #{uuid} and status: #{status} already exists"}
     end
   end
 
@@ -29,6 +30,7 @@ defmodule RailwayIpc.Core.MessageAccess do
   end
 
   defp do_persist_consumed_message(message_consumption) do
+    # way to ensure that insert + lock happens in the same transaction
     case @persistence.insert_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         add_lock_to_message(persisted_message)

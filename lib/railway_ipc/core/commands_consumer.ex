@@ -25,4 +25,9 @@ defmodule RailwayIpc.Core.CommandsConsumer do
     Logger.error("Failed to process message #{payload}, error #{error}")
     ack_func.()
   end
+
+  def post_processing({:skip, %{skip_reason: reason, payload: payload}}, ack_func) do
+    Logger.info("Skipping handling for message #{payload}, reason #{reason}")
+    ack_func.()
+  end
 end

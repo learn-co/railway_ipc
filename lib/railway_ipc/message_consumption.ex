@@ -3,7 +3,6 @@ defmodule RailwayIpc.MessageConsumption do
   alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.Core.MessageAccess
-  @persistence Application.get_env(:railway_ipc, :persistence)
   require Logger
 
   defstruct [
@@ -15,7 +14,8 @@ defmodule RailwayIpc.MessageConsumption do
     :outbound_message,
     :persisted_message,
     :handled,
-    :error
+    :error,
+    :skip_reason
   ]
 
   def process(payload, handle_module, exchange, queue, message_module) do
@@ -52,7 +52,8 @@ defmodule RailwayIpc.MessageConsumption do
     case MessageAccess.persist_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         {:ok, update(message_consumption, %{persisted_message: persisted_message})}
-
+      {:skip, reason} ->
+        {:skip, update(message_consumption, %{skip_reason: reason})}
       {:error, error} ->
         {:error, update(message_consumption, %{error: error})}
     end
@@ -114,6 +115,10 @@ defmodule RailwayIpc.MessageConsumption do
 
   def handle_message({:error, message_consumption}) do
     {:error, message_consumption}
+  end
+
+  def handle_message({:skip, message_consumption}) do
+    {:skip, message_consumption}
   end
 
   defp update(message_consumption, attrs) do
