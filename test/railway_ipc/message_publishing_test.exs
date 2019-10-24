@@ -19,11 +19,6 @@ defmodule RailwayIpc.MessagePublishingTest do
         |> Ecto.Changeset.add_error(:uuid, "is not unique")
 
       RailwayIpc.PersistenceMock
-      |> expect(:get_published_message, fn _uuid ->
-        nil
-      end)
-
-      RailwayIpc.PersistenceMock
       |> expect(:insert_published_message, fn ^message, ^exchange ->
         {:error, changeset}
       end)
@@ -35,11 +30,6 @@ defmodule RailwayIpc.MessagePublishingTest do
       message = Events.AThingWasDone.new(%{user_uuid: Ecto.UUID.generate()})
       exchange = "exchange"
       published_message_record = build(:published_message)
-
-      RailwayIpc.PersistenceMock
-      |> expect(:get_published_message, fn _uuid ->
-        nil
-      end)
       
       RailwayIpc.PersistenceMock
       |> expect(:insert_published_message, fn ^message, ^exchange ->

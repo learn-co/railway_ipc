@@ -2,12 +2,17 @@ defmodule RailwayIpc.Core.MessageAccess do
   @persistence Application.get_env(:railway_ipc, :persistence)
 
   def persist_published_message(%{uuid: uuid} = message, exchange) do
-    # rescue
-    case @persistence.get_published_message(uuid) do
-      nil ->
-        @persistence.insert_published_message(message, exchange)
-      message ->
-        {:ok, message}
+    try do
+      @persistence.insert_published_message(message, exchange)
+    rescue
+      error ->
+        case error do
+          %{type: :unique} ->
+              message = @persistence.get_published_message(uuid)
+              {:ok, message}
+          error ->
+            {:error, error}
+        end
     end
   end
 

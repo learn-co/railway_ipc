@@ -7,17 +7,19 @@ defmodule RailwayIpc.Publisher do
 
   alias RailwayIpc.Core.Payload
   @railway_ipc Application.get_env(:railway_ipc, :railway_ipc)
+  require Logger
 
   def publish(channel, exchange, message) do
-    {:ok, %{encoded_message: encoded_message}} =
-      message
-      |> @railway_ipc.process_published_message(exchange)
-
-    @stream_adapter.publish(
-      channel,
-      exchange,
-      encoded_message
-    )
+    case @railway_ipc.process_published_message(message, exchange) do
+      {:ok, %{encoded_message: encoded_message}} ->
+        @stream_adapter.publish(
+          channel,
+          exchange,
+          encoded_message
+        )
+      {:error, error} ->
+        Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
+    end
   end
 
   def reply(channel, queue, reply) do
