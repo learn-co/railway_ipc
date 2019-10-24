@@ -26,7 +26,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue = "are_es_tee"
       message_module = CommandMessage
       consumed_message = build(:consumed_message)
-      attrs = %{status: "handled"}
+      attrs = %{status: "success"}
 
       updated_message = Map.merge(consumed_message, attrs)
 
@@ -35,14 +35,15 @@ defmodule RailwayIpc.MessageConsumptionTest do
         nil
       end)
 
-      RailwayIpc.PersistenceMock
-      |> stub(:lock_message, fn message ->
-        message
-      end)
 
       RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
         {:ok, consumed_message}
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
       end)
 
       RailwayIpc.PersistenceMock
@@ -208,7 +209,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue = "queue"
       message_module = EventMessage
       consumed_message = build(:consumed_message)
-      attrs = %{status: "handled"}
+      attrs = %{status: "success"}
 
       updated_message = Map.merge(consumed_message, attrs)
 
