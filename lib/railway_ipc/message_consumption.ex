@@ -3,6 +3,7 @@ defmodule RailwayIpc.MessageConsumption do
   alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.Core.MessageAccess
+  alias RailwayIpc.Core.MessageConsumptionResult, as: Result
   require Logger
 
   defstruct [
@@ -13,9 +14,7 @@ defmodule RailwayIpc.MessageConsumption do
     :inbound_message,
     :outbound_message,
     :persisted_message,
-    :handled,
-    :error,
-    :skip_reason
+    :result
   ]
 
   def process(payload, handle_module, exchange, queue, message_module) do
@@ -35,13 +34,9 @@ defmodule RailwayIpc.MessageConsumption do
       {:ok, message} ->
         {:ok, update(message_consumption, %{inbound_message: message})}
 
-      {:error, error} ->
-        {:error, update(message_consumption, %{error: error})}
+      {status, _reason} = result ->
+        {status, update(message_consumption, %{result: Result.new(result)})}
     end
-  end
-
-  def decode_message({:error, message_consumption}, _message_module) do
-    {:error, message_consumption}
   end
 
   def do_decode_message(message_consumption, message_module) do
@@ -52,15 +47,13 @@ defmodule RailwayIpc.MessageConsumption do
     case MessageAccess.persist_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         {:ok, update(message_consumption, %{persisted_message: persisted_message})}
-      {:skip, reason} ->
-        {:skip, update(message_consumption, %{skip_reason: reason})}
-      {:error, error} ->
-        {:error, update(message_consumption, %{error: error})}
+      {status, _reason} = result ->
+        {status, update(message_consumption, %{result: Result.new(result)})}
     end
   end
 
-  def persist_message({:error, message_consumption}) do
-    {:error, message_consumption}
+  def persist_message({status, message_consumption}) do
+    {status, message_consumption}
   end
 
   def handle_message(
@@ -75,12 +68,12 @@ defmodule RailwayIpc.MessageConsumption do
       :ok ->
         {:ok,
          update(message_consumption, %{
-           handled: true,
+           result: Result.new(%{status: :handled}),
            persisted_message: mark_persisted_message_handled(persisted_message)
          })}
 
-      {:error, error} ->
-        {:error, update(message_consumption, %{error: error})}
+      {:error, _error} = result ->
+        {:error, update(message_consumption, %{result: Result.new(result)})}
     end
   end
 
@@ -96,29 +89,25 @@ defmodule RailwayIpc.MessageConsumption do
       :ok ->
         {:ok,
          update(message_consumption, %{
-           handled: true,
+           result: Result.new(%{status: :handled}),
            persisted_message: mark_persisted_message_handled(persisted_message)
          })}
 
       {:emit, event} ->
         {:emit,
          update(message_consumption, %{
-           handled: true,
+           result: Result.new(%{status: :handled}),
            persisted_message: mark_persisted_message_handled(persisted_message),
            outbound_message: event
          })}
 
-      {:error, error} ->
-        {:error, update(message_consumption, %{error: error})}
+      {:error, _error} = result ->
+        {:error, update(message_consumption, %{result: Result.new(result)})}
     end
   end
 
-  def handle_message({:error, message_consumption}) do
-    {:error, message_consumption}
-  end
-
-  def handle_message({:skip, message_consumption}) do
-    {:skip, message_consumption}
+  def handle_message({status, message_consumption}) do
+    {status, message_consumption}
   end
 
   defp update(message_consumption, attrs) do

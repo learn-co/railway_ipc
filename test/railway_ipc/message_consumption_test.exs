@@ -74,7 +74,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       {:emit, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.error == nil
+      assert struct.result.reason == nil
       assert struct.persisted_message == updated_message
       assert struct.payload == payload
 
@@ -96,7 +96,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       {:ok, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.error == nil
+      assert struct.result.reason == nil
       assert struct.persisted_message == updated_message
       assert struct.payload == payload
 
@@ -149,7 +149,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
       assert struct.persisted_message == nil
-      assert struct.error == "Unknown message type Events::SomeUnknownThing"
+      assert struct.result.reason == "Unknown message type Events::SomeUnknownThing"
     end
 
     test "returns an error tuple when persistence fails", %{
@@ -177,7 +177,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
       assert struct.persisted_message == nil
-      error = Keyword.fetch!(struct.error, :uuid)
+      error = Keyword.fetch!(struct.result.reason, :uuid)
       ^error = {"is not unique", []}
     end
 
@@ -195,7 +195,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       {:error, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.error == "error message"
+      assert struct.result.reason == "error message"
     end
   end
 
@@ -256,7 +256,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       {:ok, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.error == nil
+      assert struct.result.reason == nil
       assert struct.persisted_message == updated_message
       assert struct.payload == payload
 
@@ -309,7 +309,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
       assert struct.persisted_message == nil
-      assert struct.error == "Unknown message type Events::SomeUnknownThing"
+      assert struct.result.reason == "Unknown message type Events::SomeUnknownThing"
     end
 
     test "returns an error tuple when persistence fails", %{
@@ -337,7 +337,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
       assert struct.persisted_message == nil
-      error = Keyword.fetch!(struct.error, :uuid)
+      error = Keyword.fetch!(struct.result.reason, :uuid)
       ^error = {"is not unique", []}
     end
 
@@ -355,7 +355,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       {:error, struct} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
-      assert struct.error == "error message"
+      assert struct.result.reason == "error message"
     end
   end
 end

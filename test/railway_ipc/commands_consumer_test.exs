@@ -138,7 +138,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
                                             ^exchange,
                                             ^queue,
                                             ^message_module ->
-      {:error, %RailwayIpc.MessageConsumption{}}
+      {:error, %RailwayIpc.MessageConsumption{result: %{reason: "error message"}}}
     end)
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
