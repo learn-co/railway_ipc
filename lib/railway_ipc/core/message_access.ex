@@ -40,7 +40,6 @@ defmodule RailwayIpc.Core.MessageAccess do
   end
 
   defp do_persist_consumed_message(message_consumption) do
-    # way to ensure that insert + lock happens in the same transaction
     case @persistence.insert_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         add_lock_to_message(persisted_message)
