@@ -1,7 +1,7 @@
 defmodule RailwayIpc.MessagePublishing do
-  @persistence Application.get_env(:railway_ipc, :persistence)
+  alias RailwayIpc.Core.MessageAccess
 
   def process(message, exchange) do
-    @persistence.insert_published_message(message, exchange)
+    MessageAccess.persist_published_message(message, exchange)
   end
 end

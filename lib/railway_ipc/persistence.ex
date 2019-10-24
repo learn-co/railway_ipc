@@ -6,6 +6,7 @@ defmodule RailwayIpc.Persistence do
   alias RailwayIpc.MessageConsumption
   alias RailwayIpc.Persistence.ConsumedMessageAdapter
   alias RailwayIpc.Persistence.PublishedMessageAdapter
+  import Ecto.Query
 
   def insert_published_message(message, exchange) do
     {:ok, persistence_attrs} =
@@ -35,5 +36,26 @@ defmodule RailwayIpc.Persistence do
     message_record
     |> ConsumedMessage.changeset(attrs)
     |> @repo.update()
+  end
+
+  def get_published_message(message_uuid) do
+    query =
+      from m in PublishedMessage,
+      where: m.uuid == ^message_uuid
+
+    @repo.one(query)
+  end
+
+  def get_consumed_message(message_uuid) do
+    query =
+      from m in ConsumedMessage,
+      where: m.uuid == ^message_uuid
+
+    @repo.one(query)
+  end
+
+  def lock_message(message) do
+    message
+    |> lock("FOR UPDATE")
   end
 end

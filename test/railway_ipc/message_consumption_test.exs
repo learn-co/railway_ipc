@@ -31,6 +31,16 @@ defmodule RailwayIpc.MessageConsumptionTest do
       updated_message = Map.merge(consumed_message, attrs)
 
       RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        nil
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
+      end)
+
+      RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
         {:ok, consumed_message}
       end)
@@ -102,6 +112,16 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue = "are_es_tee"
       message_module = CommandMessage
       consumed_message = build(:consumed_message)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        nil
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
+      end)
 
       RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
@@ -193,6 +213,16 @@ defmodule RailwayIpc.MessageConsumptionTest do
       updated_message = Map.merge(consumed_message, attrs)
 
       RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        nil
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
+      end)
+
+      RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
         {:ok, consumed_message}
       end)
@@ -242,6 +272,16 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue = "are_es_tee"
       message_module = EventMessage
       consumed_message = build(:consumed_message)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        nil
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
+      end)
 
       RailwayIpc.PersistenceMock
       |> stub(:insert_consumed_message, fn _message ->
