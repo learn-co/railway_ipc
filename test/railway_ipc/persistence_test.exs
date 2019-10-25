@@ -15,6 +15,7 @@ defmodule RailwayIpc.PersistenceTest do
       assert message.exchange == exchange
       assert message.uuid != nil
       assert message.status == "sent"
+      assert message.message_type == "Events::AThingWasDone"
     end
   end
 
@@ -36,6 +37,7 @@ defmodule RailwayIpc.PersistenceTest do
       assert message.exchange == "ipc:batch:commands"
       assert message.encoded_message == payload
       assert message.status == "processing"
+      assert message.message_type == "Events::AThingWasDone"
     end
   end
 end
