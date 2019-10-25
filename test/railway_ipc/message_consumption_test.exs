@@ -357,4 +357,127 @@ defmodule RailwayIpc.MessageConsumptionTest do
       assert struct.result.reason == "error message"
     end
   end
+
+  describe "process/5 idempotency checks" do
+    setup do
+      exchange = "commands_exchange"
+      queue = "are_es_tee"
+      message_module = EventMessage
+      consumed_message = build(:consumed_message)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:lock_message, fn message ->
+        message
+      end)
+
+      [
+        exchange: exchange,
+        queue: queue,
+        message_module: message_module,
+        consumed_message: consumed_message
+      ]
+    end
+
+    test "returns the ok tuple when a message with the status 'pending' exists", %{
+      exchange: exchange,
+      queue: queue,
+      message_module: message_module,
+      consumed_message: consumed_message
+    } do
+      {:ok, payload} =
+        Events.AThingWasDone.new(correlation_id: "123")
+        |> Payload.encode()
+
+      handle_module = OkayConsumer
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        consumed_message
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, _attrs ->
+        {:ok, Map.merge(consumed_message, %{status: "success"})}
+      end)
+
+      {:ok, message} =
+        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+
+      assert message.persisted_message.uuid == consumed_message.uuid
+    end
+
+    test "returns the ok tuple when a message with the status 'unknown_message_type' exists", %{
+      exchange: exchange,
+      queue: queue,
+      message_module: message_module,
+      consumed_message: consumed_message
+    } do
+      {:ok, payload} =
+        Events.AThingWasDone.new(correlation_id: "123")
+        |> Payload.encode()
+
+      handle_module = OkayConsumer
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        consumed_message
+      end)
+
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, _attrs ->
+        {:ok, Map.merge(consumed_message, %{status: "unknown_message_type"})}
+      end)
+
+      {:ok, message} =
+        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+
+      assert message.persisted_message.uuid == consumed_message.uuid
+    end
+
+    test "returns the skip tuple when a message with the status 'success' exists", %{
+      exchange: exchange,
+      queue: queue,
+      message_module: message_module,
+      consumed_message: consumed_message
+    } do
+      {:ok, payload} =
+        Events.AThingWasDone.new(correlation_id: "123", uuid: consumed_message.uuid)
+        |> Payload.encode()
+
+      handle_module = OkayConsumer
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        Map.merge(consumed_message, %{status: "success"})
+      end)
+
+
+      {:skip, message_consumption} =
+        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: success already exists"
+    end
+
+    test "returns the skip tuple when a message with the status 'ignore' exists", %{
+      exchange: exchange,
+      queue: queue,
+      message_module: message_module,
+      consumed_message: consumed_message
+    } do
+      {:ok, payload} =
+        Events.AThingWasDone.new(correlation_id: "123", uuid: consumed_message.uuid)
+        |> Payload.encode()
+
+      handle_module = OkayConsumer
+
+      RailwayIpc.PersistenceMock
+      |> stub(:get_consumed_message, fn _uuid ->
+        Map.merge(consumed_message, %{status: "ignore"})
+      end)
+
+
+      {:skip, message_consumption} =
+        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: ignore already exists"
+    end
+  end
 end

@@ -21,7 +21,7 @@ defmodule RailwayIpc.Factory do
       user_uuid: Ecto.UUID.generate(),
       message_type: "Commands::AThing",
       exchange: "things:commands",
-      status: "processing",
+      status: "pending",
       encoded_message: ""
     }
   end
