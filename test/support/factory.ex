@@ -7,7 +7,7 @@ defmodule RailwayIpc.Factory do
       uuid: Ecto.UUID.generate(),
       correlation_id: Ecto.UUID.generate(),
       user_uuid: Ecto.UUID.generate(),
-      message_type: "Commands::AThing",
+      message_type: "Commands.AThing",
       exchange: "things:commands",
       status: "sent",
       encoded_message: ""
@@ -19,7 +19,7 @@ defmodule RailwayIpc.Factory do
       uuid: Ecto.UUID.generate(),
       correlation_id: Ecto.UUID.generate(),
       user_uuid: Ecto.UUID.generate(),
-      message_type: "Commands::AThing",
+      message_type: "Commands.AThing",
       exchange: "things:commands",
       status: "pending",
       encoded_message: ""
