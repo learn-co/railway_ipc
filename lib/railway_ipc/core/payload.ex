@@ -24,7 +24,7 @@ defmodule RailwayIpc.Core.Payload do
       {:decode_json, {:error, _}} ->
         {:error, "Malformed JSON given: #{payload}"}
 
-      {:check_module_exists, false, } ->
+      {:check_module_exists, false} ->
         %{"encoded_message" => encoded_message, "type" => type} = Jason.decode!(payload)
         {:unknown_message_type, decode_message(GenericMessage, encoded_message), type}
     end

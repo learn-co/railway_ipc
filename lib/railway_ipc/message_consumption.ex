@@ -33,8 +33,10 @@ defmodule RailwayIpc.MessageConsumption do
     case do_decode_message(message_consumption, message_module) do
       {:ok, message} ->
         handle_decode_success(message_consumption, message)
+
       {:unknown_message_type, %{type: type} = message} ->
         handle_unknown_message_type(message_consumption, message, type)
+
       {:error, error} ->
         handle_decode_failure(message_consumption, error)
     end
@@ -78,7 +80,7 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case handle_module.handle_in(decoded_message) do
       :ok ->
-      handle_processed_success(message_consumption, persisted_message)
+        handle_processed_success(message_consumption, persisted_message)
 
       {:error, _error} = result ->
         handle_error(message_consumption, result)
@@ -95,7 +97,7 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case CommandMessageHandler.handle_message(decoded_message, handle_module) do
       :ok ->
-      handle_processed_success(message_consumption, persisted_message)
+        handle_processed_success(message_consumption, persisted_message)
 
       {:emit, event} ->
         {:emit,
@@ -131,14 +133,12 @@ defmodule RailwayIpc.MessageConsumption do
     {:skip,
      update(message_consumption, %{
        inbound_message: inbound_message,
-       result:
-         Result.new(%{status: :skip, reason: "Unknown message of type: #{type}"})
+       result: Result.new(%{status: :skip, reason: "Unknown message of type: #{type}"})
      })}
   end
 
   defp handle_decode_failure(message_consumption, error) do
-    {:error,
-     update(message_consumption, %{result: Result.new(%{status: :error, reason: error})})}
+    {:error, update(message_consumption, %{result: Result.new(%{status: :error, reason: error})})}
   end
 
   defp handle_persistence_success(message_consumption, persisted_message) do

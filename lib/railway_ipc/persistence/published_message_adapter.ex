@@ -1,8 +1,13 @@
 defmodule RailwayIpc.Persistence.PublishedMessageAdapter do
   alias RailwayIpc.Core.Payload
 
+  def to_persistence(%{uuid: ""} = message, exchange) do
+    message
+    |> Map.put(:uuid, Ecto.UUID.generate())
+    |> to_persistence(exchange)
+  end
+
   def to_persistence(message, exchange) do
-    message = message |> Map.put(:uuid, Ecto.UUID.generate())
     {:ok, encoded_message} = message |> Payload.encode()
 
     {:ok,
