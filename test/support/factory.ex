@@ -22,7 +22,8 @@ defmodule RailwayIpc.Factory do
       message_type: "Commands::AThing",
       exchange: "things:commands",
       status: "pending",
-      encoded_message: ""
+      encoded_message: "",
+      queue: "queue"
     }
   end
 end

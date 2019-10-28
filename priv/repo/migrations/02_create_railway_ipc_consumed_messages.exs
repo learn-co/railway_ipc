@@ -7,7 +7,7 @@ defmodule :"#{Application.fetch_env!(:railway_ipc, :repo)}.Migrations.CreateRail
       add :message_type, :string, null: false
       add :user_uuid, :uuid
       add :correlation_id, :uuid
-      add :encoded_message, :string, null: false
+      add :encoded_message, :text, null: false
       add :status, :string, null: false
       add :queue, :string, null: false
       add :exchange, :string, null: false
