@@ -5,7 +5,6 @@ config :railway_ipc,
 
 config :railway_ipc,
   ecto_repos: [RailwayIpc.Dev.Repo]
-config :railway_ipc, repo: RailwayIpc.Dev.Repo
 
 config :railway_ipc, RailwayIpc.Dev.Repo,
   username: "postgres",

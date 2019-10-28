@@ -1,6 +1,6 @@
 defmodule RailwayIpc.Persistence do
   @behaviour RailwayIpc.PersistenceBehaviour
-  def repo, do: Application.get_env(:railway_ipc, :repo)
+  @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
   alias RailwayIpc.Persistence.PublishedMessage
   alias RailwayIpc.Persistence.ConsumedMessage
   alias RailwayIpc.MessageConsumption
@@ -15,7 +15,7 @@ defmodule RailwayIpc.Persistence do
 
     %PublishedMessage{}
     |> PublishedMessage.changeset(persistence_attrs)
-    |> repo().insert()
+    |> @repo.insert()
   end
 
   def insert_consumed_message(%MessageConsumption{
@@ -29,13 +29,13 @@ defmodule RailwayIpc.Persistence do
 
     %ConsumedMessage{}
     |> ConsumedMessage.changeset(persistence_attrs)
-    |> repo().insert()
+    |> @repo.insert()
   end
 
   def update_consumed_message(message_record, attrs) do
     message_record
     |> ConsumedMessage.changeset(attrs)
-    |> repo().update()
+    |> @repo.update()
   end
 
   def get_published_message(message_uuid) do
@@ -44,18 +44,18 @@ defmodule RailwayIpc.Persistence do
         where: m.uuid == ^message_uuid
       )
 
-    repo().one(query)
+    @repo.one(query)
   end
 
   def get_consumed_message(message_uuid) do
     consumed_message_query(message_uuid)
-    |> repo().one()
+    |> @repo.one()
   end
 
   def lock_message(%ConsumedMessage{uuid: uuid}) do
     consumed_message_query(uuid)
     |> lock("FOR UPDATE")
-    |> repo().one()
+    |> @repo.one()
   end
 
   def consumed_message_query(uuid) do
