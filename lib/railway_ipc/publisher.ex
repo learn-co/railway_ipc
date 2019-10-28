@@ -6,7 +6,7 @@ defmodule RailwayIpc.Publisher do
                   )
 
   alias RailwayIpc.Core.Payload
-  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc)
+  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc, RailwayIpc)
   require Logger
 
   def publish(channel, exchange, message) do

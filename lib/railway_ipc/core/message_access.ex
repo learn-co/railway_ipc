@@ -1,5 +1,5 @@
 defmodule RailwayIpc.Core.MessageAccess do
-  @persistence Application.get_env(:railway_ipc, :persistence)
+  @persistence Application.get_env(:railway_ipc, :persistence, RailwayIpc.Persistence)
 
   def persist_published_message(%{uuid: uuid} = message, exchange) do
     try do
