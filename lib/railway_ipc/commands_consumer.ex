@@ -33,7 +33,12 @@ defmodule RailwayIpc.CommandsConsumer do
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{channel: channel, events_exchange: exchange}
+            state = %{
+              channel: channel,
+              events_exchange: exchange,
+              commands_exchange: commands_exchange,
+              queue: queue
+            }
           ) do
         ack_function = fn ->
           @stream_adapter.ack(channel, delivery_tag)
@@ -43,7 +48,15 @@ defmodule RailwayIpc.CommandsConsumer do
           RailwayIpc.Publisher.publish(channel, exchange, event)
         end
 
-        CommandsConsumer.process(payload, __MODULE__, ack_function, publish_function)
+        CommandsConsumer.process(
+          payload,
+          __MODULE__,
+          commands_exchange,
+          queue,
+          ack_function,
+          publish_function
+        )
+
         {:noreply, state}
       end
 

@@ -1,6 +1,7 @@
 defmodule RailwayIpc.PublisherTest do
   use ExUnit.Case
   import Mox
+  import RailwayIpc.Factory
   setup :set_mox_global
   setup :verify_on_exit!
 
@@ -58,5 +59,27 @@ defmodule RailwayIpc.PublisherTest do
          {:ok, decoded} <- Payload.decode(message) do
       assert {:ok, _} = UUID.info(decoded.uuid)
     end
+  end
+
+  test "persists the message with a status of 'sent'" do
+    user_uuid = Ecto.UUID.generate()
+    correlation_id = Ecto.UUID.generate()
+    exchange = "commands:a_thing"
+
+    message =
+      Commands.DoAThing.new(%{
+        user_uuid: user_uuid,
+        correlation_id: correlation_id,
+        uuid: Ecto.UUID.generate()
+      })
+
+    {:ok, encoded_message} = Payload.encode(message)
+
+    RailwayIpcMock
+    |> expect(:process_published_message, fn ^message, ^exchange ->
+      {:ok, build(:published_message, %{encoded_message: encoded_message})}
+    end)
+
+    RailwayIpc.Publisher.publish("channel", exchange, message)
   end
 end

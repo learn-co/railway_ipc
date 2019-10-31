@@ -57,12 +57,11 @@ defmodule RailwayIpc.Core.PayloadTest do
     assert reason == "Malformed JSON given: 123123. Must be a string"
   end
 
-  test "returns an error if the module is unknown after decoding" do
+  test "returns :unkown_message_type tuple if the module is unknown after decoding" do
     json =
       %{type: "BogusModule", encoded_message: ""}
       |> Jason.encode!()
 
-    {:error, reason} = Payload.decode(json)
-    assert reason == "Unknown message type BogusModule"
+    {:unknown_message_type, _message, "BogusModule"} = Payload.decode(json)
   end
 end

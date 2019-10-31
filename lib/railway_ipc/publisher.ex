@@ -4,14 +4,23 @@ defmodule RailwayIpc.Publisher do
                     :stream_adapter,
                     RailwayIpc.RabbitMQ.RabbitMQAdapter
                   )
+
   alias RailwayIpc.Core.Payload
+  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc, RailwayIpc)
+  require Logger
 
   def publish(channel, exchange, message) do
-    @stream_adapter.publish(
-      channel,
-      exchange,
-      prepare_message(message)
-    )
+    case @railway_ipc.process_published_message(message, exchange) do
+      {:ok, %{encoded_message: encoded_message}} ->
+        @stream_adapter.publish(
+          channel,
+          exchange,
+          encoded_message
+        )
+
+      {:error, error} ->
+        Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
+    end
   end
 
   def reply(channel, queue, reply) do
