@@ -32,7 +32,7 @@ defmodule RailwayIpc.Persistence.ConsumedMessage do
       :message_type,
       :encoded_message,
       :queue,
-      :exchange,
+      # :exchange,
       :status
     ])
   end

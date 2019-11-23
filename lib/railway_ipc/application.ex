@@ -8,6 +8,21 @@ defmodule RailwayIpc.Application do
     Supervisor.start_link(children(@dev_repo), opts)
   end
 
-  def children(true), do: [RailwayIpc.Dev.Repo]
+  def children(true) do
+    [
+      RailwayIpc.Dev.Repo,
+      {
+        RailwayIpc.Connection.Supervisor,
+        [RailwayIpc.Ipc.RepublishedMessagesConsumer]
+      }
+    ]
+  end
+
   def children(_), do: []
+    # do: [
+    #   {
+    #     RailwayIpc.Connection.Supervisor,
+    #     [RailwayIpc.Ipc.RepublishedMessagesConsumer]
+    #   }
+    # ]
 end

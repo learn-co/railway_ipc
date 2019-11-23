@@ -1,9 +1,9 @@
 defmodule RailwayIpc.Core.MessageAccess do
   @persistence Application.get_env(:railway_ipc, :persistence, RailwayIpc.Persistence)
 
-  def persist_published_message(%{uuid: uuid} = message, exchange) do
+  def persist_published_message(%{uuid: uuid} = message, exchange, queue) do
     try do
-      @persistence.insert_published_message(message, exchange)
+      @persistence.insert_published_message(message, exchange, queue)
     rescue
       error ->
         case error do

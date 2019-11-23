@@ -4,7 +4,8 @@ defmodule RailwayIpc.CommandMessageHandler do
       :ok ->
         :ok
 
-        {:error, _error} = e -> e
+      {:error, _error} = e ->
+        e
 
       {:emit, event} ->
         {:emit, prepare_event(event, message)}

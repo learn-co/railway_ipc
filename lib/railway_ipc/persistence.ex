@@ -8,10 +8,10 @@ defmodule RailwayIpc.Persistence do
   alias RailwayIpc.Persistence.PublishedMessageAdapter
   import Ecto.Query
 
-  def insert_published_message(message, exchange) do
+  def insert_published_message(message, exchange, queue) do
     {:ok, persistence_attrs} =
       message
-      |> PublishedMessageAdapter.to_persistence(exchange)
+      |> PublishedMessageAdapter.to_persistence(exchange, queue)
 
     %PublishedMessage{}
     |> PublishedMessage.changeset(persistence_attrs)

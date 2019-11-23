@@ -31,7 +31,7 @@ defmodule RailwayIpc.Persistence.PublishedMessage do
     |> validate_required([
       :message_type,
       :encoded_message,
-      :exchange,
+      # :exchange,
       :status
     ])
   end
