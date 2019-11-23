@@ -1,30 +1,17 @@
-defmodule RailwayIpc.Core.MessageAccess do
+defmodule RailwayIpc.ConsumedMessage do
   @persistence Application.get_env(:railway_ipc, :persistence, RailwayIpc.Persistence)
 
-  def persist_published_message(%{uuid: uuid} = message, exchange) do
-    try do
-      @persistence.insert_published_message(message, exchange)
-    rescue
-      error ->
-        case error do
-          %{type: :unique} ->
-            message = @persistence.get_published_message(uuid)
-            {:ok, message}
-
-          error ->
-            {:error, error}
-        end
-    end
+  def get(uuid) do
+    @persistence.get_consumed_message(uuid)
   end
 
-  def persist_consumed_message(
-        %{inbound_message: %{decoded_message: %{uuid: uuid}}} = message_consumption
-      ) do
-    case @persistence.get_consumed_message(uuid) do
+  def create(%{inbound_message: %{decoded_message: %{uuid: uuid}}} = message_consumption) do
+    case get(uuid) do
       nil ->
         do_persist_consumed_message(message_consumption)
 
-      persisted_message = %{status: status} when status in ["pending", "unknown_message_type"] ->
+      persisted_message = %{status: status}
+      when status in ["processing", "unknown_message_type"] ->
         add_lock_to_message(persisted_message)
 
       %{status: status} when status in ["success", "ignore"] ->
@@ -33,8 +20,7 @@ defmodule RailwayIpc.Core.MessageAccess do
   end
 
   def consumed_message_success(persisted_message) do
-    {:ok, persisted_message} =
-      @persistence.update_consumed_message(persisted_message, %{status: "success"})
+    {:ok, persisted_message} = update(persisted_message, %{status: "success"})
 
     persisted_message
   end
@@ -49,7 +35,11 @@ defmodule RailwayIpc.Core.MessageAccess do
     end
   end
 
-  defp add_lock_to_message(persisted_message) do
+  def update(consumed_message, attrs) do
+    @persistence.update_consumed_message(consumed_message, attrs)
+  end
+
+  def add_lock_to_message(persisted_message) do
     locked_message =
       persisted_message
       |> @persistence.lock_message

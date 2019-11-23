@@ -20,7 +20,8 @@ defmodule RailwayIpc.Core.CommandMessage do
         message = update(command_message, %{decoded_message: decoded_message, type: type})
         {:unknown_message_type, message}
 
-      {:error, _error} = e -> e
+      {:error, _error} = e ->
+        e
     end
   end
 

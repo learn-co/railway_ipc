@@ -88,19 +88,15 @@ defmodule RailwayIpc.CommandsConsumerTest do
 
     {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^command,
-                                            ^consumer_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^command, ^consumer_module, ^exchange, ^queue, ^message_module ->
       {:emit, %RailwayIpc.MessageConsumption{outbound_message: event}}
     end)
 
-    RailwayIpcMock
-    |> expect(:process_published_message, fn ^event, ^events_exchange ->
+    RailwayIpc.MessagePublishingMock
+    |> expect(:process, fn ^event, %{exchange: ^events_exchange, queue: nil} ->
       {:ok, encoded_event} = Payload.encode(event)
-      {:ok, build(:published_message, %{encoded_message: encoded_event})}
+      {:ok, %{persisted_message: build(:published_message, %{encoded_message: encoded_event})}}
     end)
 
     send(pid, {:basic_deliver, command, %{delivery_tag: "tag"}})
@@ -132,12 +128,8 @@ defmodule RailwayIpc.CommandsConsumerTest do
     {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^message,
-                                            ^consumer_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
       {:error, %RailwayIpc.MessageConsumption{result: %{reason: "error message"}}}
     end)
 

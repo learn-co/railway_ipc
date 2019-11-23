@@ -16,3 +16,5 @@ config :railway_ipc, RailwayIpc.Dev.Repo,
 
 config :railway_ipc, persistence: RailwayIpc.PersistenceMock
 config :railway_ipc, railway_ipc: RailwayIpcMock
+config :railway_ipc, message_publishing: RailwayIpc.MessagePublishingMock
+config :railway_ipc, message_consumption: RailwayIpc.MessageConsumptionMock

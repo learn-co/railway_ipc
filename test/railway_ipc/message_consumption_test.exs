@@ -378,7 +378,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       ]
     end
 
-    test "returns the ok tuple when a message with the status 'pending' exists", %{
+    test "returns the ok tuple when a message with the status 'processing' exists", %{
       exchange: exchange,
       queue: queue,
       message_module: message_module,
@@ -451,10 +451,11 @@ defmodule RailwayIpc.MessageConsumptionTest do
         Map.merge(consumed_message, %{status: "success"})
       end)
 
-
       {:skip, message_consumption} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
-      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: success already exists"
+
+      assert message_consumption.result.reason ==
+               "Message with uuid: #{consumed_message.uuid} and status: success already exists"
     end
 
     test "returns the skip tuple when a message with the status 'ignore' exists", %{
@@ -474,10 +475,11 @@ defmodule RailwayIpc.MessageConsumptionTest do
         Map.merge(consumed_message, %{status: "ignore"})
       end)
 
-
       {:skip, message_consumption} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
-      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: ignore already exists"
+
+      assert message_consumption.result.reason ==
+               "Message with uuid: #{consumed_message.uuid} and status: ignore already exists"
     end
   end
 end

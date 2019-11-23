@@ -1,24 +1,41 @@
 defmodule RailwayIpc.Persistence.PublishedMessageAdapter do
-  alias RailwayIpc.Core.Payload
+  alias RailwayIpc.Core.PublishedMessage
 
-  def to_persistence(%{uuid: ""} = message, exchange) do
-    message
-    |> Map.put(:uuid, Ecto.UUID.generate())
-    |> to_persistence(exchange)
+  def to_persistence(
+        %{
+          outbound_message: %{decoded_message: %{uuid: ""} = decoded_message} = published_message
+        },
+        exchange,
+        queue
+      ) do
+    decoded_message =
+      decoded_message
+      |> Map.put(:uuid, Ecto.UUID.generate())
+
+    published_message
+    |> Map.put(:decoded_message, decoded_message)
+    |> to_persistence(exchange, queue)
   end
 
-  def to_persistence(message, exchange) do
-    {:ok, encoded_message} = message |> Payload.encode()
-
+  def to_persistence(
+        %PublishedMessage{
+          decoded_message: decoded_message,
+          type: type,
+          encoded_message: encoded_message
+        },
+        exchange,
+        queue
+      ) do
     {:ok,
      %{
        exchange: exchange,
+       queue: queue,
        encoded_message: encoded_message,
-       message_type: message |> Payload.encode_type(),
-       user_uuid: message.user_uuid,
-       correlation_id: message.correlation_id,
+       message_type: type,
+       user_uuid: decoded_message.user_uuid,
+       correlation_id: decoded_message.correlation_id,
        status: "sent",
-       uuid: message.uuid
+       uuid: decoded_message.uuid
      }}
   end
 end

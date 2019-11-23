@@ -1,17 +1,24 @@
 defmodule RailwayIpc.Persistence do
   @behaviour RailwayIpc.PersistenceBehaviour
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
-  alias RailwayIpc.Persistence.PublishedMessage
-  alias RailwayIpc.Persistence.ConsumedMessage
-  alias RailwayIpc.MessageConsumption
-  alias RailwayIpc.Persistence.ConsumedMessageAdapter
-  alias RailwayIpc.Persistence.PublishedMessageAdapter
+  alias RailwayIpc.Persistence.{
+    PublishedMessage,
+    ConsumedMessage,
+    ConsumedMessageAdapter,
+    PublishedMessageAdapter
+  }
+
+  alias RailwayIpc.{MessageConsumption, MessagePublishing}
   import Ecto.Query
 
-  def insert_published_message(message, exchange) do
+  def insert_published_message(%MessagePublishing{
+        exchange: exchange,
+        queue: queue,
+        outbound_message: outbound_message
+      }) do
     {:ok, persistence_attrs} =
-      message
-      |> PublishedMessageAdapter.to_persistence(exchange)
+      outbound_message
+      |> PublishedMessageAdapter.to_persistence(exchange, queue)
 
     %PublishedMessage{}
     |> PublishedMessage.changeset(persistence_attrs)

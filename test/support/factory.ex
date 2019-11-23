@@ -3,14 +3,17 @@ defmodule RailwayIpc.Factory do
   alias RailwayIpc.Persistence.{PublishedMessage, ConsumedMessage}
 
   def published_message_factory do
+    uuid = Ecto.UUID.generate()
+
     %PublishedMessage{
-      uuid: Ecto.UUID.generate(),
+      uuid: uuid,
       correlation_id: Ecto.UUID.generate(),
       user_uuid: Ecto.UUID.generate(),
       message_type: "Commands::AThing",
       exchange: "things:commands",
       status: "sent",
-      encoded_message: ""
+      encoded_message:
+        "{\"encoded_message\":\"\",\"type\":\"Commands::AThing\",\"uuid\":\"#{uuid}\"}"
     }
   end
 
@@ -21,7 +24,7 @@ defmodule RailwayIpc.Factory do
       user_uuid: Ecto.UUID.generate(),
       message_type: "Commands::AThing",
       exchange: "things:commands",
-      status: "pending",
+      status: "processing",
       encoded_message: "",
       queue: "queue"
     }

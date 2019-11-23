@@ -73,12 +73,8 @@ defmodule RailwayIpc.EventsConsumerTest do
     {:ok, pid} = BatchEventsConsumer.start_link(:ok)
     {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^message,
-                                            ^consumer_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
       {:ok, %MessageConsumption{}}
     end)
 
@@ -111,12 +107,8 @@ defmodule RailwayIpc.EventsConsumerTest do
     {:ok, pid} = BatchEventsConsumer.start_link(:ok)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^message,
-                                            ^consumer_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
       {:ok, %MessageConsumption{}}
     end)
 
