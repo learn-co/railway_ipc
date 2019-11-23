@@ -80,6 +80,6 @@ defmodule RailwayIpc.PublisherTest do
       {:ok, build(:published_message, %{encoded_message: encoded_message})}
     end)
 
-    RailwayIpc.Publisher.publish("channel", exchange, nil, message)
+    RailwayIpc.Publisher.publish("channel", exchange, message)
   end
 end

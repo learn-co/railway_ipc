@@ -47,7 +47,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
           consumer_pid: consumer
         }
       ) do
-
     with {:ok, _} <- create_queue(channel, queue, durable: true),
          :ok <- maybe_create_exchange(channel, exchange),
          :ok <- maybe_bind_queue(channel, queue, exchange),

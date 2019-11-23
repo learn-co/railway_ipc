@@ -29,8 +29,6 @@ defmodule RailwayIpc.Publisher do
   def publish(channel, exchange, queue, message) do
     case @railway_ipc.process_published_message(message, exchange, queue) do
       {:ok, %{encoded_message: encoded_message}} ->
-        require IEx
-        IEx.pry()
         @stream_adapter.publish(
           channel,
           exchange,
@@ -41,6 +39,10 @@ defmodule RailwayIpc.Publisher do
       {:error, error} ->
         Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
     end
+  end
+
+  def publish(channel, exchange, message) do
+    publish(channel, exchange, nil, message)
   end
 
   def reply(channel, queue, reply) do
@@ -71,9 +73,9 @@ defmodule RailwayIpc.Publisher do
       alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        channel  = RailwayIpc.Connection.publisher_channel()
+        channel = RailwayIpc.Connection.publisher_channel()
         exchange = unquote(Keyword.get(opts, :exchange))
-        queue    = unquote(Keyword.get(opts, :queue))
+        queue = unquote(Keyword.get(opts, :queue))
         RailwayIpc.Publisher.publish(channel, exchange, queue, message)
       end
 

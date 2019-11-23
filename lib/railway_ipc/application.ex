@@ -19,10 +19,10 @@ defmodule RailwayIpc.Application do
   end
 
   def children(_), do: []
-    # do: [
-    #   {
-    #     RailwayIpc.Connection.Supervisor,
-    #     [RailwayIpc.Ipc.RepublishedMessagesConsumer]
-    #   }
-    # ]
+  # do: [
+  #   {
+  #     RailwayIpc.Connection.Supervisor,
+  #     [RailwayIpc.Ipc.RepublishedMessagesConsumer]
+  #   }
+  # ]
 end

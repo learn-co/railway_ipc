@@ -11,7 +11,7 @@ defmodule RailwayIpc do
     MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
   end
 
-  def republish_message(published_message_uuid) do
-    RepublishedMessagesPublisher.publish(published_message_uuid)
+  def republish_message(published_message_uuid, request_data) do
+    RepublishedMessagesPublisher.invoke_republish_message(published_message_uuid, request_data)
   end
 end
