@@ -19,7 +19,7 @@ defmodule RailwayIpc.Persistence.PublishedMessageAdapterTest do
          correlation_id: ^correlation_id,
          status: "sent",
          uuid: _uuid
-       }} = PublishedMessageAdapter.to_persistence(message, exchange)
+       }} = PublishedMessageAdapter.to_persistence(message, exchange, nil)
     end
   end
 end

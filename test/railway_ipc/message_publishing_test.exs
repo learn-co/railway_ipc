@@ -19,11 +19,11 @@ defmodule RailwayIpc.MessagePublishingTest do
         |> Ecto.Changeset.add_error(:uuid, "is not unique")
 
       RailwayIpc.PersistenceMock
-      |> expect(:insert_published_message, fn ^message, ^exchange ->
+      |> expect(:insert_published_message, fn ^message, ^exchange, nil ->
         {:error, changeset}
       end)
 
-      {:error, ^changeset} = MessagePublishing.process(message, exchange)
+      {:error, ^changeset} = MessagePublishing.process(message, exchange, nil)
     end
 
     test "it returns an ok tuple when persistence succeeds" do
@@ -32,11 +32,11 @@ defmodule RailwayIpc.MessagePublishingTest do
       published_message_record = build(:published_message)
 
       RailwayIpc.PersistenceMock
-      |> expect(:insert_published_message, fn ^message, ^exchange ->
+      |> expect(:insert_published_message, fn ^message, ^exchange, nil ->
         {:ok, published_message_record}
       end)
 
-      {:ok, ^published_message_record} = MessagePublishing.process(message, exchange)
+      {:ok, ^published_message_record} = MessagePublishing.process(message, exchange, nil)
     end
   end
 end

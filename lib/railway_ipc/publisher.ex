@@ -24,8 +24,6 @@ defmodule RailwayIpc.Publisher do
     )
   end
 
-  # forcing queue to be passed in here, when it is often nil, is kind of weird
-  # means we have to always pass in nil from consumers, etc. when publishing and we know we have no queue
   def publish(channel, exchange, queue, message) do
     case @railway_ipc.process_published_message(message, exchange, queue) do
       {:ok, %{encoded_message: encoded_message}} ->
@@ -42,7 +40,17 @@ defmodule RailwayIpc.Publisher do
   end
 
   def publish(channel, exchange, message) do
-    publish(channel, exchange, nil, message)
+    case @railway_ipc.process_published_message(message, exchange) do
+      {:ok, %{encoded_message: encoded_message}} ->
+        @stream_adapter.publish(
+          channel,
+          exchange,
+          encoded_message
+        )
+
+      {:error, error} ->
+        Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
+    end
   end
 
   def reply(channel, queue, reply) do

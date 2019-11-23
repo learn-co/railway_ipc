@@ -17,6 +17,22 @@ defmodule RailwayIpc.Core.MessageAccess do
     end
   end
 
+  def persist_published_message(%{uuid: uuid} = message, exchange) do
+    try do
+      @persistence.insert_published_message(message, exchange)
+    rescue
+      error ->
+        case error do
+          %{type: :unique} ->
+            message = @persistence.get_published_message(uuid)
+            {:ok, message}
+
+          error ->
+            {:error, error}
+        end
+    end
+  end
+
   def persist_consumed_message(
         %{inbound_message: %{decoded_message: %{uuid: uuid}}} = message_consumption
       ) do
@@ -24,7 +40,7 @@ defmodule RailwayIpc.Core.MessageAccess do
       nil ->
         do_persist_consumed_message(message_consumption)
 
-      persisted_message = %{status: status} when status in ["pending", "unknown_message_type"] ->
+      persisted_message = %{status: status} when status in ["processing", "unknown_message_type"] ->
         add_lock_to_message(persisted_message)
 
       %{status: status} when status in ["success", "ignore"] ->

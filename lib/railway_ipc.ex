@@ -7,6 +7,10 @@ defmodule RailwayIpc do
     MessagePublishing.process(message, exchange, queue)
   end
 
+  def process_published_message(message, exchange) do
+    MessagePublishing.process(message, exchange)
+  end
+
   def process_consumed_message(payload, handle_module, exchange, queue, message_module) do
     MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
   end

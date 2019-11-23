@@ -18,6 +18,16 @@ defmodule RailwayIpc.Persistence do
     |> @repo.insert()
   end
 
+  def insert_published_message(message, exchange) do
+    {:ok, persistence_attrs} =
+      message
+      |> PublishedMessageAdapter.to_persistence(exchange)
+
+    %PublishedMessage{}
+    |> PublishedMessage.changeset(persistence_attrs)
+    |> @repo.insert()
+  end
+
   def insert_consumed_message(%MessageConsumption{
         exchange: exchange,
         queue: queue,
