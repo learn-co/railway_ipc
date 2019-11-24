@@ -53,12 +53,7 @@ defmodule RailwayIpc.CommandsConsumer do
 
             func ->
               func
-              # &RailwayIpc.Publisher.direct_publish/1
           end
-
-        # publish_function = fn event ->
-        #   RailwayIpc.Publisher.publish(channel, exchange, event)
-        # end
 
         CommandsConsumer.process(
           payload,
