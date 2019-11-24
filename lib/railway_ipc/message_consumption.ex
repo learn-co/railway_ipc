@@ -1,9 +1,7 @@
 defmodule RailwayIpc.MessageConsumption do
-  alias RailwayIpc.Core.CommandMessage
-  alias RailwayIpc.Core.EventMessage
-  alias RailwayIpc.CommandMessageHandler
-  alias RailwayIpc.Core.MessageAccess
+  alias RailwayIpc.Core.{CommandMessage, EventMessage}
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
+  alias RailwayIpc.CommandMessageHandler
   require Logger
 
   defstruct [
@@ -47,7 +45,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:ok, message_consumption}) do
-    case MessageAccess.persist_consumed_message(message_consumption) do
+    case RailwayIpc.persist_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         handle_persistence_success(message_consumption, persisted_message)
 
@@ -57,7 +55,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:skip, message_consumption}) do
-    case MessageAccess.persist_consumed_message(message_consumption) do
+    case RailwayIpc.persist_consumed_message(message_consumption) do
       {:ok, persisted_message} ->
         {:skip, update(message_consumption, %{persisted_message: persisted_message})}
 
@@ -122,7 +120,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   defp mark_persisted_message_handled(persisted_message) do
-    MessageAccess.consumed_message_success(persisted_message)
+    RailwayIpc.consumed_message_success(persisted_message)
   end
 
   defp handle_decode_success(message_consumption, inbound_message) do

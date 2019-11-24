@@ -1,5 +1,5 @@
 defmodule RailwayIpc.MessagePublishing do
-  alias RailwayIpc.Core.{MessageAccess, RoutingInfo, PublishedMessage}
+  alias RailwayIpc.Core.{RoutingInfo, PublishedMessage}
 
   defstruct [
     :outbound_message,
@@ -20,7 +20,7 @@ defmodule RailwayIpc.MessagePublishing do
   end
 
   defp persist_message(message_publishing) do
-    case MessageAccess.persist_published_message(message_publishing) do
+    case RailwayIpc.persist_published_message(message_publishing) do
       {:ok, persisted_message} ->
         update(message_publishing, %{persisted_message: persisted_message})
 

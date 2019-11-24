@@ -10,33 +10,17 @@ defmodule RailwayIpc.Publisher do
   @railway_ipc Application.get_env(:railway_ipc, :railway_ipc, RailwayIpc)
   require Logger
 
-  def direct_publish(%RailwayIpc.Persistence.PublishedMessage{
+  def publish(%RailwayIpc.Persistence.PublishedMessage{
         encoded_message: encoded_message,
-        queue: queue
+        exchange: exchange
       }) do
     channel = RailwayIpc.Connection.publisher_channel()
 
-    @stream_adapter.direct_publish(
+    @stream_adapter.publish(
       channel,
-      queue,
+      exchange,
       encoded_message
     )
-  end
-
-  def direct_publish_with_persistence(channel, queue, message) do
-    case @railway_ipc.process_published_message(message, %RoutingInfo{queue: queue}) do
-      %{persisted_message: persisted_message} ->
-        @stream_adapter.direct_publish(
-          channel,
-          queue,
-          persisted_message.encoded_message
-        )
-
-      %{error: error} ->
-        Logger.error(
-          "Error direct publishing message #{inspect(message)}. Error: #{inspect(error)}"
-        )
-    end
   end
 
   def publish(channel, exchange, message) do
@@ -50,6 +34,22 @@ defmodule RailwayIpc.Publisher do
 
       %{error: error} ->
         Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
+    end
+  end
+
+  def direct_publish(channel, queue, message) do
+    case @railway_ipc.process_published_message(message, %RoutingInfo{queue: queue}) do
+      %{persisted_message: persisted_message} ->
+        @stream_adapter.direct_publish(
+          channel,
+          queue,
+          persisted_message.encoded_message
+        )
+
+      %{error: error} ->
+        Logger.error(
+          "Error direct publishing message #{inspect(message)}. Error: #{inspect(error)}"
+        )
     end
   end
 
@@ -86,10 +86,10 @@ defmodule RailwayIpc.Publisher do
         RailwayIpc.Publisher.publish(channel, exchange, message)
       end
 
-      def direct_publish_with_persistence(message) do
+      def direct_publish(message) do
         channel = RailwayIpc.Connection.publisher_channel()
         queue = unquote(Keyword.get(opts, :queue))
-        RailwayIpc.Publisher.direct_publish_with_persistence(channel, queue, message)
+        RailwayIpc.Publisher.direct_publish(channel, queue, message)
       end
 
       def publish_sync(message, timeout \\ :timer.seconds(5)) do

@@ -8,7 +8,7 @@ defmodule LearnIpc.Commands.RepublishMessage do
           uuid: String.t(),
           context: %{
             String.t() => String.t() | nil,
-            data: LearnIpc.Commands.CreateBatch.Data.t() | nil
+            data: LearnIpc.Commands.RepublishMessage.Data.t() | nil
           }
         }
   defstruct [:user_uuid, :correlation_id, :uuid, :context, :data]
