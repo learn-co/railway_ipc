@@ -30,7 +30,11 @@ defmodule RailwayIpc.Core.CommandsConsumer do
     ack_func.()
   end
 
-  def post_processing({:skip, %{result: %{reason: reason}, payload: payload}}, ack_func, _publish_func) do
+  def post_processing(
+        {:skip, %{result: %{reason: reason}, payload: payload}},
+        ack_func,
+        _publish_func
+      ) do
     Logger.info("Skipping handling for message #{payload}, reason #{reason}")
     ack_func.()
   end

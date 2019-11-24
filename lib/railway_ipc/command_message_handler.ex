@@ -12,6 +12,10 @@ defmodule RailwayIpc.CommandMessageHandler do
     end
   end
 
+  defp prepare_event(%RailwayIpc.Persistence.PublishedMessage{} = event, _message) do
+    event
+  end
+
   defp prepare_event(event, message) do
     event
     |> update_context(message)

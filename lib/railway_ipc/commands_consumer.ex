@@ -44,9 +44,21 @@ defmodule RailwayIpc.CommandsConsumer do
           @stream_adapter.ack(channel, delivery_tag)
         end
 
-        publish_function = fn event ->
-          RailwayIpc.Publisher.publish(channel, exchange, event)
-        end
+        publish_function =
+          case Keyword.get(unquote(opts), :publish_function) do
+            nil ->
+              fn event ->
+                RailwayIpc.Publisher.publish(channel, exchange, event)
+              end
+
+            func ->
+              func
+              # &RailwayIpc.Publisher.direct_publish/1
+          end
+
+        # publish_function = fn event ->
+        #   RailwayIpc.Publisher.publish(channel, exchange, event)
+        # end
 
         CommandsConsumer.process(
           payload,

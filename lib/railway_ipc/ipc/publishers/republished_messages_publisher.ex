@@ -7,7 +7,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
   def invoke_republish_message(published_message_uuid, request_data) do
     case DataAdapter.republish_message(published_message_uuid, request_data) do
       {:ok, protobuf} ->
-        publish(protobuf)
+        direct_publish_with_persistence(protobuf)
         :ok
 
       {:error, _error} = e ->

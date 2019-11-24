@@ -2,16 +2,16 @@ defmodule RailwayIpc.PersistenceTest do
   use ExUnit.Case
   use RailwayIpc.DataCase
 
-  alias RailwayIpc.Persistence
-  alias RailwayIpc.Core.Payload
-  alias RailwayIpc.Core.CommandMessage
-  alias RailwayIpc.MessageConsumption
+  alias RailwayIpc.{Persistence, MessageConsumption, MessagePublishing}
+  alias RailwayIpc.Core.{CommandMessage, Payload, RoutingInfo}
+
   @tag capture_log: true
-  describe "insert_published_message/1" do
+  describe "insert_published_message/3" do
     test "inserts the message record" do
-      event = Events.AThingWasDone.new()
+      event = Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()})
       exchange = "ipc:batch:commands"
-      assert {:ok, message} = Persistence.insert_published_message(event, exchange)
+      message_publishing = MessagePublishing.new(event, %RoutingInfo{exchange: exchange})
+      assert {:ok, message} = Persistence.insert_published_message(message_publishing)
       assert message.exchange == exchange
       assert message.uuid != nil
       assert message.status == "sent"

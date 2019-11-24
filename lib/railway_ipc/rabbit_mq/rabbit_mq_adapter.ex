@@ -92,7 +92,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     Basic.ack(channel, delivery_tag)
   end
 
-  def publish(channel, nil, queue, payload) do
+  def direct_publish(channel, queue, payload) do
     Basic.publish(channel, "", queue, payload)
   end
 

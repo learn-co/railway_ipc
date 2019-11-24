@@ -5,8 +5,7 @@ defmodule RailwayIpc.PublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.StreamMock
-  alias RailwayIpc.Connection
+  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.Test.BatchEventsPublisher
 
@@ -76,8 +75,10 @@ defmodule RailwayIpc.PublisherTest do
     {:ok, encoded_message} = Payload.encode(message)
 
     RailwayIpcMock
-    |> expect(:process_published_message, fn ^message, ^exchange ->
-      {:ok, build(:published_message, %{encoded_message: encoded_message})}
+    |> expect(:process_published_message, fn ^message, %{exchange: ^exchange, queue: nil} ->
+      %MessagePublishing{
+        persisted_message: build(:published_message, %{encoded_message: encoded_message})
+      }
     end)
 
     RailwayIpc.Publisher.publish("channel", exchange, message)

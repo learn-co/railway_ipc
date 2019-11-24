@@ -5,11 +5,9 @@ defmodule RailwayIpc.Core.MessageAccessTest do
   import Mox
   import RailwayIpc.Factory
   use RailwayIpc.DataCase
-  alias RailwayIpc.Core.MessageAccess
-  alias RailwayIpc.MessageConsumption
+  alias RailwayIpc.{MessageConsumption, MessagePublishing}
   alias RailwayIpc.Test.BatchEventsConsumer
-  alias RailwayIpc.Core.EventMessage
-  alias RailwayIpc.Core.Payload
+  alias RailwayIpc.Core.{EventMessage, Payload, MessageAccess, RoutingInfo}
   @tag capture_log: true
 
   setup do
@@ -20,7 +18,12 @@ defmodule RailwayIpc.Core.MessageAccessTest do
   end
 
   describe "persist_published_message/2" do
-    test "returns the existing message when there is one" do
+    setup do
+      routing_info = %RoutingInfo{exchange: "exchange"}
+      [routing_info: routing_info]
+    end
+
+    test "returns the existing message when there is one", %{routing_info: routing_info} do
       existing_message = insert(:published_message)
 
       protobuf_message = %Events.AThingWasDone{
@@ -29,22 +32,23 @@ defmodule RailwayIpc.Core.MessageAccessTest do
         correlation_id: existing_message.correlation_id
       }
 
-      {:ok, persisted_message} =
-        MessageAccess.persist_published_message(protobuf_message, "exchange")
+      message_publishing = MessagePublishing.new(protobuf_message, routing_info)
+      {:ok, persisted_message} = MessageAccess.persist_published_message(message_publishing)
 
       assert persisted_message.uuid == existing_message.uuid
     end
 
     @tag capture_log: true
-    test "creates a new message when none exists" do
+    test "creates a new message when none exists", %{routing_info: routing_info} do
       protobuf_message = %Events.AThingWasDone{
         uuid: Ecto.UUID.generate(),
         user_uuid: Ecto.UUID.generate(),
         correlation_id: Ecto.UUID.generate()
       }
 
-      {:ok, persisted_message} =
-        MessageAccess.persist_published_message(protobuf_message, "exchange")
+      message_publishing = MessagePublishing.new(protobuf_message, routing_info)
+
+      {:ok, persisted_message} = MessageAccess.persist_published_message(message_publishing)
 
       assert persisted_message.uuid == protobuf_message.uuid
     end

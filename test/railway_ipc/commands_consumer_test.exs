@@ -98,9 +98,9 @@ defmodule RailwayIpc.CommandsConsumerTest do
     end)
 
     RailwayIpcMock
-    |> expect(:process_published_message, fn ^event, ^events_exchange ->
+    |> expect(:process_published_message, fn ^event, %{exchange: ^events_exchange, queue: nil} ->
       {:ok, encoded_event} = Payload.encode(event)
-      {:ok, build(:published_message, %{encoded_message: encoded_event})}
+      %{persisted_message: build(:published_message, %{encoded_message: encoded_event})}
     end)
 
     send(pid, {:basic_deliver, command, %{delivery_tag: "tag"}})
