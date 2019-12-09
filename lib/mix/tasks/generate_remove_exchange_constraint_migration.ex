@@ -9,7 +9,9 @@ defmodule Mix.Tasks.RailwayIpc.GenerateRemoveExchangeConstraintMigration do
 
     Process.sleep(:timer.seconds(1))
 
-    IO.puts("Generated remove constraint on exchange migration successfully. Run `mix ecto.migrate`")
+    IO.puts(
+      "Generated remove constraint on exchange migration successfully. Run `mix ecto.migrate`"
+    )
   end
 
   defp remove_exchange_constraint_command do

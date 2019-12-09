@@ -15,7 +15,7 @@ defmodule RailwayIpc.ConsumedMessage do
         add_lock_to_message(persisted_message)
 
       %{status: status} when status in ["success", "ignore"] ->
-        {:skip, "Message with uuid: #{uuid} and status: #{status} already exists"}
+        {:ignore, "Message with uuid: #{uuid} and status: #{status} already exists"}
     end
   end
 
@@ -37,6 +37,12 @@ defmodule RailwayIpc.ConsumedMessage do
 
   def update(consumed_message, attrs) do
     @persistence.update_consumed_message(consumed_message, attrs)
+  end
+
+  def update_status(consumed_message, status) do
+    status = Atom.to_string(status)
+    {:ok, persisted_message} = update(consumed_message, %{status: status})
+    persisted_message
   end
 
   def add_lock_to_message(persisted_message) do

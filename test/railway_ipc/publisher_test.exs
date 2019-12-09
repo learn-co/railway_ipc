@@ -131,7 +131,8 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      {:error, "Failure to process message"} = RailwayIpc.Publisher.publish("channel", exchange, message)
+      {:error, "Failure to process message"} =
+        RailwayIpc.Publisher.publish("channel", exchange, message)
     end
   end
 
@@ -193,7 +194,8 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      {:error, "Failed to process message"} = RailwayIpc.Publisher.direct_publish("channel", queue, message)
+      {:error, "Failed to process message"} =
+        RailwayIpc.Publisher.direct_publish("channel", queue, message)
     end
   end
 end
