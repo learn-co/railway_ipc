@@ -65,14 +65,14 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
       original_published_message_uuid: original_published_message_uuid
     } do
       command =
-        LearnIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
+        RailwayIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
 
       persisted_published_message =
         build(:published_message, %{
           uuid: command.uuid,
-          message_type: "LearnIpc::Commands::RepublishMessage",
+          message_type: "RailwayIpc::Commands::RepublishMessage",
           encoded_message:
-            "{\"encoded_message\":\"\",\"type\":\"LearnIpc::Commands::RepublishMessage\"}"
+            "{\"encoded_message\":\"\",\"type\":\"RailwayIpc::Commands::RepublishMessage\"}"
         })
 
       RailwayIpc.MessagePublishingMock
@@ -94,14 +94,14 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
       original_published_message_uuid: original_published_message_uuid
     } do
       command =
-        LearnIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
+        RailwayIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
 
       persisted_published_message =
         build(:published_message, %{
           uuid: command.uuid,
-          message_type: "LearnIpc::Commands::RepublishMessage",
+          message_type: "RailwayIpc::Commands::RepublishMessage",
           encoded_message:
-            "{\"encoded_message\":\"\",\"type\":\"LearnIpc::Commands::RepublishMessage\"}"
+            "{\"encoded_message\":\"\",\"type\":\"RailwayIpc::Commands::RepublishMessage\"}"
         })
 
       RailwayIpc.MessagePublishingMock

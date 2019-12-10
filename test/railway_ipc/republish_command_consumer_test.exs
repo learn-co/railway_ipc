@@ -60,12 +60,12 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
 
   test "acks message when successful", %{persisted_published_message: persisted_published_message} do
     data =
-      LearnIpc.Commands.RepublishMessage.Data.new(
+      RailwayIpc.Commands.RepublishMessage.Data.new(
         published_message_uuid: persisted_published_message.uuid
       )
 
     {:ok, command} =
-      LearnIpc.Commands.RepublishMessage.new(correlation_id: "123", data: data)
+      RailwayIpc.Commands.RepublishMessage.new(correlation_id: "123", data: data)
       |> Payload.encode()
 
     consumer_module = RepublishedMessagesConsumer

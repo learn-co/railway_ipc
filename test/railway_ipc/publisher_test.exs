@@ -155,7 +155,7 @@ defmodule RailwayIpc.PublisherTest do
       queue = "republish_queue"
 
       message =
-        LearnIpc.Commands.RepublishMessage.new(%{
+        RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: user_uuid,
           correlation_id: correlation_id,
           uuid: Ecto.UUID.generate()
@@ -180,7 +180,7 @@ defmodule RailwayIpc.PublisherTest do
       queue = "republish_queue"
 
       message =
-        LearnIpc.Commands.RepublishMessage.new(%{
+        RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: user_uuid,
           correlation_id: correlation_id,
           uuid: Ecto.UUID.generate()

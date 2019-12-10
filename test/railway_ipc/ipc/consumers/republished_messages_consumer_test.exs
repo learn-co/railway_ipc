@@ -10,8 +10,8 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
     setup do
       persisted_message = build(:published_message)
       uuid = persisted_message.uuid
-      data = LearnIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
-      command = LearnIpc.Commands.RepublishMessage.new(data: data)
+      data = RailwayIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
+      command = RailwayIpc.Commands.RepublishMessage.new(data: data)
       [persisted_message: persisted_message, uuid: uuid, command: command]
     end
 
@@ -54,14 +54,14 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
       {:error, ^error_message} = RepublishedMessagesConsumer.handle_in(command)
     end
 
-    test "it returns an error tuple when the persisted published message is a LearnIpc.Commands.RepublishMessage type",
+    test "it returns an error tuple when the persisted published message is a RailwayIpc.Commands.RepublishMessage type",
          %{command: command, persisted_message: persisted_message} do
       RailwayIpc.PersistenceMock
       |> stub(:get_published_message, fn _uuid ->
-        Map.merge(persisted_message, %{message_type: "LearnIpc::Commands::RepublishMessage"})
+        Map.merge(persisted_message, %{message_type: "RailwayIpc::Commands::RepublishMessage"})
       end)
 
-      error_message = "Cannot republish message of type: LearnIpc::Commands::RepublishMessage"
+      error_message = "Cannot republish message of type: RailwayIpc::Commands::RepublishMessage"
       {:error, ^error_message} = RepublishedMessagesConsumer.handle_in(command)
     end
   end

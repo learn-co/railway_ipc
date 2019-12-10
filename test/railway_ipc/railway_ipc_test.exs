@@ -52,7 +52,7 @@ defmodule RailwayIpcTest do
       :ok
     end
 
-    test "publishes the LearnIpc.Commands.RepublishMessage protobuf for the given persisted message" do
+    test "publishes the RailwayIpc.Commands.RepublishMessage protobuf for the given persisted message" do
       message =
         Events.AThingWasDone.new(%{user_uuid: Ecto.UUID.generate(), uuid: Ecto.UUID.generate()})
 

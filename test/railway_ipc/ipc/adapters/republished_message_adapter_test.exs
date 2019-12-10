@@ -11,7 +11,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessageAdapterTest do
     test "it returns the ok tuple with the protobuf on sucess", %{
       published_message_uuid: published_message_uuid
     } do
-      {:ok, %LearnIpc.Commands.RepublishMessage{}} =
+      {:ok, %RailwayIpc.Commands.RepublishMessage{}} =
         RepublishedMessageAdapter.republish_message(published_message_uuid, %{
           correlation_id: Ecto.UUID.generate(),
           current_user: %{

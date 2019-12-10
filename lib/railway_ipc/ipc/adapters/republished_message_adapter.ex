@@ -1,5 +1,5 @@
 defmodule RailwayIpc.Ipc.RepublishedMessageAdapter do
-  alias LearnIpc.Commands.RepublishMessage
+  alias RailwayIpc.Commands.RepublishMessage
 
   def republish_message(nil, request_data) do
     {:error,

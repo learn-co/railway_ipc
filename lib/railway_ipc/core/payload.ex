@@ -2,7 +2,7 @@ defmodule RailwayIpc.Core.Payload do
   @behaviour RailwayIpc.PayloadBehaviour
   import RailwayIpc.Utils, only: [module_defined?: 1]
 
-  alias RailwayIpc.Core.DefaultMessage
+  alias RailwayIpc.DefaultMessage
 
   def decode(payload) when not is_binary(payload) do
     {:error, "Malformed JSON given: #{payload}. Must be a string"}

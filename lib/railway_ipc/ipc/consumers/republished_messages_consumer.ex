@@ -3,7 +3,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesConsumer do
     queue: "railway_ipc:republished_messages:commands"
 
   alias RailwayIpc.Ipc.Logger
-  alias LearnIpc.Commands.RepublishMessage
+  alias RailwayIpc.Commands.RepublishMessage
   alias RailwayIpc.PublishedMessage
 
   def handle_in(
@@ -15,8 +15,8 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesConsumer do
       nil ->
         {:error, "Unable to find published message with UUID: #{published_message_uuid}"}
 
-      %{message_type: "LearnIpc::Commands::RepublishMessage"} ->
-        {:error, "Cannot republish message of type: LearnIpc::Commands::RepublishMessage"}
+      %{message_type: "RailwayIpc::Commands::RepublishMessage"} ->
+        {:error, "Cannot republish message of type: RailwayIpc::Commands::RepublishMessage"}
 
       %{exchange: nil} ->
         {:error, "Cannot republish message to exchange: nil"}

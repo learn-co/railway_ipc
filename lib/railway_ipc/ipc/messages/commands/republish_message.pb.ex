@@ -1,4 +1,4 @@
-defmodule LearnIpc.Commands.RepublishMessage do
+defmodule RailwayIpc.Commands.RepublishMessage do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -8,7 +8,7 @@ defmodule LearnIpc.Commands.RepublishMessage do
           uuid: String.t(),
           context: %{
             String.t() => String.t() | nil,
-            data: LearnIpc.Commands.RepublishMessage.Data.t() | nil
+            data: RailwayIpc.Commands.RepublishMessage.Data.t() | nil
           }
         }
   defstruct [:user_uuid, :correlation_id, :uuid, :context, :data]
@@ -19,14 +19,14 @@ defmodule LearnIpc.Commands.RepublishMessage do
 
   field(:context, 4,
     repeated: true,
-    type: LearnIpc.Commands.RepublishMessage.ContextEntry,
+    type: RailwayIpc.Commands.RepublishMessage.ContextEntry,
     map: true
   )
 
-  field(:data, 5, type: LearnIpc.Commands.RepublishMessage.Data)
+  field(:data, 5, type: RailwayIpc.Commands.RepublishMessage.Data)
 end
 
-defmodule LearnIpc.Commands.RepublishMessage.Data do
+defmodule RailwayIpc.Commands.RepublishMessage.Data do
   @moduledoc false
   use Protobuf, syntax: :proto3
 
@@ -38,7 +38,7 @@ defmodule LearnIpc.Commands.RepublishMessage.Data do
   field(:published_message_uuid, 1, type: :string)
 end
 
-defmodule LearnIpc.Commands.RepublishMessage.ContextEntry do
+defmodule RailwayIpc.Commands.RepublishMessage.ContextEntry do
   @moduledoc false
   use Protobuf, map: true, syntax: :proto3
 
