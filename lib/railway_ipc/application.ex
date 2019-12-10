@@ -22,5 +22,5 @@ defmodule RailwayIpc.Application do
     ]
   end
 
-  def children(_), do: []
+  def children(_, _), do: []
 end
