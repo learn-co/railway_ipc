@@ -73,23 +73,23 @@ defmodule RailwayIpc.ConsumedMessageTest do
     end
 
     @tag capture_log: true
-    test "returns :skip tuple when a message exists in the 'success' state", %{
+    test "returns :ignore tuple when a message exists in the 'success' state", %{
       message_consumption: message_consumption,
       message: message
     } do
       error_message = "Message with uuid: #{message.uuid} and status: success already exists"
       insert(:consumed_message, %{uuid: message.uuid, status: "success"})
-      {:skip, ^error_message} = ConsumedMessage.create(message_consumption)
+      {:ignore, ^error_message} = ConsumedMessage.create(message_consumption)
     end
 
     @tag capture_log: true
-    test "returns :skip tuple when a message exists in the 'ignore' state", %{
+    test "returns :ignore tuple when a message exists in the 'ignore' state", %{
       message_consumption: message_consumption,
       message: message
     } do
       error_message = "Message with uuid: #{message.uuid} and status: ignore already exists"
       insert(:consumed_message, %{uuid: message.uuid, status: "ignore"})
-      {:skip, ^error_message} = ConsumedMessage.create(message_consumption)
+      {:ignore, ^error_message} = ConsumedMessage.create(message_consumption)
     end
   end
 end
