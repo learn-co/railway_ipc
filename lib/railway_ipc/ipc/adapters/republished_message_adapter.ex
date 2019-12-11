@@ -1,11 +1,6 @@
 defmodule RailwayIpc.Ipc.RepublishedMessageAdapter do
   alias RailwayIpc.Commands.RepublishMessage
 
-  def republish_message(nil, request_data) do
-    {:error,
-     "Failed to created protobuf with nil UUID and request data: #{Jason.encode!(request_data)}"}
-  end
-
   def republish_message(published_message_uuid, %{
         correlation_id: correlation_id,
         current_user: %{
