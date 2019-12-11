@@ -4,7 +4,7 @@ defmodule RailwayIpc.MixProject do
   def project do
     [
       app: :railway_ipc,
-      version: "0.1.7",
+      version: "0.2.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -51,7 +51,7 @@ defmodule RailwayIpc.MixProject do
   defp package() do
     [
       description: "Elixir IPC",
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(priv lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/learn-co/railway_ipc"}
     ]

@@ -139,8 +139,14 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns a skip tuple when message type is unknown", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module
+      message_module: message_module,
+      consumed_message: consumed_message
     } do
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, %{status: "unknown_message_type"} = attrs ->
+        {:ok, Map.merge(consumed_message, attrs)}
+      end)
+
       payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
@@ -148,6 +154,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
 
       assert struct.persisted_message != nil
+      assert struct.persisted_message.status == "unknown_message_type"
       assert struct.result.reason == "Unknown message of type: Events::SomeUnknownThing"
     end
 
@@ -299,8 +306,14 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns a skip tuple when message type is unknown", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module
+      message_module: message_module,
+      consumed_message: consumed_message
     } do
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, %{status: "unknown_message_type"} = attrs ->
+        {:ok, Map.merge(consumed_message, attrs)}
+      end)
+
       payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
@@ -378,7 +391,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       ]
     end
 
-    test "returns the ok tuple when a message with the status 'pending' exists", %{
+    test "returns the ok tuple when a message with the status 'processing' exists", %{
       exchange: exchange,
       queue: queue,
       message_module: message_module,
@@ -451,10 +464,16 @@ defmodule RailwayIpc.MessageConsumptionTest do
         Map.merge(consumed_message, %{status: "success"})
       end)
 
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, %{status: "ignore"} = attrs ->
+        {:ok, Map.merge(consumed_message, attrs)}
+      end)
 
       {:skip, message_consumption} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
-      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: success already exists"
+
+      assert message_consumption.result.reason ==
+               "Message with uuid: #{consumed_message.uuid} and status: success already exists"
     end
 
     test "returns the skip tuple when a message with the status 'ignore' exists", %{
@@ -474,10 +493,18 @@ defmodule RailwayIpc.MessageConsumptionTest do
         Map.merge(consumed_message, %{status: "ignore"})
       end)
 
+      RailwayIpc.PersistenceMock
+      |> stub(:update_consumed_message, fn _message, %{status: "ignore"} = attrs ->
+        {:ok, Map.merge(consumed_message, attrs)}
+      end)
 
       {:skip, message_consumption} =
         MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
-      assert message_consumption.result.reason == "Message with uuid: #{consumed_message.uuid} and status: ignore already exists"
+
+      assert message_consumption.result.status == :ignore
+
+      assert message_consumption.result.reason ==
+               "Message with uuid: #{consumed_message.uuid} and status: ignore already exists"
     end
   end
 end

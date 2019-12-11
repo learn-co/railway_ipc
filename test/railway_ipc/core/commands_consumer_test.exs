@@ -23,12 +23,12 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
     handle_module = __MODULE__
     message_module = RailwayIpc.Core.CommandMessage
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^payload,
-                                            ^handle_module,
-                                            ^commands_exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^payload,
+                           ^handle_module,
+                           ^commands_exchange,
+                           ^queue,
+                           ^message_module ->
       {:emit, %RailwayIpc.MessageConsumption{outbound_message: event}}
     end)
 
@@ -59,12 +59,12 @@ defmodule RailwayIpc.Core.CommandsConsumerTest do
     handle_module = __MODULE__
     message_module = RailwayIpc.Core.CommandMessage
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^payload,
-                                            ^handle_module,
-                                            ^commands_exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^payload,
+                           ^handle_module,
+                           ^commands_exchange,
+                           ^queue,
+                           ^message_module ->
       {:error,
        %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)

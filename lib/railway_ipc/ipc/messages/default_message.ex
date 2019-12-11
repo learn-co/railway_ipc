@@ -1,4 +1,4 @@
-defmodule RailwayIpc.Core.DefaultMessage do
+defmodule RailwayIpc.DefaultMessage do
   @moduledoc false
   use Protobuf, syntax: :proto3
 

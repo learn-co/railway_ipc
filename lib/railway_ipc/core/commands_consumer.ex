@@ -1,10 +1,15 @@
 defmodule RailwayIpc.Core.CommandsConsumer do
   require Logger
   alias RailwayIpc.Core.CommandMessage
-  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc, RailwayIpc)
+
+  @message_consumption Application.get_env(
+                         :railway_ipc,
+                         :message_consumption,
+                         RailwayIpc.MessageConsumption
+                       )
 
   def process(payload, module, exchange, queue, ack_func, publish_func) do
-    @railway_ipc.process_consumed_message(payload, module, exchange, queue, CommandMessage)
+    @message_consumption.process(payload, module, exchange, queue, CommandMessage)
     |> post_processing(ack_func, publish_func)
   end
 
@@ -30,7 +35,11 @@ defmodule RailwayIpc.Core.CommandsConsumer do
     ack_func.()
   end
 
-  def post_processing({:skip, %{result: %{reason: reason}, payload: payload}}, ack_func) do
+  def post_processing(
+        {:skip, %{result: %{reason: reason}, payload: payload}},
+        ack_func,
+        _publish_func
+      ) do
     Logger.info("Skipping handling for message #{payload}, reason #{reason}")
     ack_func.()
   end

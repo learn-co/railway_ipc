@@ -12,7 +12,10 @@ defmodule RailwayIpc.Connection.Supervisor do
         id: Supervisor,
         start:
           {Supervisor, :start_link,
-           [additional_children, [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]]}
+           [
+             [RailwayIpc.Ipc.RepublishedMessagesConsumer | additional_children],
+             [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]
+           ]}
       }
     ]
 

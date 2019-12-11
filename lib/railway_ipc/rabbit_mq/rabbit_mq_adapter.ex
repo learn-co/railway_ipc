@@ -35,6 +35,10 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     Channel.open(connection)
   end
 
+  # maybe we refactor this to two separate functions
+  # one to create queue which happens always
+  # one to bind_queue which we call `maybe_bind_queue` and we call both of these
+  # in sequence from Connection.
   def bind_queue(
         channel,
         %{
@@ -44,8 +48,8 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
         }
       ) do
     with {:ok, _} <- create_queue(channel, queue, durable: true),
-         :ok <- Exchange.declare(channel, exchange, :fanout, durable: true),
-         :ok <- Queue.bind(channel, queue, exchange),
+         :ok <- maybe_create_exchange(channel, exchange),
+         :ok <- maybe_bind_queue(channel, queue, exchange),
          {:ok, _consumer_tag} <- subscribe(channel, queue, consumer) do
       :ok
     else
@@ -68,8 +72,28 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     Queue.declare(channel, queue, opts)
   end
 
+  def maybe_create_exchange(_channel, nil) do
+    :ok
+  end
+
+  def maybe_create_exchange(channel, exchange) do
+    Exchange.declare(channel, exchange, :fanout, durable: true)
+  end
+
+  def maybe_bind_queue(_channel, _queue, nil) do
+    :ok
+  end
+
+  def maybe_bind_queue(channel, queue, exchange) do
+    Queue.bind(channel, queue, exchange)
+  end
+
   def ack(channel, delivery_tag) do
     Basic.ack(channel, delivery_tag)
+  end
+
+  def direct_publish(channel, queue, payload) do
+    Basic.publish(channel, "", queue, payload)
   end
 
   def publish(channel, exchange, payload) do

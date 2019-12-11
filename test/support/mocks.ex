@@ -7,3 +7,15 @@ Mox.defmock(RailwayIpc.PersistenceMock,
 Mox.defmock(RailwayIpcMock,
   for: RailwayIpcBehaviour
 )
+
+Mox.defmock(RailwayIpcMock,
+  for: RailwayIpcBehaviour
+)
+
+Mox.defmock(RailwayIpc.MessagePublishingMock,
+  for: RailwayIpc.MessagePublishingBehaviour
+)
+
+Mox.defmock(RailwayIpc.MessageConsumptionMock,
+  for: RailwayIpc.MessageConsumptionBehaviour
+)

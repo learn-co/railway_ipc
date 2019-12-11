@@ -16,6 +16,7 @@ defmodule RailwayIpc.StreamBehaviour do
             ) :: {:ok, channel_cache :: map(), channel :: map()}
   @callback get_channel(connection :: map()) :: {:ok, channel :: map()} | {:error, any()}
   @callback ack(channel :: map(), deliver_tag :: binary()) :: any()
+  @callback direct_publish(channel :: map(), queue :: binary(), message :: map()) :: any()
   @callback publish(channel :: map(), exchange :: binary(), message :: map()) :: any()
   @callback reply(channel :: map(), queue :: binary(), message :: map()) :: any()
   @callback create_queue(channel :: map(), queue_name :: String.t(), opts :: list()) ::

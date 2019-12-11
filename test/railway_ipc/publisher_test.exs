@@ -5,8 +5,7 @@ defmodule RailwayIpc.PublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.StreamMock
-  alias RailwayIpc.Connection
+  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.Test.BatchEventsPublisher
 
@@ -61,25 +60,142 @@ defmodule RailwayIpc.PublisherTest do
     end
   end
 
-  test "persists the message with a status of 'sent'" do
-    user_uuid = Ecto.UUID.generate()
-    correlation_id = Ecto.UUID.generate()
-    exchange = "commands:a_thing"
+  describe "publish/3" do
+    test "persists the message with a status of 'sent'" do
+      user_uuid = Ecto.UUID.generate()
+      correlation_id = Ecto.UUID.generate()
+      exchange = "commands:a_thing"
 
-    message =
-      Commands.DoAThing.new(%{
-        user_uuid: user_uuid,
-        correlation_id: correlation_id,
-        uuid: Ecto.UUID.generate()
-      })
+      message =
+        Commands.DoAThing.new(%{
+          user_uuid: user_uuid,
+          correlation_id: correlation_id,
+          uuid: Ecto.UUID.generate()
+        })
 
-    {:ok, encoded_message} = Payload.encode(message)
+      {:ok, encoded_message} = Payload.encode(message)
 
-    RailwayIpcMock
-    |> expect(:process_published_message, fn ^message, ^exchange ->
-      {:ok, build(:published_message, %{encoded_message: encoded_message})}
-    end)
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
 
-    RailwayIpc.Publisher.publish("channel", exchange, message)
+      RailwayIpc.Publisher.publish("channel", exchange, message)
+    end
+
+    test "it returns :ok on publish sucess" do
+      user_uuid = Ecto.UUID.generate()
+      correlation_id = Ecto.UUID.generate()
+      exchange = "commands:a_thing"
+
+      message =
+        Commands.DoAThing.new(%{
+          user_uuid: user_uuid,
+          correlation_id: correlation_id,
+          uuid: Ecto.UUID.generate()
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      :ok = RailwayIpc.Publisher.publish("channel", exchange, message)
+    end
+
+    test "it returns the error tuple on failure" do
+      user_uuid = Ecto.UUID.generate()
+      correlation_id = Ecto.UUID.generate()
+      exchange = "commands:a_thing"
+
+      message =
+        Commands.DoAThing.new(%{
+          user_uuid: user_uuid,
+          correlation_id: correlation_id,
+          uuid: Ecto.UUID.generate()
+        })
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+        {:error,
+         %MessagePublishing{
+           error: "Failure to process message"
+         }}
+      end)
+
+      {:error, "Failure to process message"} =
+        RailwayIpc.Publisher.publish("channel", exchange, message)
+    end
+  end
+
+  describe "direct_publish/3" do
+    setup do
+      StreamMock
+      |> stub(
+        :direct_publish,
+        fn _channel, _queue, message ->
+          {:ok, _decoded} = Payload.decode(message)
+        end
+      )
+
+      :ok
+    end
+
+    test "it returns :ok on success" do
+      user_uuid = Ecto.UUID.generate()
+      correlation_id = Ecto.UUID.generate()
+      queue = "republish_queue"
+
+      message =
+        RailwayIpc.Commands.RepublishMessage.new(%{
+          user_uuid: user_uuid,
+          correlation_id: correlation_id,
+          uuid: Ecto.UUID.generate()
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn ^message, %{queue: ^queue} ->
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      :ok = RailwayIpc.Publisher.direct_publish("channel", queue, message)
+    end
+
+    test "it returns the error tuple on failure" do
+      user_uuid = Ecto.UUID.generate()
+      correlation_id = Ecto.UUID.generate()
+      queue = "republish_queue"
+
+      message =
+        RailwayIpc.Commands.RepublishMessage.new(%{
+          user_uuid: user_uuid,
+          correlation_id: correlation_id,
+          uuid: Ecto.UUID.generate()
+        })
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn ^message, %{queue: ^queue} ->
+        {:error,
+         %MessagePublishing{
+           error: "Failed to process message"
+         }}
+      end)
+
+      {:error, "Failed to process message"} =
+        RailwayIpc.Publisher.direct_publish("channel", queue, message)
+    end
   end
 end

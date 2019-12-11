@@ -4,11 +4,16 @@ defmodule RailwayIpc.CommandMessageHandler do
       :ok ->
         :ok
 
-        {:error, _error} = e -> e
+      {:error, _error} = e ->
+        e
 
       {:emit, event} ->
         {:emit, prepare_event(event, message)}
     end
+  end
+
+  defp prepare_event(%RailwayIpc.Persistence.PublishedMessage{} = event, _message) do
+    event
   end
 
   defp prepare_event(event, message) do

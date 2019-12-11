@@ -17,12 +17,8 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
     handle_module = __MODULE__
     message_module = RailwayIpc.Core.EventMessage
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^payload,
-                                            ^handle_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
       {:ok, %RailwayIpc.MessageConsumption{}}
     end)
 
@@ -49,12 +45,8 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
     handle_module = __MODULE__
     message_module = RailwayIpc.Core.EventMessage
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^payload,
-                                            ^handle_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
       {:error,
        %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)
@@ -82,12 +74,8 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
     handle_module = __MODULE__
     message_module = RailwayIpc.Core.EventMessage
 
-    RailwayIpcMock
-    |> expect(:process_consumed_message, fn ^payload,
-                                            ^handle_module,
-                                            ^exchange,
-                                            ^queue,
-                                            ^message_module ->
+    RailwayIpc.MessageConsumptionMock
+    |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
       {:ok,
        %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
     end)

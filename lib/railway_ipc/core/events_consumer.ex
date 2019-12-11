@@ -1,10 +1,15 @@
 defmodule RailwayIpc.Core.EventsConsumer do
   require Logger
   alias RailwayIpc.Core.EventMessage
-  @railway_ipc Application.get_env(:railway_ipc, :railway_ipc, RailwayIpc)
+
+  @message_consumption Application.get_env(
+                         :railway_ipc,
+                         :message_consumption,
+                         RailwayIpc.MessageConsumption
+                       )
 
   def process(payload, module, exchange, queue, ack_func) do
-    @railway_ipc.process_consumed_message(payload, module, exchange, queue, EventMessage)
+    @message_consumption.process(payload, module, exchange, queue, EventMessage)
     |> post_processing(ack_func)
   end
 

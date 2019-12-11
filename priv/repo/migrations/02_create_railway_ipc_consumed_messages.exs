@@ -10,7 +10,7 @@ defmodule :"#{Application.fetch_env!(:railway_ipc, :repo)}.Migrations.CreateRail
       add :encoded_message, :text, null: false
       add :status, :string, null: false
       add :queue, :string, null: false
-      add :exchange, :string, null: false
+      add :exchange, :string
       timestamps()
     end
   end

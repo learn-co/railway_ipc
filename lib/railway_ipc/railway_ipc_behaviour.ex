@@ -1,13 +1,4 @@
 defmodule RailwayIpcBehaviour do
-  alias RailwayIpc.Core.{EventMessage, CommandMessage}
-  @callback process_published_message(Map.t(), String.t()) :: tuple()
-  @callback process_consumed_message(String.t(), String.t(), String.t(), String.t(), EventMessage) ::
-              tuple()
-  @callback process_consumed_message(
-              String.t(),
-              String.t(),
-              String.t(),
-              String.t(),
-              CommandMessage
-            ) :: tuple()
+  @callback republish_message(published_message_uuid :: String.t(), request_data :: Map.t()) ::
+              atom()
 end

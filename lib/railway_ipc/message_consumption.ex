@@ -1,10 +1,11 @@
 defmodule RailwayIpc.MessageConsumption do
-  alias RailwayIpc.Core.CommandMessage
-  alias RailwayIpc.Core.EventMessage
-  alias RailwayIpc.CommandMessageHandler
-  alias RailwayIpc.Core.MessageAccess
+  alias RailwayIpc.Core.{CommandMessage, EventMessage}
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
+  alias RailwayIpc.CommandMessageHandler
+  alias RailwayIpc.ConsumedMessage, as: ConsumedMessageContext
   require Logger
+
+  @behaviour RailwayIpc.MessageConsumptionBehaviour
 
   defstruct [
     :payload,
@@ -47,7 +48,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:ok, message_consumption}) do
-    case MessageAccess.persist_consumed_message(message_consumption) do
+    case ConsumedMessageContext.create(message_consumption) do
       {:ok, persisted_message} ->
         handle_persistence_success(message_consumption, persisted_message)
 
@@ -57,7 +58,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:skip, message_consumption}) do
-    case MessageAccess.persist_consumed_message(message_consumption) do
+    case ConsumedMessageContext.create(message_consumption) do
       {:ok, persisted_message} ->
         {:skip, update(message_consumption, %{persisted_message: persisted_message})}
 
@@ -112,8 +113,23 @@ defmodule RailwayIpc.MessageConsumption do
     end
   end
 
-  def handle_message({status, message_consumption}) do
-    {status, message_consumption}
+  def handle_message({:error, message_consumption}) do
+    {:error, message_consumption}
+  end
+
+  def handle_message(
+        {_processing_status,
+         %{
+           persisted_message: persisted_message,
+           result: %{
+             status: result_status
+           }
+         } = message_consumption}
+      ) do
+    {:skip,
+     update(message_consumption, %{
+       persisted_message: update_persisted_message_status(persisted_message, result_status)
+     })}
   end
 
   defp update(message_consumption, attrs) do
@@ -122,7 +138,11 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   defp mark_persisted_message_handled(persisted_message) do
-    MessageAccess.consumed_message_success(persisted_message)
+    ConsumedMessageContext.consumed_message_success(persisted_message)
+  end
+
+  defp update_persisted_message_status(persisted_message, status) do
+    ConsumedMessageContext.update_status(persisted_message, status)
   end
 
   defp handle_decode_success(message_consumption, inbound_message) do
@@ -133,7 +153,8 @@ defmodule RailwayIpc.MessageConsumption do
     {:skip,
      update(message_consumption, %{
        inbound_message: inbound_message,
-       result: Result.new(%{status: :skip, reason: "Unknown message of type: #{type}"})
+       result:
+         Result.new(%{status: :unknown_message_type, reason: "Unknown message of type: #{type}"})
      })}
   end
 
