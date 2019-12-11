@@ -1,13 +1,13 @@
 defmodule RailwayIpc.Dev.Repo.Migrations.RemoveConstraintOnExchange do
   use Ecto.Migration
 
-  def change do
-    alter table(:railway_ipc_published_messages) do
-      modify :exchange, :string, default: nil
-    end
+  def up do
+    execute "alter table railway_ipc_published_messages alter column exchange drop not null;"
+    execute "alter table railway_ipc_consumed_messages alter column exchange drop not null;"
+  end
 
-    alter table(:railway_ipc_consumed_messages) do
-      modify :exchange, :string, default: nil
-    end
+  def down do
+    execute "alter table railway_ipc_published_messages alter column exchange set not null;"
+    execute "alter table railway_ipc_consumed_messages alter column exchange set not null;"
   end
 end

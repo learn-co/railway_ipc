@@ -17,7 +17,7 @@ defmodule Mix.Tasks.RailwayIpc.GenerateRemoveExchangeConstraintMigration do
   defp remove_exchange_constraint_command do
     "cp ./deps/railway_ipc/priv/repo/migrations/04_remove_constraint_on_exchange.exs ./priv/repo/migrations/#{
       timestamp()
-    }remove_constraint_on_exchange.exs"
+    }_remove_constraint_on_exchange.exs"
     |> String.to_charlist()
   end
 
