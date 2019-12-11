@@ -5,5 +5,6 @@ config :lager,
   handlers: [level: :critical]
 
 config :railway_ipc, dev_repo: true
+config :railway_ipc, start_supervisor: true
 
 import_config "#{Mix.env()}.exs"

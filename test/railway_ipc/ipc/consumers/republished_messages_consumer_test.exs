@@ -2,6 +2,7 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
   use ExUnit.Case
   import Mox
   import RailwayIpc.Factory
+  use RailwayIpc.DataCase
   setup :verify_on_exit!
 
   alias RailwayIpc.Ipc.RepublishedMessagesConsumer
@@ -62,6 +63,19 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
       end)
 
       error_message = "Cannot republish message of type: RailwayIpc::Commands::RepublishMessage"
+      {:error, ^error_message} = RepublishedMessagesConsumer.handle_in(command)
+    end
+
+    test "it returns an error tuple when the persisted published message UUID is invalid" do
+      uuid = "12345"
+      data = RailwayIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
+      command = RailwayIpc.Commands.RepublishMessage.new(data: data)
+      RailwayIpc.PersistenceMock
+      |> stub(:get_published_message, fn ^uuid ->
+        RailwayIpc.Persistence.get_published_message(uuid)
+      end)
+
+      error_message = "Invalid message uuid: #{uuid}"
       {:error, ^error_message} = RepublishedMessagesConsumer.handle_in(command)
     end
   end
