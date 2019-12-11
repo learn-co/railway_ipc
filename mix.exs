@@ -51,7 +51,7 @@ defmodule RailwayIpc.MixProject do
   defp package() do
     [
       description: "Elixir IPC",
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(priv lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/learn-co/railway_ipc"}
     ]
