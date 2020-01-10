@@ -3,6 +3,8 @@ use Mix.Config
 config :railway_ipc,
   stream_adapter: RailwayIpc.StreamMock
 
+config :railway_ipc, repo: RailwayIpc.Dev.Repo
+
 config :railway_ipc,
   ecto_repos: [RailwayIpc.Dev.Repo]
 

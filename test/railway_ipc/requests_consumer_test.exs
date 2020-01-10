@@ -50,9 +50,9 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
   test "acks message when successful" do
     {:ok, request} =
-      Requests.RequestAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
+      Requests.RequestAThing.new(correlation_id: "123", reply_to: "8675309", user_uuid: "my_uuid") |> Payload.encode()
 
-    response = Responses.RequestedThing.new(correlation_id: "123")
+    response = Responses.RequestedThing.new(correlation_id: "123", user_uuid: "my_uuid")
 
     StreamMock
     |> expect(
@@ -82,7 +82,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     send(pid, {:basic_deliver, request, %{delivery_tag: "tag"}})
     # yey async programming
-    Process.sleep(100)
+    Process.sleep(1000)
   end
 
   test "acks message even if there's an issue with the payload" do
