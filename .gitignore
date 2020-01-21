@@ -23,3 +23,6 @@ erl_crash.dump
 railway_ipc-*.tar
 
 .envrc
+
+# Version Manager
+.tool-versions
