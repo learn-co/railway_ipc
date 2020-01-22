@@ -3,7 +3,7 @@ defmodule Mix.Tasks.RailwayIpc.GenerateAlterTableMigrations do
   Mix task for generating Railway migration files
 
   Run with `mix railway_ipc.generate_alter_table_migrations ./path/to/migrations`
-  If not path is passed in, the task will default to `./priv/repo/migrations`
+  If no path is passed in, the task will default to `./priv/repo/migrations`
   """
 
   use Mix.Task

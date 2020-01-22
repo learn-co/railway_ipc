@@ -4,7 +4,7 @@ defmodule Mix.Tasks.RailwayIpc.GenerateRemoveExchangeConstraintMigration do
   Mix task for generating Railway migration files
 
   Run with `mix railway_ipc.generate_remove_exchange_constraint_migration ./path/to/migrations`
-  If not path is passed in, the task will default to `./priv/repo/migrations`
+  If no path is passed in, the task will default to `./priv/repo/migrations`
   """
 
   import Mix.Support.{MigrationHelper, SystemCommandHelper}
