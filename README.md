@@ -33,6 +33,8 @@ mix ecto.migrate
 
 > Note: Path to migration directory defaults to `./priv/repo/migrations` if none is passed in.
 
+**If there are issues running the migration or deploying the migration, try manually writing the name of the migration module (not the file) to avoid using interpolation.**
+
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm).
 Once published, the docs can
