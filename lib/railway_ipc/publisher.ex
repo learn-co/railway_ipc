@@ -76,11 +76,16 @@ defmodule RailwayIpc.Publisher do
   def prepare_message(message) do
     {:ok, message} =
       message
-      |> Map.put(:uuid, UUID.uuid1())
+      |> ensure_uuid()
       |> Payload.encode()
 
     message
   end
+
+  defp ensure_uuid(%{uuid: uuid} = message) when is_nil(uuid) or "" == uuid do
+    Map.put(message, :uuid, UUID.uuid1())
+  end
+  defp ensure_uuid(message), do: message
 
   defmacro __using__(opts) do
     quote do

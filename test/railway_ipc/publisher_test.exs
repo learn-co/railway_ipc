@@ -51,13 +51,24 @@ defmodule RailwayIpc.PublisherTest do
     :ok
   end
 
-  test "adds uuid to published message" do
-    command = Events.AThingWasDone.new(user_uuid: "abcabc")
+  describe "prepare_message/1" do
+    test "adds uuid to published message" do
+      command = Events.AThingWasDone.new(user_uuid: "abcabc")
 
-    with message <- RailwayIpc.Publisher.prepare_message(command),
-         {:ok, decoded} <- Payload.decode(message) do
-      assert {:ok, _} = UUID.info(decoded.uuid)
+      with message <- RailwayIpc.Publisher.prepare_message(command),
+      {:ok, decoded} <- Payload.decode(message) do
+        assert {:ok, _} = UUID.info(decoded.uuid)
+      end
     end
+
+    test "does not overwrite UUID if one already exists" do
+      uuid = UUID.uuid1()
+      command = Events.AThingWasDone.new(user_uuid: "abcabc", uuid: uuid)
+
+      message = RailwayIpc.Publisher.prepare_message(command)
+      assert {:ok, %{uuid: ^uuid}} = Payload.decode(message)
+    end
+
   end
 
   describe "publish/3" do
