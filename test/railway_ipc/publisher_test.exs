@@ -72,6 +72,48 @@ defmodule RailwayIpc.PublisherTest do
   end
 
   describe "publish/3" do
+    test "it adds a uuid to the message" do
+      message =
+        Commands.DoAThing.new(%{
+          user_uuid: "user_uuid"
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn %{uuid: uuid}, _ ->
+        assert uuid != ""
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      RailwayIpc.Publisher.publish("channel", "commands:a_thing", message)
+    end
+
+    test "it does not overwrite existing UUID" do
+      message_uuid = Ecto.UUID.generate()
+      message =
+        Commands.DoAThing.new(%{
+          user_uuid: "user_uuid",
+          uuid: message_uuid
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn %{uuid: uuid}, _ ->
+        assert uuid == message_uuid
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      RailwayIpc.Publisher.publish("channel", "commands:a_thing", message)
+    end
+
     test "persists the message with a status of 'sent'" do
       user_uuid = Ecto.UUID.generate()
       correlation_id = Ecto.UUID.generate()
@@ -158,6 +200,48 @@ defmodule RailwayIpc.PublisherTest do
       )
 
       :ok
+    end
+
+    test "it adds a uuid to the message" do
+      message =
+        RailwayIpc.Commands.RepublishMessage.new(%{
+          user_uuid: Ecto.UUID.generate()
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn %{uuid: uuid}, _ ->
+        assert uuid != ""
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      :ok = RailwayIpc.Publisher.direct_publish("channel", "queue", message)
+    end
+
+    test "it does not overwrite existing UUID" do
+      message_uuid = Ecto.UUID.generate()
+      message =
+        RailwayIpc.Commands.RepublishMessage.new(%{
+          user_uuid: Ecto.UUID.generate(),
+          uuid: message_uuid
+        })
+
+      {:ok, encoded_message} = Payload.encode(message)
+
+      RailwayIpc.MessagePublishingMock
+      |> expect(:process, fn %{uuid: uuid}, _ ->
+        assert uuid == message_uuid
+        {:ok,
+         %MessagePublishing{
+           persisted_message: build(:published_message, %{encoded_message: encoded_message})
+         }}
+      end)
+
+      :ok = RailwayIpc.Publisher.direct_publish("channel", "queue", message)
     end
 
     test "it returns :ok on success" do
