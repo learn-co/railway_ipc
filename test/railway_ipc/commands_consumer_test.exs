@@ -54,7 +54,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
       Commands.DoAThing.new(correlation_id: "123", reply_to: "8675309")
       |> Payload.encode()
 
-    event = Events.AThingWasDone.new(correlation_id: "123")
+    event = Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
 
     consumer_module = BatchCommandsConsumer
     exchange = "commands_exchange"
