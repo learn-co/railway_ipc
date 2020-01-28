@@ -6,17 +6,20 @@ defmodule RailwayIpc.MessageConsumptionTest do
   import RailwayIpc.Factory
 
   alias RailwayIpc.MessageConsumption
-  alias RailwayIpc.Core.{CommandMessage, EventMessage, Payload}
-  alias RailwayIpc.Test.{BatchCommandsConsumer, ErrorConsumer, OkayConsumer}
+  alias RailwayIpc.Core.Payload
+  alias RailwayIpc.Test.BatchCommandsConsumer
+  alias RailwayIpc.Test.OkayConsumer
+  alias RailwayIpc.Test.ErrorConsumer
+  alias RailwayIpc.Core.CommandMessage
+  alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.Persistence.ConsumedMessage
-  alias Events.UnknownMessage
 
   setup :verify_on_exit!
 
   describe "process/5 success with a CommandMessage" do
     setup do
       {:ok, payload} =
-        Commands.DoAThing.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Commands.DoAThing.new(correlation_id: "123")
         |> Payload.encode()
 
       exchange = "commands_exchange"
@@ -144,12 +147,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         {:ok, Map.merge(consumed_message, attrs)}
       end)
 
-      payload = [uuid: Ecto.UUID.generate()]
-      |> UnknownMessage.new()
-      |> Payload.encode()
-      |> elem(1)
-      |> String.replace("UnknownMessage", "SomeUnknownThing")
-
+      payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
       {:skip, struct} =
@@ -176,7 +174,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       end)
 
       {:ok, payload} =
-        Commands.DoAThing.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Commands.DoAThing.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = BatchCommandsConsumer
@@ -195,7 +193,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       message_module: message_module
     } do
       {:ok, payload} =
-        Commands.DoAThing.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Commands.DoAThing.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = ErrorConsumer
@@ -210,7 +208,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
   describe "process/5 success with an EventMessage" do
     setup do
       {:ok, payload} =
-        Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
       exchange = "events_exchange"
@@ -316,12 +314,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         {:ok, Map.merge(consumed_message, attrs)}
       end)
 
-      payload = [uuid: Ecto.UUID.generate()]
-      |> UnknownMessage.new()
-      |> Payload.encode()
-      |> elem(1)
-      |> String.replace("UnknownMessage", "SomeUnknownThing")
-
+      payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchCommandsConsumer
 
       {:skip, struct} =
@@ -347,7 +340,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       end)
 
       {:ok, payload} =
-        Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = BatchCommandsConsumer
@@ -366,7 +359,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       message_module: message_module
     } do
       {:ok, payload} =
-        Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = ErrorConsumer
@@ -405,7 +398,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       consumed_message: consumed_message
     } do
       {:ok, payload} =
-        Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = OkayConsumer
@@ -433,7 +426,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       consumed_message: consumed_message
     } do
       {:ok, payload} =
-        Events.AThingWasDone.new(correlation_id: "123", uuid: Ecto.UUID.generate())
+        Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
       handle_module = OkayConsumer
