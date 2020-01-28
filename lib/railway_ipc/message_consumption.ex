@@ -49,6 +49,17 @@ defmodule RailwayIpc.MessageConsumption do
 
   def persist_message({:ok, message_consumption}) do
     case ConsumedMessageContext.create(message_consumption) do
+      :no_uuid ->
+        %{inbound_message: %{decoded_message: decoded_message}} = message_consumption
+        metadata = [
+          feature: "ipc_republish_message",
+          correlation_id: decoded_message.correlation_id,
+          message_uuid: decoded_message.uuid,
+          learn_uuid: Map.get(decoded_message, :user_uuid, nil),
+          event: inspect(decoded_message)
+        ]
+        Logger.warn("Consuming message without a UUID!", metadata)
+        {:no_uuid, message_consumption}
       {:ok, persisted_message} ->
         handle_persistence_success(message_consumption, persisted_message)
 
@@ -69,6 +80,26 @@ defmodule RailwayIpc.MessageConsumption do
 
   def persist_message({:error, message_consumption}) do
     {:error, message_consumption}
+  end
+
+  def handle_message(:no_uuid, %{
+    handle_module: handle_module,
+    inbound_message: %{decoded_message: message}
+  }) do
+    case handle_module.handle_in(message) do
+      :ok ->
+        metadata = [
+          feature: "ipc_republish_message",
+          correlation_id: message.correlation_id,
+          message_uuid: message.uuid,
+          learn_uuid: Map.get(message, :user_uuid, nil),
+          event: inspect(message)
+        ]
+        Logger.info("Successfully handled message without UUID", metadata)
+        {:ok, :no_uuid}
+      {:error, _error} = result ->
+        handle_error(message, result)
+    end
   end
 
   def handle_message(
