@@ -1,5 +1,4 @@
 defmodule Mix.Support.MigrationHelper do
-
   def get_migrations_path([path]), do: path
   def get_migrations_path([]), do: "./priv/repo/migrations"
 
