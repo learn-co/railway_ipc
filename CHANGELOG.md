@@ -6,6 +6,7 @@
 
   * Update install instructions
   * Allow migrations to be written to custom path
+  * [dev] Code formatted the project
 
 ### Bug fixes
 
