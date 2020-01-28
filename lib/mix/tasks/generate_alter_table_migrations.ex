@@ -1,33 +1,32 @@
 defmodule Mix.Tasks.RailwayIpc.GenerateAlterTableMigrations do
-  use Mix.Task
-  @shortdoc "Generates migrations for Railway IPC message persistence"
-  def run(_arg) do
-    IO.puts("Generating  Railway IPC alter messages tables migration...")
+  @moduledoc """
+  Mix task for generating Railway migration files
 
-    alter_table_migrations_command()
-    |> :os.cmd()
+  Run with `mix railway_ipc.generate_alter_table_migrations ./path/to/migrations`
+  If no path is passed in, the task will default to `./priv/repo/migrations`
+  """
+
+  use Mix.Task
+
+  import Mix.Support.{MigrationHelper, SystemCommandHelper}
+
+  @shortdoc "Generates migrations for Railway IPC message persistence"
+  def run(args) do
+    IO.puts("Generating  Railway IPC alter messages tables migration...")
+    path_to_migrations = get_migrations_path(args)
+
+    path_to_migrations
+    |> alter_table_migrations_command()
+    |> run_system_command()
 
     Process.sleep(:timer.seconds(1))
 
     IO.puts("Generated alter table migration successfully. Run `mix ecto.migrate`")
   end
 
-  defp alter_table_migrations_command do
-    "cp ./deps/railway_ipc/priv/repo/migrations/03_alter_messages_tables.exs ./priv/repo/migrations/#{
+  defp alter_table_migrations_command(path_to_migrations) do
+    "cp ./deps/railway_ipc/priv/repo/migrations/03_alter_messages_tables.exs #{path_to_migrations}/#{
       timestamp()
     }_alter_messages_tables.exs"
-    |> String.to_charlist()
   end
-
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
-  end
-
-  defp pad(i) when i < 10 do
-    to_string(i)
-    |> String.pad_leading(2, ["0"])
-  end
-
-  defp pad(i), do: to_string(i)
 end

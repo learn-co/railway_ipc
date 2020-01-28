@@ -17,12 +17,23 @@ end
 
 ## Getting Started
 
+Configure Railway to work with your Repo. Add the following to your `config/config.exs`:
+
+```elixir
+config :railway_ipc,
+  repo: ApplicationName.Repo
+```
+
 Run the mix task to generate the migrations to add the published messages and consumed messages tables to your app's DB:
 
 ```bash
-mix railway_ipc.generate_migrations
+mix railway_ipc.generate_migrations ./path/to/migration/directory
 mix ecto.migrate
 ```
+
+> Note: Path to migration directory defaults to `./priv/repo/migrations` if none is passed in.
+
+**If there are issues running the migration or deploying the migration, try manually writing the name of the migration module (not the file) to avoid using interpolation.**
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm).

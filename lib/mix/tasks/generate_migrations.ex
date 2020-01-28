@@ -1,45 +1,44 @@
 defmodule Mix.Tasks.RailwayIpc.GenerateMigrations do
-  use Mix.Task
-  @shortdoc "Generates migrations for Railway IPC message persistence"
-  def run(_arg) do
-    IO.puts("Generating  Railway IPC published messages migration...")
+  @moduledoc """
+  Mix task for generating Railway migration files
 
-    published_messages_command()
-    |> :os.cmd()
+  Run with `mix railway_ipc.generate_migrations ./path/to/migrations`
+  If no path is passed in, the task will default to `./priv/repo/migrations`
+  """
+
+  use Mix.Task
+
+  import Mix.Support.{MigrationHelper, SystemCommandHelper}
+
+  @shortdoc "Generates migrations for Railway IPC message persistence"
+  def run(args) do
+    IO.puts("Generating  Railway IPC published messages migration...")
+    path_to_migrations = get_migrations_path(args)
+
+    path_to_migrations
+    |> published_messages_command()
+    |> run_system_command()
 
     Process.sleep(:timer.seconds(1))
 
     IO.puts("Generating  Railway IPC consumed messages migration...")
 
-    consumed_messages_command()
-    |> :os.cmd()
+    path_to_migrations
+    |> consumed_messages_command()
+    |> run_system_command()
 
     IO.puts("Generated migrations successfully. Run `mix ecto.migrate`")
   end
 
-  defp published_messages_command do
-    "cp ./deps/railway_ipc/priv/repo/migrations/01_create_railway_ipc_published_messages.exs ./priv/repo/migrations/#{
+  defp published_messages_command(path_to_migrations) do
+    "cp ./deps/railway_ipc/priv/repo/migrations/01_create_railway_ipc_published_messages.exs #{path_to_migrations}/#{
       timestamp()
     }_create_railway_ipc_published_messages.exs"
-    |> String.to_charlist()
   end
 
-  defp consumed_messages_command do
-    "cp ./deps/railway_ipc/priv/repo/migrations/02_create_railway_ipc_consumed_messages.exs ./priv/repo/migrations/#{
+  defp consumed_messages_command(path_to_migrations) do
+    "cp ./deps/railway_ipc/priv/repo/migrations/02_create_railway_ipc_consumed_messages.exs #{path_to_migrations}/#{
       timestamp()
     }_create_railway_ipc_consumed_messages.exs"
-    |> String.to_charlist()
   end
-
-  defp timestamp do
-    {{y, m, d}, {hh, mm, ss}} = :calendar.universal_time()
-    "#{y}#{pad(m)}#{pad(d)}#{pad(hh)}#{pad(mm)}#{pad(ss)}"
-  end
-
-  defp pad(i) when i < 10 do
-    to_string(i)
-    |> String.pad_leading(2, ["0"])
-  end
-
-  defp pad(i), do: to_string(i)
 end
