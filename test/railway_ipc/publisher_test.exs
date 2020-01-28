@@ -68,7 +68,6 @@ defmodule RailwayIpc.PublisherTest do
       message = RailwayIpc.Publisher.prepare_message(command)
       assert {:ok, %{uuid: ^uuid}} = Payload.decode(message)
     end
-
   end
 
   describe "publish/3" do
