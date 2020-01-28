@@ -85,7 +85,7 @@ defmodule RailwayIpc.Publisher do
   end
 
   def ensure_uuid(%{uuid: uuid} = message) when is_nil(uuid) or "" == uuid do
-    Map.put(message, :uuid, UUID.uuid1())
+    Map.put(message, :uuid, Ecto.UUID.generate())
   end
   def ensure_uuid(message), do: message
 
@@ -126,7 +126,6 @@ defmodule RailwayIpc.Publisher do
 
         message
         |> Map.put(:reply_to, callback_queue)
-        |> RailwayIpc.Publisher.ensure_uuid()
         |> publish
 
         receive do
