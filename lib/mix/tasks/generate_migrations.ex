@@ -31,14 +31,14 @@ defmodule Mix.Tasks.RailwayIpc.GenerateMigrations do
   end
 
   defp published_messages_command(path_to_migrations) do
-    "cp ./deps/railway_ipc/priv/repo/migrations/01_create_railway_ipc_published_messages.exs #{path_to_migrations}/#{
-      timestamp()
-    }_create_railway_ipc_published_messages.exs"
+    "cp ./deps/railway_ipc/priv/repo/migrations/01_create_railway_ipc_published_messages.exs #{
+      path_to_migrations
+    }/#{timestamp()}_create_railway_ipc_published_messages.exs"
   end
 
   defp consumed_messages_command(path_to_migrations) do
-    "cp ./deps/railway_ipc/priv/repo/migrations/02_create_railway_ipc_consumed_messages.exs #{path_to_migrations}/#{
-      timestamp()
-    }_create_railway_ipc_consumed_messages.exs"
+    "cp ./deps/railway_ipc/priv/repo/migrations/02_create_railway_ipc_consumed_messages.exs #{
+      path_to_migrations
+    }/#{timestamp()}_create_railway_ipc_consumed_messages.exs"
   end
 end

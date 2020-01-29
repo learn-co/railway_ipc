@@ -70,6 +70,7 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
       uuid = "12345"
       data = RailwayIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
       command = RailwayIpc.Commands.RepublishMessage.new(data: data)
+
       RailwayIpc.PersistenceMock
       |> stub(:get_published_message, fn ^uuid ->
         RailwayIpc.Persistence.get_published_message(uuid)

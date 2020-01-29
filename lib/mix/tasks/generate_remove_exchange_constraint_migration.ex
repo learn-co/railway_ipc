@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.RailwayIpc.GenerateRemoveExchangeConstraintMigration do
   use Mix.Task
+
   @moduledoc """
   Mix task for generating Railway migration files
 
@@ -26,8 +27,8 @@ defmodule Mix.Tasks.RailwayIpc.GenerateRemoveExchangeConstraintMigration do
   end
 
   defp remove_exchange_constraint_command(path_to_migrations) do
-    "cp ./deps/railway_ipc/priv/repo/migrations/04_remove_constraint_on_exchange.exs #{path_to_migrations}/#{
-      timestamp()
-    }_remove_constraint_on_exchange.exs"
+    "cp ./deps/railway_ipc/priv/repo/migrations/04_remove_constraint_on_exchange.exs #{
+      path_to_migrations
+    }/#{timestamp()}_remove_constraint_on_exchange.exs"
   end
 end

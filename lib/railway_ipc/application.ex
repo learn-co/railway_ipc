@@ -27,7 +27,6 @@ defmodule RailwayIpc.Application do
 
   def children(_, _, :dev), do: []
 
-
   def children(true, _, :test) do
     [
       @repo
