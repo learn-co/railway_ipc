@@ -14,7 +14,9 @@ config :railway_ipc, RailwayIpc.Dev.Repo,
   pool_size: 10,
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :railway_ipc, persistence: RailwayIpc.PersistenceMock
-config :railway_ipc, railway_ipc: RailwayIpcMock
-config :railway_ipc, message_publishing: RailwayIpc.MessagePublishingMock
-config :railway_ipc, message_consumption: RailwayIpc.MessageConsumptionMock
+config :railway_ipc,
+  persistence: RailwayIpc.PersistenceMock,
+  railway_ipc: RailwayIpcMock,
+  repo: RailwayIpc.Dev.Repo,
+  message_publishing: RailwayIpc.MessagePublishingMock,
+  message_consumption: RailwayIpc.MessageConsumptionMock
