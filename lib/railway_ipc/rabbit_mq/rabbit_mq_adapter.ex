@@ -97,6 +97,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def publish(channel, exchange, payload) do
+    maybe_create_exchange(channel, exchange)
     Basic.publish(channel, exchange, "", payload)
   end
 
