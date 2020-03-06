@@ -45,13 +45,12 @@ be found at [https://hexdocs.pm/railway_ipc](https://hexdocs.pm/railway_ipc).
 Out of the box, Railway can handle storing the same messages muletiple times if it's consumed on multiple queues. If you are upgrading Railway from 2.1 or earlier, you will need to run the following migration to make `uuid` and `queue` a combined primary key for the consumed messages table.
 
 ```elixir
-defmodule Registrar.Repo.Migrations.UpdateRailwayMessagePKey do
+defmodule YOUR_APP_NAME_HERE.Repo.Migrations.UpdateRailwayMessagePKey do
   use Ecto.Migration
 
   import Ecto.Query, only: [from: 2]
   alias Registrar.Repo
 
-  # relevant blog post: https://niallburkley.com/blog/changing-primary-keys-in-ecto/
   def up do
     alter table(:railway_ipc_consumed_messages) do
       add :new_uuid, :uuid
@@ -100,3 +99,5 @@ defmodule Registrar.Repo.Migrations.UpdateRailwayMessagePKey do
   end
 end
 ```
+
+For more information on this process, check out this blogpost: https://niallburkley.com/blog/changing-primary-keys-in-ecto/
