@@ -39,3 +39,64 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm).
 Once published, the docs can
 be found at [https://hexdocs.pm/railway_ipc](https://hexdocs.pm/railway_ipc).
+
+## Consuming the same message on multiple queues
+
+Out of the box, Railway can handle storing the same messages muletiple times if it's consumed on multiple queues. If you are upgrading Railway from 2.1 or earlier, you will need to run the following migration to make `uuid` and `queue` a combined primary key for the consumed messages table.
+
+```elixir
+defmodule Registrar.Repo.Migrations.UpdateRailwayMessagePKey do
+  use Ecto.Migration
+
+  import Ecto.Query, only: [from: 2]
+  alias Registrar.Repo
+
+  # relevant blog post: https://niallburkley.com/blog/changing-primary-keys-in-ecto/
+  def up do
+    alter table(:railway_ipc_consumed_messages) do
+      add :new_uuid, :uuid
+    end
+
+    flush()
+
+    from(m in "railway_ipc_consumed_messages", update: [set: [new_uuid: m.uuid]])
+    |> Repo.update_all([])
+
+    alter table(:railway_ipc_consumed_messages) do
+      remove :uuid
+      modify :queue, :string, primary_key: true, null: false
+      modify :new_uuid, :uuid, primary_key: true, null: false
+    end
+
+    rename(table(:railway_ipc_consumed_messages), :new_uuid, to: :uuid)
+
+    create unique_index(
+      "railway_ipc_consumed_messages",
+      [:uuid, :queue],
+      name: :railway_ipc_consumed_messages_uniqueness_index
+    )
+  end
+
+  def down do
+    alter table(:railway_ipc_consumed_messages) do
+      add :old_uuid, :uuid
+      add :old_queue, :string
+    end
+
+    flush()
+
+    from(m in "railway_ipc_consumed_messages", update: [set: [old_uuid: m.uuid, old_queue: m.queue]])
+    |> Repo.update_all([])
+
+    alter table(:railway_ipc_consumed_messages) do
+      remove :uuid
+      remove :queue
+      modify :old_uuid, :uuid, primary_key: true, null: false
+      modify :old_queue, :string, null: false
+    end
+
+    rename(table(:railway_ipc_consumed_messages), :old_uuid, to: :uuid)
+    rename(table(:railway_ipc_consumed_messages), :old_queue, to: :queue)
+  end
+end
+```
