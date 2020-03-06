@@ -54,20 +54,21 @@ defmodule RailwayIpc.Persistence do
     @repo.one(query)
   end
 
-  def get_consumed_message(message_uuid) do
-    consumed_message_query(message_uuid)
+  def get_consumed_message(message_params) do
+    consumed_message_query(message_params)
     |> @repo.one()
   end
 
-  def lock_message(%ConsumedMessage{uuid: uuid}) do
-    consumed_message_query(uuid)
+  def lock_message(%ConsumedMessage{} = consumed_message) do
+    consumed_message_query(consumed_message)
     |> lock("FOR UPDATE")
     |> @repo.one()
   end
 
-  def consumed_message_query(uuid) do
+  defp consumed_message_query(%{uuid: uuid, queue: queue}) do
     from(m in ConsumedMessage,
-      where: m.uuid == ^uuid
+      where: m.uuid == ^uuid,
+      where: m.queue == ^queue
     )
   end
 end

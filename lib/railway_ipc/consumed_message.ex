@@ -5,8 +5,8 @@ defmodule RailwayIpc.ConsumedMessage do
     @persistence.get_consumed_message(uuid)
   end
 
-  def create(%{inbound_message: %{decoded_message: %{uuid: uuid}}} = message_consumption) do
-    case get(uuid) do
+  def create(%{queue: queue, inbound_message: %{decoded_message: %{uuid: uuid}}} = message_consumption) do
+    case get(%{uuid: uuid, queue: queue}) do
       nil ->
         do_persist_consumed_message(message_consumption)
 
