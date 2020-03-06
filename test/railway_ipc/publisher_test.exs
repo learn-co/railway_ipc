@@ -56,7 +56,7 @@ defmodule RailwayIpc.PublisherTest do
       command = Events.AThingWasDone.new(user_uuid: "abcabc")
 
       with message <- RailwayIpc.Publisher.prepare_message(command),
-      {:ok, decoded} <- Payload.decode(message) do
+           {:ok, decoded} <- Payload.decode(message) do
         assert {:ok, _} = UUID.info(decoded.uuid)
       end
     end
@@ -82,6 +82,7 @@ defmodule RailwayIpc.PublisherTest do
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
         assert uuid != ""
+
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
@@ -93,6 +94,7 @@ defmodule RailwayIpc.PublisherTest do
 
     test "it does not overwrite existing UUID" do
       message_uuid = Ecto.UUID.generate()
+
       message =
         Commands.DoAThing.new(%{
           user_uuid: "user_uuid",
@@ -104,6 +106,7 @@ defmodule RailwayIpc.PublisherTest do
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
         assert uuid == message_uuid
+
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
@@ -212,6 +215,7 @@ defmodule RailwayIpc.PublisherTest do
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
         assert uuid != ""
+
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
@@ -223,6 +227,7 @@ defmodule RailwayIpc.PublisherTest do
 
     test "it does not overwrite existing UUID" do
       message_uuid = Ecto.UUID.generate()
+
       message =
         RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: Ecto.UUID.generate(),
@@ -234,6 +239,7 @@ defmodule RailwayIpc.PublisherTest do
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
         assert uuid == message_uuid
+
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
