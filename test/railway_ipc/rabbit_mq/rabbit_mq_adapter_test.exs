@@ -23,8 +23,9 @@ defmodule RailwayIpc.RabbitMQAdapterTest do
   end
 
   def has_exchange?(exchange_name) do
-    api_url = System.get_env("RABBITMQ_API_URL")  <> "exchanges" |> String.to_charlist()
-    {:ok , {_, _, resp}} = :httpc.request(api_url)
+    api_url = (System.get_env("RABBITMQ_API_URL") <> "exchanges") |> String.to_charlist()
+    {:ok, {_, _, resp}} = :httpc.request(api_url)
+
     Jason.decode!(resp, keys: :atoms)
     |> Enum.any?(&(&1.name == exchange_name))
   end

@@ -31,7 +31,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       updated_message = Map.merge(consumed_message, attrs)
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         nil
       end)
 
@@ -114,7 +114,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       consumed_message = build(:consumed_message)
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         nil
       end)
 
@@ -220,7 +220,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       updated_message = Map.merge(consumed_message, attrs)
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         nil
       end)
 
@@ -281,7 +281,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       consumed_message = build(:consumed_message)
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         nil
       end)
 
@@ -404,7 +404,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       handle_module = OkayConsumer
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         consumed_message
       end)
 
@@ -432,7 +432,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       handle_module = OkayConsumer
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         consumed_message
       end)
 
@@ -460,7 +460,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       handle_module = OkayConsumer
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         Map.merge(consumed_message, %{status: "success"})
       end)
 
@@ -489,7 +489,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       handle_module = OkayConsumer
 
       RailwayIpc.PersistenceMock
-      |> stub(:get_consumed_message, fn _uuid ->
+      |> stub(:get_consumed_message, fn %{uuid: _, queue: _} ->
         Map.merge(consumed_message, %{status: "ignore"})
       end)
 

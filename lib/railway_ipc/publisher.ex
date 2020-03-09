@@ -30,6 +30,7 @@ defmodule RailwayIpc.Publisher do
 
   def publish(channel, exchange, message) do
     message = message |> ensure_uuid()
+
     case @message_publishing.process(message, %RoutingInfo{exchange: exchange}) do
       {:ok, %{persisted_message: persisted_message}} ->
         @stream_adapter.publish(
@@ -48,6 +49,7 @@ defmodule RailwayIpc.Publisher do
 
   def direct_publish(channel, queue, message) do
     message = message |> ensure_uuid()
+
     case @message_publishing.process(message, %RoutingInfo{queue: queue}) do
       {:ok, %{persisted_message: persisted_message}} ->
         @stream_adapter.direct_publish(
@@ -87,6 +89,7 @@ defmodule RailwayIpc.Publisher do
   def ensure_uuid(%{uuid: uuid} = message) when is_nil(uuid) or "" == uuid do
     Map.put(message, :uuid, Ecto.UUID.generate())
   end
+
   def ensure_uuid(message), do: message
 
   defmacro __using__(opts) do

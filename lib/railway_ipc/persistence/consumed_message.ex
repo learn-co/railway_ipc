@@ -2,15 +2,16 @@ defmodule RailwayIpc.Persistence.ConsumedMessage do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:uuid, :binary_id, autogenerate: false}
+  @primary_key false
 
   schema "railway_ipc_consumed_messages" do
+    field(:uuid, Ecto.UUID, primary_key: true)
     field(:message_type, :string)
     field(:user_uuid, :binary_id)
     field(:correlation_id, :binary_id)
     field(:encoded_message, :string)
     field(:status, :string)
-    field(:queue, :string)
+    field(:queue, :string, primary_key: true)
     field(:exchange, :string)
 
     timestamps()
