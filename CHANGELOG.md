@@ -1,5 +1,12 @@
 # Changelog for v0.x
 
+## v0.2.2 (TBD)
+
+### Enhancements
+
+  * Messages can be consumed multiple times if the same message comes in on different queues
+  * Migrations have been configured so that theres one for each table and they are up to date
+
 ## v0.2.1 (2020-01-28)
 
 ### Enhancements
