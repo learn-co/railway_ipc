@@ -2,6 +2,8 @@ defmodule RailwayIpc.MessageConsumptionTest do
   import Mox
 
   use ExUnit.Case
+  use RailwayIpc.DataCase
+
   import Mox
   import RailwayIpc.Factory
 
