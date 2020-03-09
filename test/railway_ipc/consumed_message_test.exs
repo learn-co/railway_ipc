@@ -16,7 +16,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
     :ok
   end
 
-  describe "create/1" do
+  describe "find_or_create/1" do
     setup do
       message = %Events.AThingWasDone{
         uuid: Ecto.UUID.generate(),
@@ -48,7 +48,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
       message_consumption: message_consumption,
       message: message
     } do
-      {:ok, persisted_message} = ConsumedMessage.create(message_consumption)
+      {:ok, persisted_message} = ConsumedMessage.find_or_create(message_consumption)
       assert persisted_message.uuid == message.uuid
     end
 
@@ -58,7 +58,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
       message: message
     } do
       insert(:consumed_message, %{uuid: message.uuid, status: "processing"})
-      {:ok, persisted_message} = ConsumedMessage.create(message_consumption)
+      {:ok, persisted_message} = ConsumedMessage.find_or_create(message_consumption)
       assert persisted_message.uuid == message.uuid
     end
 
@@ -68,7 +68,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
       message: message
     } do
       insert(:consumed_message, %{uuid: message.uuid, status: "unknown_message_type"})
-      {:ok, persisted_message} = ConsumedMessage.create(message_consumption)
+      {:ok, persisted_message} = ConsumedMessage.find_or_create(message_consumption)
       assert persisted_message.uuid == message.uuid
     end
 
@@ -79,7 +79,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
     } do
       error_message = "Message with uuid: #{message.uuid} and status: success already exists"
       insert(:consumed_message, %{uuid: message.uuid, status: "success"})
-      {:ignore, ^error_message} = ConsumedMessage.create(message_consumption)
+      {:ignore, ^error_message} = ConsumedMessage.find_or_create(message_consumption)
     end
 
     @tag capture_log: true
@@ -89,7 +89,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
     } do
       error_message = "Message with uuid: #{message.uuid} and status: ignore already exists"
       insert(:consumed_message, %{uuid: message.uuid, status: "ignore"})
-      {:ignore, ^error_message} = ConsumedMessage.create(message_consumption)
+      {:ignore, ^error_message} = ConsumedMessage.find_or_create(message_consumption)
     end
   end
 end

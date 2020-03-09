@@ -48,7 +48,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:ok, message_consumption}) do
-    case ConsumedMessageContext.create(message_consumption) do
+    case ConsumedMessageContext.find_or_create(message_consumption) do
       {:ok, persisted_message} ->
         handle_persistence_success(message_consumption, persisted_message)
 
@@ -58,7 +58,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:skip, message_consumption}) do
-    case ConsumedMessageContext.create(message_consumption) do
+    case ConsumedMessageContext.find_or_create(message_consumption) do
       {:ok, persisted_message} ->
         {:skip, update(message_consumption, %{persisted_message: persisted_message})}
 
