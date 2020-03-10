@@ -27,9 +27,7 @@ defmodule RailwayIpc.MessageConsumption do
         @repo.transaction(fn ->
           new(payload, handle_module, exchange, queue)
           |> decode_message(message_module)
-          # |> IO.inspect()
           |> persist_message()
-          # |> IO.inspect()
           |> handle_message()
         end)
 
