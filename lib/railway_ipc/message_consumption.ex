@@ -27,7 +27,9 @@ defmodule RailwayIpc.MessageConsumption do
         @repo.transaction(fn ->
           new(payload, handle_module, exchange, queue)
           |> decode_message(message_module)
+          # |> IO.inspect()
           |> persist_message()
+          # |> IO.inspect()
           |> handle_message()
         end)
 
@@ -137,20 +139,7 @@ defmodule RailwayIpc.MessageConsumption do
     {:error, message_consumption}
   end
 
-  def handle_message(
-        {_processing_status,
-         %{
-           persisted_message: persisted_message,
-           result: %{
-             status: result_status
-           }
-         } = message_consumption}
-      ) do
-    {:skip,
-     update(message_consumption, %{
-       persisted_message: update_persisted_message_status(persisted_message, result_status)
-     })}
-  end
+  def handle_message({:ignore, message_consumption}), do: {:skip, message_consumption}
 
   defp update(message_consumption, attrs) do
     message_consumption
