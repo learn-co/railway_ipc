@@ -3,6 +3,9 @@ defmodule RailwayIpc.MessageConsumption do
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
   alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.ConsumedMessage, as: ConsumedMessageContext
+
+  @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
+
   require Logger
 
   @behaviour RailwayIpc.MessageConsumptionBehaviour
@@ -19,11 +22,28 @@ defmodule RailwayIpc.MessageConsumption do
   ]
 
   def process(payload, handle_module, exchange, queue, message_module) do
-    new(payload, handle_module, exchange, queue)
-    |> decode_message(message_module)
-    |> persist_message()
-    |> handle_message()
+    try do
+      {:ok, result} =
+        @repo.transaction(fn ->
+          new(payload, handle_module, exchange, queue)
+          |> decode_message(message_module)
+          |> persist_message()
+          |> handle_message()
+        end)
+
+      result
+    rescue
+      e in Postgrex.Error ->
+        if lock_error?(e) do
+          {:ignore, "Message is already being processed"}
+        else
+          reraise(e, __STACKTRACE__)
+        end
+    end
   end
+
+  defp lock_error?(%{postgres: %{code: :lock_not_available}}), do: true
+  defp lock_error?(_), do: false
 
   def new(payload, handle_module, exchange, queue) do
     {:ok,
@@ -48,7 +68,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:ok, message_consumption}) do
-    case ConsumedMessageContext.create(message_consumption) do
+    case ConsumedMessageContext.find_or_create(message_consumption) do
       {:ok, persisted_message} ->
         handle_persistence_success(message_consumption, persisted_message)
 
@@ -58,7 +78,7 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:skip, message_consumption}) do
-    case ConsumedMessageContext.create(message_consumption) do
+    case ConsumedMessageContext.find_or_create(message_consumption) do
       {:ok, persisted_message} ->
         {:skip, update(message_consumption, %{persisted_message: persisted_message})}
 
@@ -116,6 +136,8 @@ defmodule RailwayIpc.MessageConsumption do
   def handle_message({:error, message_consumption}) do
     {:error, message_consumption}
   end
+
+  def handle_message({:ignore, message_consumption}), do: {:skip, message_consumption}
 
   def handle_message(
         {_processing_status,

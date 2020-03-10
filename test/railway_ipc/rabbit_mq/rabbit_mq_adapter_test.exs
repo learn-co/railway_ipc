@@ -10,7 +10,7 @@ defmodule RailwayIpc.RabbitMQAdapterTest do
 
   test "returns channel" do
     {:ok, connection} = Rabbit.connect()
-    {:ok, %AMQP.Channel{pid: channel}} = Rabbit.get_channel(connection)
+    {:ok, %AMQP.Channel{pid: _channel}} = Rabbit.get_channel(connection)
   end
 
   test "creates queue if it doesn't exist" do

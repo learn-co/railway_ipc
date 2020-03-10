@@ -7,6 +7,10 @@
   * Messages can be consumed multiple times if the same message comes in on different queues
   * Migrations have been configured so that theres one for each table and they are up to date
 
+### Bug fixes
+
+  * Locks consumed messages for processing to avoid unintentional processing duplication
+
 ## v0.2.1 (2020-01-28)
 
 ### Enhancements
