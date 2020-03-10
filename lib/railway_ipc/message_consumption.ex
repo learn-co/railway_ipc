@@ -141,6 +141,21 @@ defmodule RailwayIpc.MessageConsumption do
 
   def handle_message({:ignore, message_consumption}), do: {:skip, message_consumption}
 
+  def handle_message(
+        {_processing_status,
+         %{
+           persisted_message: persisted_message,
+           result: %{
+             status: result_status
+           }
+         } = message_consumption}
+      ) do
+    {:skip,
+     update(message_consumption, %{
+       persisted_message: update_persisted_message_status(persisted_message, result_status)
+     })}
+  end
+
   defp update(message_consumption, attrs) do
     message_consumption
     |> Map.merge(attrs)
