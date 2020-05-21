@@ -87,4 +87,8 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   def close_connection(connection) do
     Connection.close(connection)
   end
+
+  def close_channel(channel) do
+    Channel.close(channel)
+  end
 end

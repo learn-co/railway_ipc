@@ -17,6 +17,7 @@ defmodule RailwayIpc.Connection do
   end
 
   def init(:ok) do
+    Process.flag(:trap_exit, true)
     {:ok, %__MODULE__{}, {:continue, :open_connection}}
   end
 
@@ -71,11 +72,17 @@ defmodule RailwayIpc.Connection do
     end
   end
 
-  def terminate(_reason, %{connection: nil}) do
-    {:stop, :normal}
-  end
+  def terminate(_reason, %{
+        connection: connection,
+        consumer_channels: channels,
+        publisher_channel: publisher_channel
+      }) do
+    for {_, channel} <- channels do
+      @stream_adapter.close_channel(channel)
+    end
 
-  def terminate(_reason, %{connection: connection}) do
+    @stream_adapter.close_channel(publisher_channel)
+
     @stream_adapter.close_connection(connection)
     {:stop, :normal}
   end

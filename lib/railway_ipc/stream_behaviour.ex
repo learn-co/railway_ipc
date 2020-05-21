@@ -22,4 +22,5 @@ defmodule RailwayIpc.StreamBehaviour do
               {:ok, map()}
   @callback subscribe(channel :: map(), queue :: String.t()) :: any()
   @callback close_connection(connection :: map() | nil) :: any()
+  @callback close_channel(channel :: map() | nil) :: any()
 end
