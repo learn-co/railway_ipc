@@ -378,7 +378,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       ]
     end
 
-    test "returns the ok tuple when a message with the status 'pending' exists", %{
+    test "returns the ok tuple when a message with the status 'processing' exists", %{
       exchange: exchange,
       queue: queue,
       message_module: message_module,

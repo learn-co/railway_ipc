@@ -87,11 +87,11 @@ defmodule RailwayIpc.Core.MessageAccessTest do
     end
 
     @tag capture_log: true
-    test "returns :ok tuple when a message exists in the 'pending' state", %{
+    test "returns :ok tuple when a message exists in the 'processing' state", %{
       message_consumption: message_consumption,
       message: message
     } do
-      insert(:consumed_message, %{uuid: message.uuid, status: "pending"})
+      insert(:consumed_message, %{uuid: message.uuid, status: "processing"})
       {:ok, persisted_message} = MessageAccess.persist_consumed_message(message_consumption)
       assert persisted_message.uuid == message.uuid
     end
