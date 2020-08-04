@@ -44,7 +44,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
   end
 
   test "starts and names process" do
-    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchCommandsConsumer)
     found_pid = Process.whereis(BatchCommandsConsumer)
     assert found_pid == pid
   end
@@ -63,18 +63,12 @@ defmodule RailwayIpc.CommandsConsumerTest do
     events_exchange = "events_exchange"
 
     StreamMock
-    |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: ^consumer_module,
-           consumer_pid: _pid,
-           exchange: ^exchange,
-           queue: ^queue
-         } ->
-        :ok
-      end
-    )
+    |> expect(:create_queue, fn _channel, "are_es_tee", [durable: true] ->
+      {:ok, :okay}
+    end)
+    |> expect(:maybe_create_exchange, fn _channel, "events_exchange" -> :ok end)
+    |> expect(:maybe_bind_queue, fn _channel,^queue, "events_exchange" -> :ok end)
+    |> expect(:consume, fn _,^queue, _, _ ->{ :ok, "tag"} end)
     |> expect(
       :publish,
       fn _channel, ^events_exchange, encoded ->
@@ -86,7 +80,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
     )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchCommandsConsumer)
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^command, ^consumer_module, ^exchange, ^queue, ^message_module ->
@@ -125,7 +119,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
     )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchCommandsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchCommandsConsumer)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     RailwayIpc.MessageConsumptionMock

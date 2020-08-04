@@ -19,8 +19,17 @@ defmodule RailwayIpc.StreamBehaviour do
   @callback direct_publish(channel :: map(), queue :: binary(), message :: map()) :: any()
   @callback publish(channel :: map(), exchange :: binary(), message :: map()) :: any()
   @callback reply(channel :: map(), queue :: binary(), message :: map()) :: any()
+  @callback maybe_create_exchange(channel :: map(), exchange_name :: String.t()) :: any()
+  @callback maybe_bind_queue(channel :: map(), queue :: String.t(), exchange :: String.t()) ::
+              any()
   @callback create_queue(channel :: map(), queue_name :: String.t(), opts :: list()) ::
               {:ok, map()}
   @callback subscribe(channel :: map(), queue :: String.t()) :: any()
   @callback close_connection(connection :: map() | nil) :: any()
+  @callback consume(
+              channel :: map(),
+              queue :: String.t(),
+              consumer_pid :: pid(),
+              options :: list()
+            ) :: :ok
 end

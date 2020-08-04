@@ -15,13 +15,15 @@ defmodule RailwayIpc.Application do
   def children(true, true, :dev) do
     [
       @repo,
-      {RailwayIpc.Connection.Supervisor, []}
+      {RailwayIpc.Connection.Supervisor, []},
+      RailwayIpc.ConsumerPool
     ]
   end
 
   def children(_, true, :dev) do
     [
-      {RailwayIpc.Connection.Supervisor, []}
+      {RailwayIpc.Connection.Supervisor, []},
+      RailwayIpc.ConsumerPool
     ]
   end
 
@@ -29,7 +31,8 @@ defmodule RailwayIpc.Application do
 
   def children(true, _, :test) do
     [
-      @repo
+      @repo,
+      RailwayIpc.ConsumerPool
     ]
   end
 

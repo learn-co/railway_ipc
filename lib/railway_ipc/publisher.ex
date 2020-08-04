@@ -19,13 +19,13 @@ defmodule RailwayIpc.Publisher do
         encoded_message: encoded_message,
         exchange: exchange
       }) do
-    channel = RailwayIpc.Connection.publisher_channel()
-
-    @stream_adapter.publish(
-      channel,
-      exchange,
-      encoded_message
-    )
+    ExRabbitPool.with_channel(:producer_pool, fn {:ok, channel} ->
+      @stream_adapter.publish(
+        channel,
+        exchange,
+        encoded_message
+      )
+    end)
   end
 
   def publish(channel, exchange, message) do
