@@ -13,10 +13,7 @@ defmodule RailwayIpc.EventsConsumer do
 
       def setup_channel(%{adapter: adapter, queue: queue}, channel) do
         exchange = Keyword.get(unquote(opts), :exchange)
-        {:ok, _} = adapter.declare_queue(channel, queue, durable: true)
-        :ok = adapter.declare_exchange(channel, exchange, type: :fanout)
-        :ok = adapter.queue_bind(channel, queue, exchange)
-        :ok
+        adapter.setup_exchange_and_queue(channel, exchange, queue)
       end
 
       def child_spec(_opts) do
@@ -26,7 +23,9 @@ defmodule RailwayIpc.EventsConsumer do
           id: __MODULE__,
           start:
             {__MODULE__, :start_link,
-             [[pool_id: :consumer_pool, queue: queue, adapter: @stream_adapter]]},
+             [
+               [pool_id: :consumer_pool, queue: queue, adapter: @stream_adapter]
+             ]},
           restart: :temporary,
           shutdown: 5000,
           type: :worker

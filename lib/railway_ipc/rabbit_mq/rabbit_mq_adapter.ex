@@ -18,10 +18,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     end
   end
 
-  def consume(channel, queue, consumer_pid \\ nil, options \\ []) do
-    RabbitMQ.consume(channel, queue, consumer_pid, options)
-  end
-
   def get_channel_from_cache(connection, channels, consumer_module) do
     with {:cache, channel} when is_nil(channel) <- {:cache, Map.get(channels, consumer_module)},
          {:ok, channel} <- get_channel(connection) do
@@ -39,6 +35,13 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     RabbitMQ.open_channel(connection)
   end
 
+  def setup_exchange_and_queue(channel, exchange, queue) do
+    {:ok, _} = create_queue(channel, queue, durable: true)
+    :ok = maybe_create_exchange(channel, exchange)
+    :ok = maybe_bind_queue(channel, queue, exchange)
+    :ok
+  end
+
   # maybe we refactor this to two separate functions
   # one to create queue which happens always
   # one to bind_queue which we call `maybe_bind_queue` and we call both of these
@@ -54,7 +57,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     with {:ok, _} <- create_queue(channel, queue, durable: true),
          :ok <- maybe_create_exchange(channel, exchange),
          :ok <- maybe_bind_queue(channel, queue, exchange),
-         {:ok, _consumer_tag} <- subscribe(channel, queue, consumer) do
+         {:ok, _consumer_tag} <- consume(channel, queue, consumer) do
       :ok
     else
       error ->
@@ -62,8 +65,8 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     end
   end
 
-  def subscribe(channel, queue, consumer \\ self()) do
-    RabbitMQ.consume(channel, queue, consumer)
+  def consume(channel, queue, consumer \\ self(), options \\ []) do
+    RabbitMQ.consume(channel, queue, consumer, options)
   end
 
   def create_queue(channel, queue, opts \\ [])

@@ -125,7 +125,7 @@ defmodule RailwayIpc.Publisher do
             auto_delete: true
           )
 
-        @stream_adapter.subscribe(channel, callback_queue)
+        @stream_adapter.consume(channel, callback_queue)
 
         message
         |> Map.put(:reply_to, callback_queue)

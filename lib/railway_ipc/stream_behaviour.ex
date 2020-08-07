@@ -1,5 +1,10 @@
 defmodule RailwayIpc.StreamBehaviour do
   @callback connect :: {:ok, %{connection: map(), channel: map()}} | {:error, any()}
+  @callback setup_exchange_and_queue(
+              channel :: Struct.t(),
+              exchange :: binary(),
+              queue :: binary()
+            ) :: :ok
   @callback bind_queue(
               channel :: map(),
               %{
@@ -24,12 +29,11 @@ defmodule RailwayIpc.StreamBehaviour do
               any()
   @callback create_queue(channel :: map(), queue_name :: String.t(), opts :: list()) ::
               {:ok, map()}
-  @callback subscribe(channel :: map(), queue :: String.t()) :: any()
-  @callback close_connection(connection :: map() | nil) :: any()
   @callback consume(
               channel :: map(),
               queue :: String.t(),
-              consumer_pid :: pid(),
-              options :: list()
-            ) :: :ok
+              consumer :: pid(),
+              options :: Keyword.t()
+            ) :: {:ok, consumer_tag :: binary()}
+  @callback close_connection(connection :: map() | nil) :: any()
 end
