@@ -1,11 +1,11 @@
-defmodule RailwayIpc.Connection.Supervisor do
+defmodule RailwayIpc.Supervisor do
   use Supervisor
 
-  def start_link(additional_children \\ []) do
-    Supervisor.start_link(__MODULE__, additional_children, name: __MODULE__)
+  def start_link(consumers \\ []) do
+    Supervisor.start_link(__MODULE__, consumers, name: __MODULE__)
   end
 
-  def init(additional_children) do
+  def init(consumers) do
     children = [
       {RailwayIpc.Connection, name: RailwayIpc.Connection},
       %{
