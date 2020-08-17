@@ -8,4 +8,13 @@ defmodule RailwayIpc.Utils do
       UndefinedFunctionError -> false
     end
   end
+
+  def protobuf_to_map(protobuf) do
+    protobuf
+    |> Map.from_struct()
+    |> Map.new(fn
+      {k, %_{} = struct} -> {k, protobuf_to_map(struct)}
+      {_k, _v} = r -> r
+    end)
+  end
 end
