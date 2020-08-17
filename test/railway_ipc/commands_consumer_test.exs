@@ -6,7 +6,6 @@ defmodule RailwayIpc.CommandsConsumerTest do
   setup :verify_on_exit!
 
   alias RailwayIpc.Test.BatchCommandsConsumer
-  alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
 
@@ -39,7 +38,6 @@ defmodule RailwayIpc.CommandsConsumerTest do
       end
     )
 
-    Connection.start_link(name: Connection)
     :ok
   end
 

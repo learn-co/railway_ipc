@@ -5,25 +5,15 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
+  alias RailwayIpc.{StreamMock, MessagePublishing}
   alias RailwayIpc.Core.{Payload, RoutingInfo}
   alias RailwayIpc.Ipc.RepublishedMessagesPublisher
   @queue "railway_ipc:republished_messages:commands"
 
   setup do
     StreamMock
-    |> stub(
-      :connect,
-      fn ->
-        {:ok, %{pid: self()}}
-      end
-    )
-    |> stub(
-      :get_channel,
-      fn _conn ->
-        {:ok, %{pid: self()}}
-      end
-    )
+    |> stub(:connect, fn -> {:ok, %{pid: self()}} end)
+    |> stub(:get_channel, fn _conn -> {:ok, %{pid: self()}} end)
     |> stub(
       :get_channel_from_cache,
       fn _connection, _channels, _consumer_module ->
@@ -38,8 +28,6 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
         }
       end
     )
-
-    Connection.start_link(name: Connection)
 
     StreamMock
     |> stub(

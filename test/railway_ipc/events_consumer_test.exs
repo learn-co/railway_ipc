@@ -5,7 +5,6 @@ defmodule RailwayIpc.EventsConsumerTest do
   setup :verify_on_exit!
 
   alias RailwayIpc.Test.BatchEventsConsumer
-  alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.MessageConsumption
@@ -39,7 +38,6 @@ defmodule RailwayIpc.EventsConsumerTest do
       end
     )
 
-    Connection.start_link(name: Connection)
     :ok
   end
 

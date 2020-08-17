@@ -7,7 +7,6 @@ defmodule RailwayIpc.Supervisor do
 
   def init(consumers) do
     children = [
-      {RailwayIpc.Connection, name: RailwayIpc.Connection},
       %{
         id: Supervisor,
         start:

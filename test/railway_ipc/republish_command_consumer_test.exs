@@ -6,7 +6,7 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
   setup :set_mox_global
 
   alias RailwayIpc.Ipc.RepublishedMessagesConsumer
-  alias RailwayIpc.{Connection, StreamMock}
+  alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
   @queue "railway_ipc:republished_messages:commands"
 
@@ -46,8 +46,6 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
     |> stub(:get_published_message, fn ^uuid ->
       persisted_published_message
     end)
-
-    Connection.start_link(name: Connection)
 
     [persisted_published_message: persisted_published_message]
   end
