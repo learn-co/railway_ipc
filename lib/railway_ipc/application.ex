@@ -22,7 +22,7 @@ defmodule RailwayIpc.Application do
       @repo,
       {RailwayIpc.Connection.Supervisor, []},
       RailwayIpc.ConsumerPool,
-      RailwayIpc.ProducerPool
+      RailwayIpc.PublisherPool
     ]
   end
 
@@ -30,7 +30,7 @@ defmodule RailwayIpc.Application do
     [
       {RailwayIpc.Connection.Supervisor, []},
       RailwayIpc.ConsumerPool,
-      RailwayIpc.ProducerPool
+      RailwayIpc.PublisherPool
     ]
   end
 
@@ -40,7 +40,7 @@ defmodule RailwayIpc.Application do
     [
       @repo,
       RailwayIpc.ConsumerPool,
-      RailwayIpc.ProducerPool
+      RailwayIpc.PublisherPool
     ]
   end
 

@@ -42,7 +42,7 @@ defmodule RailwayIpc.RequestsConsumer do
         end
 
         reply_function = fn reply, reply_to ->
-          RailwayIpc.Publisher.reply(channel, reply_to, reply)
+          RailwayIpc.Publisher.reply(reply_to, reply)
         end
 
         RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)

@@ -45,7 +45,7 @@ defmodule RailwayIpc.CommandsConsumer do
         end
 
         publish_function = fn event ->
-          RailwayIpc.Publisher.publish(channel, events_exchange, event)
+          RailwayIpc.Publisher.publish(events_exchange, event)
         end
 
         CommandsConsumer.process(
