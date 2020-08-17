@@ -43,6 +43,12 @@ defmodule RailwayIpc.CommandsConsumerTest do
     :ok
   end
 
+  test "starts and names process" do
+    {:ok, pid} = start_supervised(BatchCommandsConsumer)
+    found_pid = Process.whereis(BatchCommandsConsumer)
+    assert found_pid == pid
+  end
+
   test "acks message when successful" do
     {:ok, command} =
       Commands.DoAThing.new(correlation_id: "123", reply_to: "8675309")

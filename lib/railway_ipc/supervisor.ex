@@ -13,7 +13,7 @@ defmodule RailwayIpc.Supervisor do
         start:
           {Supervisor, :start_link,
            [
-             [RailwayIpc.Ipc.RepublishedMessagesConsumer | additional_children],
+             [RailwayIpc.Ipc.RepublishedMessagesConsumer | consumers],
              [name: RailwayIpc.Consumer.Supervisor, strategy: :one_for_one]
            ]}
       }

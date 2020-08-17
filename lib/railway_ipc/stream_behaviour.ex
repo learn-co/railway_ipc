@@ -31,6 +31,10 @@ defmodule RailwayIpc.StreamBehaviour do
               {:ok, map()}
   @callback consume(
               channel :: map(),
+              queue :: String.t()
+            ) :: {:ok, consumer_tag :: binary()}
+  @callback consume(
+              channel :: map(),
               queue :: String.t(),
               consumer :: pid(),
               options :: Keyword.t()

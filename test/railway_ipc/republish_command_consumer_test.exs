@@ -53,7 +53,7 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
   end
 
   test "starts and names process" do
-    {:ok, pid} = RepublishedMessagesConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(RepublishedMessagesConsumer)
     found_pid = Process.whereis(RepublishedMessagesConsumer)
     assert found_pid == pid
   end
@@ -75,16 +75,12 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: ^consumer_module,
-           consumer_pid: _pid,
-           queue: ^queue
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, nil, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(
       :publish,
       fn _channel, ^events_exchange, _encoded ->
@@ -93,7 +89,7 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
     )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = RepublishedMessagesConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(RepublishedMessagesConsumer)
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^command, ^consumer_module, nil, ^queue, ^message_module ->
@@ -112,19 +108,15 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: ^consumer_module,
-           consumer_pid: _pid,
-           queue: ^queue
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, nil, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = RepublishedMessagesConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(RepublishedMessagesConsumer)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     RailwayIpc.MessageConsumptionMock

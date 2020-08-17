@@ -43,11 +43,11 @@ defmodule RailwayIpc.EventsConsumerTest do
     :ok
   end
 
-  # test "starts and names process" do
-  #  {:ok, pid} = start_supervised(BatchEventsConsumer)
-  #  found_pid = Process.whereis(BatchEventsConsumer)
-  #  assert found_pid == pid
-  # end
+  test "starts and names process" do
+    {:ok, pid} = start_supervised(BatchEventsConsumer)
+    found_pid = Process.whereis(BatchEventsConsumer)
+    assert found_pid == pid
+  end
 
   test "acks message when successful" do
     consumer_module = BatchEventsConsumer

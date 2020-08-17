@@ -11,6 +11,10 @@ defmodule RailwayIpc.CommandsConsumer do
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
 
+      def start_consumer(config) do
+        GenServer.start_link(__MODULE__, config, name: __MODULE__)
+      end
+
       def setup_channel(%{adapter: adapter, queue: queue}, channel) do
         events_exchange = Keyword.get(unquote(opts), :events_exchange)
         adapter.setup_exchange_and_queue(channel, events_exchange, queue)
@@ -22,7 +26,7 @@ defmodule RailwayIpc.CommandsConsumer do
         %{
           id: __MODULE__,
           start:
-            {__MODULE__, :start_link,
+            {__MODULE__, :start_consumer,
              [[pool_id: :consumer_pool, queue: queue, adapter: @stream_adapter]]},
           restart: :temporary,
           shutdown: 5000,
