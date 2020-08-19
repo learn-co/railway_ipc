@@ -1,25 +1,38 @@
 defmodule RailwayIpc.Core.RequestsConsumer do
   require Logger
+  alias RailwayIpc.Telemetry
   alias RailwayIpc.Core.Payload
 
   def process(payload, module, ack_func, reply_func) do
-    case Payload.decode(payload) do
-      {:ok, message} ->
-        message
-        |> module.handle_in
-        |> post_processing(message, ack_func, reply_func)
+    Telemetry.track_process_message(
+      %{payload: payload, module: module},
+      fn ->
+        case Payload.decode(payload) do
+          {:ok, message} ->
+            result =
+              message
+              |> module.handle_in
 
-      {:unknown_message_type, _message, type} ->
-        Logger.error(
-          "Failed to process message #{payload}, error Unknown message of type #{type}"
-        )
+            result
+            |> post_processing(message, ack_func, reply_func)
 
-        ack_func.()
+            {result, %{result: result}}
 
-      {:error, error} ->
-        Logger.error("Failed to process message #{payload}, error #{error}")
-        ack_func.()
-    end
+          {:unknown_message_type, _message, type} ->
+            Logger.error(
+              "Failed to process message #{payload}, error Unknown message of type #{type}"
+            )
+
+            {ack_func.(), %{error: "Unknown Message Type", type: type}}
+
+          {:error, reason} ->
+            Logger.error("Failed to process message #{payload}, error #{reason}")
+
+            {ack_func.(),
+             %{error: "Failed to process message #{payload}, error #{reason}", reason: reason}}
+        end
+      end
+    )
   end
 
   def post_processing(

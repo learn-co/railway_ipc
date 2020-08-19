@@ -1,6 +1,7 @@
 defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   use AMQP
   @behaviour RailwayIpc.StreamBehaviour
+  alias RailwayIpc.Telemetry
 
   def connection_url do
     Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||
@@ -9,13 +10,15 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def connect do
-    with {:ok, connection} when not is_nil(connection) <-
-           Connection.open(connection_url()) do
-      {:ok, connection}
-    else
-      error ->
-        {:error, error}
-    end
+    Telemetry.track_connecting_to_rabbit(fn ->
+      with {:ok, connection} when not is_nil(connection) <-
+             Connection.open(connection_url()) do
+        {{:ok, connection}, %{connection: connection}}
+      else
+        error ->
+          {{:error, error}, %{error: error}}
+      end
+    end)
   end
 
   def get_channel_from_cache(connection, channels, consumer_module) do
@@ -32,7 +35,10 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def get_channel(connection) do
-    Channel.open(connection)
+    Telemetry.track_getting_rabbit_channel(fn ->
+      result = Channel.open(connection)
+      {result, %{result: result}}
+    end)
   end
 
   # maybe we refactor this to two separate functions
@@ -93,16 +99,24 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def direct_publish(channel, queue, payload) do
-    Basic.publish(channel, "", queue, payload)
+    Telemetry.track_rabbit_direct_publish(
+      %{channel: channel, queue: queue, payload: payload},
+      fn ->
+        result = Basic.publish(channel, "", queue, payload)
+        {result, %{}}
+      end
+    )
   end
 
   def publish(channel, exchange, payload) do
-    maybe_create_exchange(channel, exchange)
-    Basic.publish(channel, exchange, "", payload)
-  end
-
-  def reply(channel, queue, payload) do
-    Basic.publish(channel, "", queue, payload)
+    Telemetry.track_rabbit_publish(
+      %{channel: channel, exchange: exchange, payload: payload},
+      fn ->
+        maybe_create_exchange(channel, exchange)
+        result = Basic.publish(channel, exchange, "", payload)
+        {result, %{}}
+      end
+    )
   end
 
   def close_connection(nil) do
