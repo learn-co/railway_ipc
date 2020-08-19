@@ -70,7 +70,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
     |> expect(
       :reply,
       fn _channel, "8675309", encoded ->
-        {:ok, decoded} = encoded |> Payload.decode()
+        {:ok, decoded, _type} = encoded |> Payload.decode()
         response = Map.put(response, :uuid, decoded.uuid)
         assert response == decoded
         :ok

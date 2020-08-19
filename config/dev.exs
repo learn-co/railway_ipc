@@ -9,4 +9,5 @@ config :railway_ipc, RailwayIpc.Dev.Repo,
   password: "postgres",
   database: "railway_ipc_dev",
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  log: false

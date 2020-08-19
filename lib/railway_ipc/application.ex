@@ -8,6 +8,11 @@ defmodule RailwayIpc.Application do
   @mix_env Application.get_env(:railway_ipc, :mix_env, :prod)
 
   def start(_type, _args) do
+    :logger.add_primary_filter(
+      :ignore_rabbitmq_progress_reports,
+      {&:logger_filters.domain/2, {:stop, :equal, [:progress]}}
+    )
+
     opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
     Supervisor.start_link(children(@use_dev_repo, @start_supervisor, @mix_env), opts)
   end

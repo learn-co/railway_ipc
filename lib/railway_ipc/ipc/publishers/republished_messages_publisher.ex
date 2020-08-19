@@ -3,8 +3,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
     queue: "railway_ipc:republished_messages:commands"
 
   alias RailwayIpc.Ipc.RepublishedMessageAdapter, as: DataAdapter
-  alias RailwayIpc.Ipc.Logger, as: IpcLogger
-  require Logger
+  alias RailwayIpc.Ipc.Logger, as: Logger
 
   def invoke_republish_message(
         nil,
@@ -13,12 +12,13 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
     error =
       "Failed to created protobuf with nil UUID and request data: #{Jason.encode!(request_data)}"
 
-    Logger.error(
-      error,
+    Logger.metadata(
       feature: "ipc_republish_message",
-      learn_uuid: learn_uuid,
-      correlation_id: correlation_id
+      correlation_id: correlation_id,
+      actor_uuid: learn_uuid
     )
+
+    Logger.error(error)
 
     {:error, error}
   end
@@ -37,11 +37,12 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
         Jason.encode!(request_data)
       }"
 
-    Logger.error(
-      error,
+    Logger.metadata(
       feature: "ipc_republish_message",
       correlation_id: correlation_id
     )
+
+    Logger.error(error)
 
     {:error, error}
   end
@@ -60,12 +61,12 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
         Jason.encode!(request_data)
       }"
 
-    Logger.error(
-      error,
+    Logger.metadata(
       feature: "ipc_republish_message",
-      learn_uuid: learn_uuid
+      actor_uuid: learn_uuid
     )
 
+    Logger.error(error)
     {:error, error}
   end
 
@@ -73,9 +74,16 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
         published_message_uuid,
         %{correlation_id: correlation_id, current_user: %{learn_uuid: learn_uuid}} = request_data
       ) do
+    Logger.metadata(
+      feature: "railway_ipc_invoke_republish",
+      correlation_id: correlation_id,
+      actor_uuid: learn_uuid
+    )
+
     case DataAdapter.republish_message(published_message_uuid, request_data) do
       {:ok, protobuf} ->
-        IpcLogger.log_republishing_message(protobuf)
+        Logger.metadata(%{message: protobuf})
+        Logger.info("Republishing message")
         direct_publish(protobuf)
 
       {:error, _error} = e ->

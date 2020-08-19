@@ -44,7 +44,7 @@ defmodule RailwayIpc.PublisherTest do
     |> stub(
       :publish,
       fn _channel, _exchange, message ->
-        {:ok, _decoded} = Payload.decode(message)
+        {:ok, _decoded, _type} = Payload.decode(message)
       end
     )
 
@@ -56,7 +56,7 @@ defmodule RailwayIpc.PublisherTest do
       command = Events.AThingWasDone.new(user_uuid: "abcabc")
 
       with message <- RailwayIpc.Publisher.prepare_message(command),
-           {:ok, decoded} <- Payload.decode(message) do
+           {:ok, decoded, _type} <- Payload.decode(message) do
         assert {:ok, _} = UUID.info(decoded.uuid)
       end
     end
@@ -66,7 +66,7 @@ defmodule RailwayIpc.PublisherTest do
       command = Events.AThingWasDone.new(user_uuid: "abcabc", uuid: uuid)
 
       message = RailwayIpc.Publisher.prepare_message(command)
-      assert {:ok, %{uuid: ^uuid}} = Payload.decode(message)
+      assert {:ok, %{uuid: ^uuid}, _type} = Payload.decode(message)
     end
   end
 
@@ -197,7 +197,7 @@ defmodule RailwayIpc.PublisherTest do
       |> stub(
         :direct_publish,
         fn _channel, _queue, message ->
-          {:ok, _decoded} = Payload.decode(message)
+          {:ok, _decoded, _type} = Payload.decode(message)
         end
       )
 

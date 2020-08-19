@@ -23,17 +23,19 @@ defmodule RailwayIpc.Core.PayloadTest do
   test "properly decodes message" do
     command = Commands.DoAThing.new(uuid: "123123")
     {:ok, encoded} = Payload.encode(command)
-    {:ok, decoded} = Payload.decode(encoded)
+    {:ok, decoded, type} = Payload.decode(encoded)
 
     assert decoded.__struct__ == Commands.DoAThing
+    assert type == "Commands::DoAThing"
     assert decoded.uuid == "123123"
   end
 
   test "properly decodes message with whitespace" do
     encoded = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Commands::DoAThing\"}\n"
-    {:ok, decoded} = Payload.decode(encoded)
+    {:ok, decoded, type} = Payload.decode(encoded)
 
     assert decoded.__struct__ == Commands.DoAThing
+    assert type == "Commands::DoAThing"
   end
 
   test "returns an error if given bad JSON" do

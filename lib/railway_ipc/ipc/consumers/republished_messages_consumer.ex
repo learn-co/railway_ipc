@@ -9,7 +9,13 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesConsumer do
   def handle_in(
         %RepublishMessage{data: %{published_message_uuid: published_message_uuid}} = message
       ) do
-    Logger.log_consuming_message(message)
+    Logger.metadata(
+      feature: "railway_ipc_consuming_republished_messaged",
+      correlation_id: message.correlation_id
+    )
+
+    Logger.metadata(%{message: message})
+    Logger.info("Consuming message")
 
     try do
       case PublishedMessage.get(published_message_uuid) do

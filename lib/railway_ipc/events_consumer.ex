@@ -1,7 +1,6 @@
 defmodule RailwayIpc.EventsConsumer do
   defmacro __using__(opts) do
     quote do
-      require Logger
       use GenServer
 
       @stream_adapter Application.get_env(

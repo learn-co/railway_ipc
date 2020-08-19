@@ -1,30 +1,57 @@
 defmodule RailwayIpc.Ipc.Logger do
   require Logger
+  import RailwayIpc.Utils, only: [protobuf_to_map: 1]
+  defdelegate debug(message), to: Logger
+  defdelegate debug(message, metadata), to: Logger
+  defdelegate info(message), to: Logger
+  defdelegate info(message, metadata), to: Logger
+  defdelegate warn(message), to: Logger
+  defdelegate warn(message, metadata), to: Logger
+  defdelegate error(message), to: Logger
+  defdelegate error(message, metadata), to: Logger
 
-  def log_republishing_message(message) do
-    Logger.info("Republishing message", message_metadata(message))
+  def metadata(metadata) when is_list(metadata) do
+    metadata
+    |> Logger.metadata()
   end
 
-  def log_consuming_message(message) do
-    Logger.info("Consuming message", message_metadata(message))
-  end
-
-  def log_message_handled_success(message) do
-    Logger.info("Successfully handled message", message_metadata(message))
-  end
-
-  def log_message_handled_failure(message, error) do
-    metadata = message_metadata(message) ++ [error: error]
-    Logger.info("Failed to handle message", metadata)
-  end
-
-  defp message_metadata(message) do
+  def metadata(%{message: message, type: type}) do
     [
-      feature: "ipc_republish_message",
       correlation_id: message.correlation_id,
-      message_uuid: message.uuid,
-      learn_uuid: Map.get(message, :user_uuid, nil),
-      event: inspect(message)
+      message_type: type,
+      message: protobuf_to_map(message) |> Jason.encode!()
     ]
+    |> Logger.metadata()
+  end
+
+  def metadata(%{message: message}) do
+    [
+      correlation_id: message.correlation_id,
+      message_type: type_from_protobuf(message),
+      message: protobuf_to_map(message) |> Jason.encode!()
+    ]
+    |> Logger.metadata()
+  end
+
+  def metadata(%{command_response: message}) do
+    [command_response_message: protobuf_to_map(message) |> Jason.encode!()]
+    |> Logger.metadata()
+  end
+
+  def metadata(%{feature: feature, queue: queue, exchange: exchange}) do
+    [
+      feature: feature,
+      queue: queue,
+      exchange: exchange
+    ]
+    |> Logger.metadata()
+  end
+
+  def type_from_protobuf(message) do
+    message.__struct__
+    |> to_string
+    |> String.replace(~r/^Elixir\./, "")
+    |> String.split(".")
+    |> Enum.join("::")
   end
 end

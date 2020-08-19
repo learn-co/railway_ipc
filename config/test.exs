@@ -1,5 +1,7 @@
 use Mix.Config
 
+config :logger, level: :info
+
 config :railway_ipc,
   stream_adapter: RailwayIpc.StreamMock
 

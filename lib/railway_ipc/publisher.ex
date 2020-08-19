@@ -13,7 +13,7 @@ defmodule RailwayIpc.Publisher do
                         :message_publishing,
                         RailwayIpc.MessagePublishing
                       )
-  require Logger
+  alias RailwayIpc.Ipc.Logger
 
   def publish(%RailwayIpc.Persistence.PublishedMessage{
         encoded_message: encoded_message,
@@ -30,6 +30,10 @@ defmodule RailwayIpc.Publisher do
 
   def publish(channel, exchange, message) do
     message = message |> ensure_uuid()
+
+    Logger.metadata(exchange: exchange)
+    Logger.metadata(%{message: message})
+    Logger.info("Publishing Message")
 
     case @message_publishing.process(message, %RoutingInfo{exchange: exchange}) do
       {:ok, %{persisted_message: persisted_message}} ->
@@ -49,6 +53,9 @@ defmodule RailwayIpc.Publisher do
 
   def direct_publish(channel, queue, message) do
     message = message |> ensure_uuid()
+    Logger.metadata(queue: queue)
+    Logger.metadata(%{message: message})
+    Logger.info("Publishing directly to queue")
 
     case @message_publishing.process(message, %RoutingInfo{queue: queue}) do
       {:ok, %{persisted_message: persisted_message}} ->
@@ -70,6 +77,10 @@ defmodule RailwayIpc.Publisher do
   end
 
   def reply(channel, queue, reply) do
+    Logger.metadata(queue: queue)
+    Logger.metadata(%{message: reply})
+    Logger.info("Sending RPC Reply")
+
     @stream_adapter.reply(
       channel,
       queue,

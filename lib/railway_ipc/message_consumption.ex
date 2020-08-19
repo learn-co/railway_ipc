@@ -6,7 +6,7 @@ defmodule RailwayIpc.MessageConsumption do
 
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
 
-  require Logger
+  alias RailwayIpc.Ipc.Logger
 
   @behaviour RailwayIpc.MessageConsumptionBehaviour
 
@@ -46,6 +46,8 @@ defmodule RailwayIpc.MessageConsumption do
   defp lock_error?(_), do: false
 
   def new(payload, handle_module, exchange, queue) do
+    Logger.metadata(feature: "railway_ipc_message_consumption", queue: queue, exchange: exchange)
+
     {:ok,
      %__MODULE__{payload: payload, handle_module: handle_module, exchange: exchange, queue: queue}}
   end
@@ -53,9 +55,11 @@ defmodule RailwayIpc.MessageConsumption do
   def decode_message({:ok, message_consumption}, message_module) do
     case do_decode_message(message_consumption, message_module) do
       {:ok, message} ->
+        Logger.metadata(%{message: message.decoded_message, type: message.type})
         handle_decode_success(message_consumption, message)
 
       {:unknown_message_type, %{type: type} = message} ->
+        Logger.metadata(%{message: message.decoded_message, type: type})
         handle_unknown_message_type(message_consumption, message, type)
 
       {:error, error} ->
@@ -101,9 +105,11 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case handle_module.handle_in(decoded_message) do
       :ok ->
+        Logger.info("Successfully Processed Message")
         handle_processed_success(message_consumption, persisted_message)
 
       {:error, _error} = result ->
+        Logger.info("Failed to process message")
         handle_error(message_consumption, result)
     end
   end
@@ -118,9 +124,13 @@ defmodule RailwayIpc.MessageConsumption do
       ) do
     case CommandMessageHandler.handle_message(decoded_message, handle_module) do
       :ok ->
+        Logger.info("Successfully Processed Message")
         handle_processed_success(message_consumption, persisted_message)
 
       {:emit, event} ->
+        Logger.metadata(%{command_response: event})
+        Logger.info("Emitting Response")
+
         {:emit,
          update(message_consumption, %{
            result: Result.new(%{status: :handled}),

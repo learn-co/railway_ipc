@@ -16,7 +16,7 @@ defmodule RailwayIpc.Core.Payload do
          {:convert_module, module} <- {:convert_module, module_from_type(type)},
          {:check_module_exists, true} <- {:check_module_exists, module_defined?(module)},
          {:decode_message, message} <- {:decode_message, decode_message(module, encoded_message)} do
-      {:ok, message}
+      {:ok, message, type}
     else
       {:decode_json, {:ok, _}} ->
         {:error, "Missing keys: #{payload}. Expecting type and encoded_message keys"}
