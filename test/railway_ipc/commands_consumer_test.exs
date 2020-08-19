@@ -78,7 +78,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
     |> expect(
       :publish,
       fn _channel, ^events_exchange, encoded ->
-        {:ok, decoded, _type} = encoded |> Payload.decode()
+        {:ok, decoded} = encoded |> Payload.decode()
         event = Map.put(event, :uuid, decoded.uuid)
         assert event == decoded
         :ok

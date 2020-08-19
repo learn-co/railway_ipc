@@ -51,7 +51,6 @@ defmodule RailwayIpc.Ipc.Logger do
     message.__struct__
     |> to_string
     |> String.replace(~r/^Elixir\./, "")
-    |> String.split(".")
-    |> Enum.join("::")
+    |> String.replace(".", "::")
   end
 end

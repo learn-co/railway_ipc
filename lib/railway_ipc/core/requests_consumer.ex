@@ -4,7 +4,7 @@ defmodule RailwayIpc.Core.RequestsConsumer do
 
   def process(payload, module, ack_func, reply_func) do
     case Payload.decode(payload) do
-      {:ok, message, _type} ->
+      {:ok, message} ->
         message
         |> module.handle_in
         |> post_processing(message, ack_func, reply_func)

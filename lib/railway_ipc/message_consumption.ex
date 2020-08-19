@@ -55,7 +55,7 @@ defmodule RailwayIpc.MessageConsumption do
   def decode_message({:ok, message_consumption}, message_module) do
     case do_decode_message(message_consumption, message_module) do
       {:ok, message} ->
-        Logger.metadata(%{message: message.decoded_message, type: message.type})
+        Logger.metadata(%{message: message.decoded_message})
         handle_decode_success(message_consumption, message)
 
       {:unknown_message_type, %{type: type} = message} ->

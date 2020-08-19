@@ -45,7 +45,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
     |> stub(
       :direct_publish,
       fn _channel, _exchange, message ->
-        {:ok, _decoded, _type} = Payload.decode(message)
+        {:ok, _decoded} = Payload.decode(message)
       end
     )
 
@@ -113,7 +113,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
       |> expect(
         :direct_publish,
         fn _channel, _exchange, message ->
-          {:ok, _decoded, _type} = Payload.decode(message)
+          {:ok, _decoded} = Payload.decode(message)
         end
       )
 
