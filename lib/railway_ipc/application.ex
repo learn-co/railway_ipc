@@ -7,24 +7,12 @@ defmodule RailwayIpc.Application do
   @start_supervisor Application.get_env(:railway_ipc, :start_supervisor)
   @mix_env Application.get_env(:railway_ipc, :mix_env, :prod)
   alias RailwayIpc.Loggers.ConsumerEvents
+  alias RailwayIpc.Loggers.PublisherEvents
   alias RailwayIpc.Telemetry
 
   def start(_type, _args) do
-    :ok =
-      Telemetry.attach_many(
-        "log-consumer-events",
-        [
-          [:railway_ipc, :consumer_connected],
-          [:railway_ipc, :add_consumer, :start],
-          [:railway_ipc, :consumer_receive_message, :start],
-          [:railway_ipc, :consumer_process_message, :start],
-          [:railway_ipc, :consumer_process_message, :stop],
-          [:railway_ipc, :consumer_decode_message, :stop],
-          [:railway_ipc, :consumer_handle_message, :start]
-        ],
-        &ConsumerEvents.handle_event/4
-      )
-
+    attach_consumer_loggers()
+    attach_publisher_loggers()
     opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
     Supervisor.start_link(children(@use_dev_repo, @start_supervisor, @mix_env), opts)
   end
@@ -51,4 +39,37 @@ defmodule RailwayIpc.Application do
   end
 
   def children(_, _, _), do: []
+
+  defp attach_publisher_loggers do
+    :ok =
+      Telemetry.attach_many(
+        "log-publisher-events",
+        [
+          [:railway_ipc, :rabbit_publish, :start],
+          [:railway_ipc, :rabbit_direct_publish, :start],
+          [:railway_ipc, :publisher_publish, :start],
+          [:railway_ipc, :publisher_direct_publish, :start],
+          [:railway_ipc, :publisher_rpc_publish, :start],
+          [:railway_ipc, :publisher_rpc_response, :stop]
+        ],
+        &PublisherEvents.handle_event/4
+      )
+  end
+
+  defp attach_consumer_loggers do
+    :ok =
+      Telemetry.attach_many(
+        "log-consumer-events",
+        [
+          [:railway_ipc, :consumer_connected],
+          [:railway_ipc, :add_consumer, :start],
+          [:railway_ipc, :consumer_receive_message, :start],
+          [:railway_ipc, :consumer_process_message, :start],
+          [:railway_ipc, :consumer_process_message, :stop],
+          [:railway_ipc, :consumer_decode_message, :stop],
+          [:railway_ipc, :consumer_handle_message, :start]
+        ],
+        &ConsumerEvents.handle_event/4
+      )
+  end
 end

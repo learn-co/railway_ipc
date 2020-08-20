@@ -34,6 +34,8 @@ defmodule RailwayIpc.RequestsConsumer do
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
             state = %{channel: channel, exchange: exchange, queue: queue}
           ) do
+        Logger.metadata(feature: "railway_ipc_request")
+
         Telemetry.track_receive_message(
           %{payload: payload, delivery_tag: delivery_tag, exchange: exchange, queue: queue},
           fn ->

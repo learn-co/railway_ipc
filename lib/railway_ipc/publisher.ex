@@ -159,7 +159,7 @@ defmodule RailwayIpc.Publisher do
           end
         )
 
-        Telemetry.track_rpc_publish(
+        Telemetry.track_rpc_response(
           %{
             message: message,
             queue: callback_queue,
@@ -172,7 +172,14 @@ defmodule RailwayIpc.Publisher do
                 {:ok, decoded_message} = Payload.decode(payload)
 
                 if decoded_message.correlation_id == message.correlation_id do
-                  {{:ok, decoded_message}, %{decoded_message: decoded_message}}
+                  {{:ok, decoded_message},
+                   %{
+                     message: message,
+                     queue: callback_queue,
+                     channel: channel,
+                     timeout: timeout,
+                     decoded_message: decoded_message
+                   }}
                 end
             after
               timeout ->

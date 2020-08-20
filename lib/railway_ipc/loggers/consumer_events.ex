@@ -1,6 +1,6 @@
 defmodule RailwayIpc.Loggers.ConsumerEvents do
   require Logger
-  import RailwayIpc.Utils, only: [to_pascal_case: 1, protobuf_to_json: 1]
+  import RailwayIpc.Utils, only: [protobuf_to_json: 1]
 
   def handle_event(
         [:railway_ipc, :consumer_process_message, :start],
