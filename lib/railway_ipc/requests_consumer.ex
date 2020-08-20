@@ -10,6 +10,7 @@ defmodule RailwayIpc.RequestsConsumer do
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
 
+      alias RailwayIpc.Telemetry
       alias RailwayIpc.Connection, as: Connection
       alias RailwayIpc.Core.RequestsConsumer
 
@@ -23,22 +24,33 @@ defmodule RailwayIpc.RequestsConsumer do
         {:ok, state, {:continue, :start_consuming}}
       end
 
-      def handle_info({:basic_consume_ok, _payload}, state), do: {:noreply, state}
+      def handle_info({:basic_consume_ok, _payload}, %{exchange: exchange, queue: queue} = state) do
+        Telemetry.track_consumer_connected(%{exchange: exchange, queue: queue, module: __MODULE__})
+
+        {:noreply, state}
+      end
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{channel: channel}
+            state = %{channel: channel, exchange: exchange, queue: queue}
           ) do
-        ack_function = fn ->
-          @stream_adapter.ack(channel, delivery_tag)
-        end
+        Logger.metadata(feature: "railway_ipc_request")
 
-        reply_function = fn reply, reply_to ->
-          RailwayIpc.Publisher.reply(channel, reply_to, reply)
-        end
+        Telemetry.track_receive_message(
+          %{payload: payload, delivery_tag: delivery_tag, exchange: exchange, queue: queue},
+          fn ->
+            ack_function = fn ->
+              @stream_adapter.ack(channel, delivery_tag)
+            end
 
-        RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)
-        {:noreply, state}
+            reply_function = fn reply, reply_to ->
+              RailwayIpc.Publisher.reply(channel, reply_to, reply)
+            end
+
+            result = RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)
+            {{:noreply, state}, %{result: result}}
+          end
+        )
       end
 
       def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
@@ -50,7 +62,7 @@ defmodule RailwayIpc.RequestsConsumer do
             consumer_module: __MODULE__
           })
 
-        {:noreply, %{channel: channel}}
+        {:noreply, Map.merge(state, %{channel: channel})}
       end
 
       def handle_in(_payload) do

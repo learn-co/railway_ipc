@@ -35,7 +35,8 @@ defmodule RailwayIpc.MixProject do
       {:elixir_uuid, "~> 1.2"},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
-      {:ex_machina, "~> 2.3", only: :test}
+      {:ex_machina, "~> 2.3", only: :test},
+      {:telemetry, "~> 0.4"}
     ]
   end
 

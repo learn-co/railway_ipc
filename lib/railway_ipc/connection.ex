@@ -11,6 +11,7 @@ defmodule RailwayIpc.Connection do
 
   use GenServer
   require Logger
+  alias RailwayIpc.Telemetry
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, :ok, opts)
@@ -29,19 +30,22 @@ defmodule RailwayIpc.Connection do
   end
 
   def handle_continue(:open_connection, state) do
-    case connect(state) do
-      {:ok, state} ->
-        {:noreply, state}
+    Telemetry.track_opening_connection(fn ->
+      case connect(state) do
+        {:ok, state} ->
+          {{:noreply, state}, %{state: state}}
 
-      {:error, _error} ->
-        Logger.error("Failed to connect to rabbit")
+        {:error, reason} ->
+          Logger.error("Failed to connect to rabbit")
 
-        5
-        |> :timer.seconds()
-        |> :timer.sleep()
+          5
+          |> :timer.seconds()
+          |> :timer.sleep()
 
-        {:noreply, state, {:continue, :open_connection}}
-    end
+          {{:noreply, state, {:continue, :open_connection}},
+           %{error: "Failed to connect to rabbit. Trying again", reason: reason}}
+      end
+    end)
   end
 
   def handle_info({:DOWN, _ref, :process, _object, _reason}, state) do
@@ -60,15 +64,21 @@ defmodule RailwayIpc.Connection do
           connection: connection
         }
       ) do
-    with {:ok, channels, channel} <-
-           @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
-         :ok <- @stream_adapter.bind_queue(channel, spec) do
-      Process.monitor(channel.pid)
-      {:reply, {:ok, channel}, %{state | consumer_channels: channels}}
-    else
-      {:error, error} ->
-        {:reply, {:error, error}, state}
-    end
+    Telemetry.track_adding_consumer(
+      %{spec: spec},
+      fn ->
+        with {:ok, channels, channel} <-
+               @stream_adapter.get_channel_from_cache(connection, channels, spec.consumer_module),
+             :ok <- @stream_adapter.bind_queue(channel, spec) do
+          Process.monitor(channel.pid)
+          {{:reply, {:ok, channel}, %{state | consumer_channels: channels}}, %{}}
+        else
+          {:error, reason} ->
+            {{:reply, {:error, reason}, state},
+             %{error: "Failed to add consumer", reason: reason}}
+        end
+      end
+    )
   end
 
   def terminate(_reason, %{connection: nil}) do

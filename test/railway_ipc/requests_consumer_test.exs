@@ -68,7 +68,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
       end
     )
     |> expect(
-      :reply,
+      :direct_publish,
       fn _channel, "8675309", encoded ->
         {:ok, decoded} = encoded |> Payload.decode()
         response = Map.put(response, :uuid, decoded.uuid)

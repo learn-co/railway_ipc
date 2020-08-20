@@ -40,6 +40,8 @@ defmodule RailwayIpc.CommandsConsumer do
               queue: queue
             }
           ) do
+        Logger.metadata(feature: "railway_ipc_commands_consumer")
+
         ack_function = fn ->
           @stream_adapter.ack(channel, delivery_tag)
         end

@@ -75,7 +75,12 @@ defmodule RailwayIpc.EventsConsumerTest do
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
-      {:ok, %MessageConsumption{}}
+      {:ok,
+       %MessageConsumption{
+         inbound_message: %{
+           decoded_message: %Events.AThingWasDone{}
+         }
+       }}
     end)
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
@@ -109,7 +114,12 @@ defmodule RailwayIpc.EventsConsumerTest do
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
-      {:ok, %MessageConsumption{}}
+      {:ok,
+       %MessageConsumption{
+         inbound_message: %{
+           decoded_message: %Events.AThingWasDone{}
+         }
+       }}
     end)
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})

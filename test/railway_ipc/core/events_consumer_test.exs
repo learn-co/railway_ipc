@@ -19,7 +19,10 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
-      {:ok, %RailwayIpc.MessageConsumption{}}
+      {:ok,
+       %RailwayIpc.MessageConsumption{
+         inbound_message: %{decoded_message: %Events.AThingWasDone{}}
+       }}
     end)
 
     EventsConsumer.process(
@@ -77,7 +80,10 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
       {:ok,
-       %RailwayIpc.MessageConsumption{result: %{status: :error, reason: "Message type not found"}}}
+       %RailwayIpc.MessageConsumption{
+         inbound_message: %{decoded_message: %Events.AThingWasDone{}},
+         result: %{status: :error, reason: "Message type not found"}
+       }}
     end)
 
     EventsConsumer.process(
