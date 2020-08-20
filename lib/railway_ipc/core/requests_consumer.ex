@@ -23,13 +23,18 @@ defmodule RailwayIpc.Core.RequestsConsumer do
               "Failed to process message #{payload}, error Unknown message of type #{type}"
             )
 
-            {ack_func.(), %{error: "Unknown Message Type", type: type}}
+            {ack_func.(), %{result: %{error: "Unknown Message Type", type: type}}}
 
           {:error, reason} ->
             Logger.error("Failed to process message #{payload}, error #{reason}")
 
             {ack_func.(),
-             %{error: "Failed to process message #{payload}, error #{reason}", reason: reason}}
+             %{
+               result: %{
+                 error: "Failed to process message #{payload}, error #{reason}",
+                 reason: reason
+               }
+             }}
         end
       end
     )

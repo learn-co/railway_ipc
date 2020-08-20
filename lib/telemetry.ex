@@ -109,4 +109,13 @@ defmodule RailwayIpc.Telemetry do
   def track_handle_message(meta, func) when is_function(func, 0) do
     span(:consumer_handle_message, meta, func)
   end
+
+  def attach_many(name, events, handler) do
+    :telemetry.attach_many(
+      name,
+      events,
+      handler,
+      nil
+    )
+  end
 end

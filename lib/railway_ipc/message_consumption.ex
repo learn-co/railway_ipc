@@ -124,11 +124,11 @@ defmodule RailwayIpc.MessageConsumption do
         case handle_module.handle_in(decoded_message) do
           :ok ->
             {handle_processed_success(message_consumption, persisted_message),
-             %{decoded_message: decoded_message}}
+             %{state: message_consumption, decoded_message: decoded_message}}
 
           {:error, reason} = result ->
             {handle_error(message_consumption, result),
-             %{error: "Failed to handle Event", reason: reason}}
+             %{state: message_consumption, error: "Failed to handle Event", reason: reason}}
         end
       end
     )
@@ -155,11 +155,11 @@ defmodule RailwayIpc.MessageConsumption do
                 result: Result.new(%{status: :handled}),
                 persisted_message: mark_persisted_message_handled(persisted_message),
                 outbound_message: event
-              })}, %{outbound_message: event}}
+              })}, %{state: message_consumption, outbound_message: event}}
 
           {:error, reason} = result ->
             {handle_error(message_consumption, result),
-             %{error: "Failed to handle Command", reason: reason}}
+             %{state: message_consumption, error: "Failed to handle Command", reason: reason}}
         end
       end
     )
