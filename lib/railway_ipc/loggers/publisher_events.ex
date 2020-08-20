@@ -59,7 +59,7 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
       ) do
     Logger.info("Publishing RPC Request",
       protobuf: protobuf_to_json(metadata.message),
-      queue: metadata.callback_queue,
+      queue: inspect(metadata.callback_queue),
       channel: inspect(metadata.channel),
       timeout: metadata.timeout
     )
@@ -73,7 +73,7 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
       ) do
     Logger.info("Received RPC Response",
       protobuf: protobuf_to_json(metadata.message),
-      queue: metadata.callback_queue,
+      queue: inspect(metadata.callback_queue),
       channel: inspect(metadata.channel),
       timeout: metadata.timeout,
       response_protobuf: protobuf_to_json(metadata.decoded_message)
