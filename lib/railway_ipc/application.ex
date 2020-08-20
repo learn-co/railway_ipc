@@ -11,6 +11,8 @@ defmodule RailwayIpc.Application do
   alias RailwayIpc.Telemetry
 
   def start(_type, _args) do
+    setup_rabbit_log_level()
+
     attach_consumer_loggers()
     attach_publisher_loggers()
     opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
@@ -71,5 +73,12 @@ defmodule RailwayIpc.Application do
         ],
         &ConsumerEvents.handle_event/4
       )
+  end
+
+  defp setup_rabbit_log_level() do
+    :logger.add_primary_filter(
+      :ignore_rabbitmq_progress_reports,
+      {&:logger_filters.domain/2, {:stop, :equal, [:progress]}}
+    )
   end
 end
