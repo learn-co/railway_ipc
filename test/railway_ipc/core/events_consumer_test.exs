@@ -19,7 +19,7 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^payload, ^handle_module, ^exchange, ^queue, ^message_module ->
-      {:ok, %RailwayIpc.MessageConsumption{}}
+      {:ok, %RailwayIpc.MessageConsumption{inbound_message: %{}}}
     end)
 
     EventsConsumer.process(

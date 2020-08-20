@@ -34,7 +34,9 @@ defmodule RailwayIpc.Loggers.ConsumerEvents do
         Logger.error("Error consuming message. #{error}, #{type}")
 
       {:ok, result} ->
-        Logger.info("Successfully processed Message #{inspect(result)}")
+        Logger.info("Successfully processed Message",
+          protobuf: protobuf_to_json(result.inbound_message.decoded_message)
+        )
 
       {:error, result} ->
         Logger.error("Error consuming message. #{inspect(result)}")
