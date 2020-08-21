@@ -42,11 +42,20 @@ defmodule RailwayIpc.Utils do
   defp to_lower_char(char), do: char
 
   defp protobuf_to_map(protobuf) do
-    protobuf
-    |> Map.from_struct()
-    |> Map.new(fn
-      {k, %_{} = struct} -> {to_pascal_case(k), protobuf_to_map(struct)}
-      {k, v} -> {to_pascal_case(k), v}
-    end)
+    type = protobuf |> get_protobuf_type
+
+    data =
+      protobuf
+      |> Map.from_struct()
+      |> Map.new(fn
+        {k, %_{} = struct} -> {to_pascal_case(k), protobuf_to_map(struct)}
+        {k, v} -> {to_pascal_case(k), v}
+      end)
+
+    %{type: type, data: data}
+  end
+
+  defp get_protobuf_type(protobuf) do
+    protobuf.__struct__ |> to_string |> String.replace(~r/^Elixir\./, "")
   end
 end
