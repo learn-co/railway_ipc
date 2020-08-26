@@ -183,7 +183,15 @@ defmodule RailwayIpc.Publisher do
                 end
             after
               timeout ->
-                {{:error, :timeout}, %{error: "Timeout reached", reason: timeout}}
+                {{:error, :timeout},
+                 %{
+                   message: message,
+                   queue: callback_queue,
+                   channel: channel,
+                   timeout: timeout,
+                   error: "Timeout reached",
+                   reason: timeout
+                 }}
             end
           end
         )
