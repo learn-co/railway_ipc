@@ -3,6 +3,7 @@ defmodule RailwayIpc.MessageConsumption do
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
   alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.ConsumedMessage, as: ConsumedMessageContext
+  alias RailwayIpc.Telemetry
 
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
 
@@ -51,16 +52,26 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def decode_message({:ok, message_consumption}, message_module) do
-    case do_decode_message(message_consumption, message_module) do
-      {:ok, message} ->
-        handle_decode_success(message_consumption, message)
+    Telemetry.track_decode(%{state: message_consumption}, fn ->
+      case do_decode_message(message_consumption, message_module) do
+        {:ok, message} ->
+          {handle_decode_success(message_consumption, message),
+           %{state: message_consumption, message: message}}
 
-      {:unknown_message_type, %{type: type} = message} ->
-        handle_unknown_message_type(message_consumption, message, type)
+        {:unknown_message_type, %{type: type} = message} ->
+          {handle_unknown_message_type(message_consumption, message, type),
+           %{
+             state: message_consumption,
+             error: :unknown_message_type,
+             type: type,
+             message: message
+           }}
 
-      {:error, error} ->
-        handle_decode_failure(message_consumption, error)
-    end
+        {:error, error} ->
+          {handle_decode_failure(message_consumption, error),
+           %{state: message_consumption, error: error}}
+      end
+    end)
   end
 
   def do_decode_message(message_consumption, message_module) do
@@ -68,23 +79,31 @@ defmodule RailwayIpc.MessageConsumption do
   end
 
   def persist_message({:ok, message_consumption}) do
-    case ConsumedMessageContext.find_or_create(message_consumption) do
-      {:ok, persisted_message} ->
-        handle_persistence_success(message_consumption, persisted_message)
+    Telemetry.track_persist(%{state: message_consumption}, fn ->
+      case ConsumedMessageContext.find_or_create(message_consumption) do
+        {:ok, persisted_message} ->
+          {handle_persistence_success(message_consumption, persisted_message),
+           %{state: message_consumption, persisted_message: persisted_message}}
 
-      {status, _reason} = result ->
-        {status, update(message_consumption, %{result: Result.new(result)})}
-    end
+        {status, reason} = result ->
+          {{status, update(message_consumption, %{result: Result.new(result)})},
+           %{state: message_consumption, error: "Failed to Persist", reason: reason}}
+      end
+    end)
   end
 
   def persist_message({:skip, message_consumption}) do
-    case ConsumedMessageContext.find_or_create(message_consumption) do
-      {:ok, persisted_message} ->
-        {:skip, update(message_consumption, %{persisted_message: persisted_message})}
+    Telemetry.track_persist(%{state: message_consumption}, fn ->
+      case ConsumedMessageContext.find_or_create(message_consumption) do
+        {:ok, persisted_message} ->
+          {{:skip, update(message_consumption, %{persisted_message: persisted_message})},
+           %{state: message_consumption, persisted_message: persisted_message, skip: true}}
 
-      {status, _reason} = result ->
-        {status, update(message_consumption, %{result: Result.new(result)})}
-    end
+        {status, reason} = result ->
+          {{status, update(message_consumption, %{result: Result.new(result)})},
+           %{state: message_consumption, error: "Failed to Persist", reason: reason}}
+      end
+    end)
   end
 
   def persist_message({:error, message_consumption}) do
@@ -99,13 +118,20 @@ defmodule RailwayIpc.MessageConsumption do
            persisted_message: persisted_message
          } = message_consumption}
       ) do
-    case handle_module.handle_in(decoded_message) do
-      :ok ->
-        handle_processed_success(message_consumption, persisted_message)
+    Telemetry.track_handle_message(
+      %{decoded_message: decoded_message, consumer_type: :event},
+      fn ->
+        case handle_module.handle_in(decoded_message) do
+          :ok ->
+            {handle_processed_success(message_consumption, persisted_message),
+             %{state: message_consumption, decoded_message: decoded_message}}
 
-      {:error, _error} = result ->
-        handle_error(message_consumption, result)
-    end
+          {:error, reason} = result ->
+            {handle_error(message_consumption, result),
+             %{state: message_consumption, error: "Failed to handle Event", reason: reason}}
+        end
+      end
+    )
   end
 
   def handle_message(
@@ -116,21 +142,27 @@ defmodule RailwayIpc.MessageConsumption do
            persisted_message: persisted_message
          } = message_consumption}
       ) do
-    case CommandMessageHandler.handle_message(decoded_message, handle_module) do
-      :ok ->
-        handle_processed_success(message_consumption, persisted_message)
+    Telemetry.track_handle_message(
+      %{decoded_message: decoded_message, consumer_type: :command},
+      fn ->
+        case CommandMessageHandler.handle_message(decoded_message, handle_module) do
+          :ok ->
+            {handle_processed_success(message_consumption, persisted_message), %{}}
 
-      {:emit, event} ->
-        {:emit,
-         update(message_consumption, %{
-           result: Result.new(%{status: :handled}),
-           persisted_message: mark_persisted_message_handled(persisted_message),
-           outbound_message: event
-         })}
+          {:emit, event} ->
+            {{:emit,
+              update(message_consumption, %{
+                result: Result.new(%{status: :handled}),
+                persisted_message: mark_persisted_message_handled(persisted_message),
+                outbound_message: event
+              })}, %{state: message_consumption, outbound_message: event}}
 
-      {:error, _error} = result ->
-        handle_error(message_consumption, result)
-    end
+          {:error, reason} = result ->
+            {handle_error(message_consumption, result),
+             %{state: message_consumption, error: "Failed to handle Command", reason: reason}}
+        end
+      end
+    )
   end
 
   def handle_message({:error, message_consumption}) do

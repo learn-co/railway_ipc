@@ -10,6 +10,9 @@ defmodule RailwayIpc.RequestsConsumer do
                         :stream_adapter,
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
+      alias RailwayIpc.Telemetry
+      alias RailwayIpc.Connection, as: Connection
+      alias RailwayIpc.Core.RequestsConsumer
 
       def start_consumer(config) do
         GenServer.start_link(__MODULE__, config, name: __MODULE__)
@@ -37,15 +40,34 @@ defmodule RailwayIpc.RequestsConsumer do
       def basic_deliver(%{adapter: adapter, channel: channel, queue: queue}, payload, %{
             delivery_tag: delivery_tag
           }) do
-        ack_function = fn ->
-          adapter.ack(channel, delivery_tag)
-        end
+        exchange = Keyword.get(unquote(opts), :exchange)
+        Logger.metadata(feature: "railway_ipc_request")
 
-        reply_function = fn reply, reply_to ->
-          RailwayIpc.Publisher.reply(reply_to, reply)
-        end
+        Telemetry.track_receive_message(
+          %{payload: payload, delivery_tag: delivery_tag, exchange: exchange, queue: queue},
+          fn ->
+            ack_function = fn -> adapter.ack(channel, delivery_tag) end
 
-        RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)
+            reply_function = fn reply, reply_to ->
+              RailwayIpc.Publisher.reply(channel, reply_to, reply)
+            end
+
+            result = RequestsConsumer.process(payload, __MODULE__, ack_function, reply_function)
+            {:ok, %{result: result}}
+          end
+        )
+      end
+
+      def basic_consume_ok(%{queue: queue}, consumer_tag) do
+        exchange = Keyword.get(unquote(opts), :exchange)
+
+        Telemetry.track_consumer_connected(%{
+          exchange: exchange,
+          queue: queue,
+          module: __MODULE__,
+          consumer_tag: consumer_tag
+        })
+
         :ok
       end
 

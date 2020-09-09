@@ -3,6 +3,7 @@ defmodule RailwayIpc.CommandsConsumer do
     quote do
       use ExRabbitPool.Consumer
       alias RailwayIpc.Core.CommandsConsumer
+      alias RailwayIpc.Telemetry
       require Logger
 
       @stream_adapter Application.get_env(
@@ -34,9 +35,21 @@ defmodule RailwayIpc.CommandsConsumer do
         }
       end
 
+      def basic_consume_ok(%{exchange: exchange, queue: queue}, consumer_tag) do
+        Telemetry.track_consumer_connected(%{
+          exchange: exchange,
+          queue: queue,
+          module: __MODULE__,
+          consumer_tag: consumer_tag
+        })
+
+        :ok
+      end
+
       def basic_deliver(%{adapter: adapter, channel: channel, queue: queue}, payload, %{
             delivery_tag: delivery_tag
           }) do
+        Logger.metadata(feature: "railway_ipc_commands_consumer")
         commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
         events_exchange = Keyword.get(unquote(opts), :events_exchange)
 

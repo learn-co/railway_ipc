@@ -1,6 +1,7 @@
 defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   @behaviour RailwayIpc.StreamBehaviour
   alias ExRabbitPool.RabbitMQ
+  alias RailwayIpc.Telemetry
 
   def connection_url do
     Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||
@@ -9,13 +10,15 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def connect do
-    with {:ok, connection} when not is_nil(connection) <-
-           RabbitMQ.open_connection(connection_url()) do
-      {:ok, connection}
-    else
-      error ->
-        {:error, error}
-    end
+    Telemetry.track_connecting_to_rabbit(fn ->
+      with {:ok, connection} when not is_nil(connection) <-
+             RabbitMQ.open_connection(connection_url()) do
+        {{:ok, connection}, %{connection: connection}}
+      else
+        error ->
+          {{:error, error}, %{error: error}}
+      end
+    end)
   end
 
   def get_channel_from_cache(connection, channels, consumer_module) do
@@ -32,7 +35,10 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def get_channel(connection) do
-    RabbitMQ.open_channel(connection)
+    Telemetry.track_getting_rabbit_channel(fn ->
+      result = RabbitMQ.open_channel(connection)
+      {result, %{result: result}}
+    end)
   end
 
   def setup_exchange_and_queue(channel, exchange, queue) do
@@ -100,16 +106,34 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def direct_publish(channel, queue, payload) do
-    RabbitMQ.publish(channel, "", queue, payload)
-  end
-
-  def publish(channel, exchange, payload) do
-    maybe_create_exchange(channel, exchange)
-    RabbitMQ.publish(channel, exchange, "", payload)
+    Telemetry.track_rabbit_direct_publish(
+      %{channel: channel, queue: queue, payload: payload},
+      fn ->
+        result = RabbitMQ.publish(channel, "", queue, payload)
+        {result, %{}}
+      end
+    )
   end
 
   def reply(channel, queue, payload) do
-    RabbitMQ.publish(channel, "", queue, payload)
+    Telemetry.track_rabbit_direct_publish(
+      %{channel: channel, queue: queue, payload: payload},
+      fn ->
+        result = RabbitMQ.publish(channel, "", queue, payload)
+        {result, %{}}
+      end
+    )
+  end
+
+  def publish(channel, exchange, payload) do
+    Telemetry.track_rabbit_publish(
+      %{channel: channel, exchange: exchange, payload: payload},
+      fn ->
+        maybe_create_exchange(channel, exchange)
+        result = RabbitMQ.publish(channel, exchange, "", payload)
+        {result, %{}}
+      end
+    )
   end
 
   def close_connection(nil) do

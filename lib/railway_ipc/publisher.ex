@@ -7,6 +7,7 @@ defmodule RailwayIpc.Publisher do
 
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.Core.RoutingInfo
+  alias RailwayIpc.Telemetry
 
   @message_publishing Application.get_env(
                         :railway_ipc,
@@ -34,10 +35,18 @@ defmodule RailwayIpc.Publisher do
     case @message_publishing.process(message, %RoutingInfo{exchange: exchange}) do
       {:ok, %{persisted_message: persisted_message}} ->
         ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
-          @stream_adapter.publish(
-            channel,
-            exchange,
-            persisted_message.encoded_message
+          Telemetry.track_publisher_publish(
+            %{publisher: __MODULE__, message: message, exchange: exchange, channel: channel},
+            fn ->
+              result =
+                @stream_adapter.publish(
+                  channel,
+                  exchange,
+                  persisted_message.encoded_message
+                )
+
+              {result, %{}}
+            end
           )
         end)
 
@@ -55,10 +64,18 @@ defmodule RailwayIpc.Publisher do
     case @message_publishing.process(message, %RoutingInfo{queue: queue}) do
       {:ok, %{persisted_message: persisted_message}} ->
         ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
-          @stream_adapter.direct_publish(
-            channel,
-            queue,
-            persisted_message.encoded_message
+          Telemetry.track_publisher_direct_publish(
+            %{publisher: __MODULE__, message: message, queue: queue, channel: channel},
+            fn ->
+              result =
+                @stream_adapter.direct_publish(
+                  channel,
+                  queue,
+                  persisted_message.encoded_message
+                )
+
+              {result, %{}}
+            end
           )
         end)
 
@@ -73,14 +90,12 @@ defmodule RailwayIpc.Publisher do
     end
   end
 
-  def reply(queue, reply) do
-    ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
-      @stream_adapter.reply(
-        channel,
-        queue,
-        prepare_message(reply)
-      )
-    end)
+  def reply(channel, queue, reply) do
+    @stream_adapter.reply(
+      channel,
+      queue,
+      prepare_message(reply)
+    )
   end
 
   def prepare_message(message) do
@@ -110,11 +125,13 @@ defmodule RailwayIpc.Publisher do
 
       def publish(message) do
         exchange = unquote(Keyword.get(opts, :exchange))
+
         RailwayIpc.Publisher.publish(exchange, message)
       end
 
       def direct_publish(message) do
         queue = unquote(Keyword.get(opts, :queue))
+
         RailwayIpc.Publisher.direct_publish(queue, message)
       end
 
@@ -128,24 +145,50 @@ defmodule RailwayIpc.Publisher do
               auto_delete: true
             )
 
-          @stream_adapter.consume(channel, callback_queue)
+          @stream_adapter.subscribe(channel, callback_queue)
 
-          message
-          |> Map.put(:reply_to, callback_queue)
-          |> publish
+          Telemetry.track_rpc_publish(
+            %{
+              message: message,
+              queue: callback_queue,
+              channel: channel,
+              timeout: timeout
+            },
+            fn ->
+              result =
+                message
+                |> Map.put(:reply_to, callback_queue)
+                |> publish
+
+              {result, %{}}
+            end
+          )
         end)
 
-        receive do
-          {:basic_deliver, payload, _meta} = msg ->
-            {:ok, decoded_message} = Payload.decode(payload)
+        Telemetry.track_rpc_response(
+          %{
+            message: message,
+            timeout: timeout
+          },
+          fn ->
+            receive do
+              {:basic_deliver, payload, _meta} = msg ->
+                {:ok, decoded_message} = Payload.decode(payload)
 
-            if decoded_message.correlation_id == message.correlation_id do
-              {:ok, decoded_message}
+                if decoded_message.correlation_id == message.correlation_id do
+                  {{:ok, decoded_message},
+                   %{
+                     message: message,
+                     timeout: timeout,
+                     decoded_message: decoded_message
+                   }}
+                end
+            after
+              timeout ->
+                {{:error, :timeout}, %{error: "Timeout reached", reason: timeout}}
             end
-        after
-          timeout ->
-            {:error, :timeout}
-        end
+          end
+        )
       end
     end
   end

@@ -6,6 +6,8 @@ config :railway_ipc,
 config :railway_ipc,
   ecto_repos: [RailwayIpc.Dev.Repo]
 
+config :logger, level: :info
+
 config :railway_ipc, RailwayIpc.Dev.Repo,
   username: "postgres",
   password: "postgres",
