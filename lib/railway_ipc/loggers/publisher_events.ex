@@ -71,12 +71,25 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
         metadata,
         _config
       ) do
-    Logger.info("Received RPC Response",
-      protobuf: protobuf_to_json(metadata.message),
-      queue: inspect(metadata.queue),
-      channel: inspect(metadata.channel),
-      timeout: metadata.timeout,
-      response_protobuf: protobuf_to_json(metadata.decoded_message)
-    )
+    case metadata do
+      %{error: _error} ->
+        Logger.error("Received RPC Response",
+          protobuf: protobuf_to_json(metadata.message),
+          queue: inspect(metadata.queue),
+          channel: inspect(metadata.channel),
+          timeout: metadata.timeout,
+          error: metadata.error,
+          reason: metadata.reason
+        )
+
+      _ ->
+        Logger.info("Received RPC Response",
+          protobuf: protobuf_to_json(metadata.message),
+          queue: inspect(metadata.queue),
+          channel: inspect(metadata.channel),
+          timeout: metadata.timeout,
+          response_protobuf: protobuf_to_json(metadata.decoded_message)
+        )
+    end
   end
 end
