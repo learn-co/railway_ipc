@@ -4,8 +4,6 @@ defmodule RailwayIpc.Application do
   use Application
   @use_dev_repo Application.get_env(:railway_ipc, :dev_repo)
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
-  @start_supervisor Application.get_env(:railway_ipc, :start_supervisor)
-  @mix_env Application.get_env(:railway_ipc, :mix_env, :prod)
   alias RailwayIpc.Loggers.ConsumerEvents
   alias RailwayIpc.Loggers.PublisherEvents
   alias RailwayIpc.Telemetry
@@ -16,37 +14,23 @@ defmodule RailwayIpc.Application do
     attach_consumer_loggers()
     attach_publisher_loggers()
     opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
-    Supervisor.start_link(children(@use_dev_repo, @start_supervisor, @mix_env), opts)
+    Supervisor.start_link(pools() ++ maybe_load_repo(@use_dev_repo), opts)
   end
 
-  def children(true, true, :dev) do
+  def maybe_load_repo(true) do
+    [@repo]
+  end
+
+  def maybe_load_repo(_) do
+    []
+  end
+
+  def pools do
     [
-      @repo,
-      {RailwayIpc.Connection.Supervisor, []},
       RailwayIpc.ConsumerPool,
       RailwayIpc.PublisherPool
     ]
   end
-
-  def children(_, true, :dev) do
-    [
-      {RailwayIpc.Connection.Supervisor, []},
-      RailwayIpc.ConsumerPool,
-      RailwayIpc.PublisherPool
-    ]
-  end
-
-  def children(_, _, :dev), do: []
-
-  def children(true, _, :test) do
-    [
-      @repo,
-      RailwayIpc.ConsumerPool,
-      RailwayIpc.PublisherPool
-    ]
-  end
-
-  def children(_, _, _), do: []
 
   defp attach_publisher_loggers do
     :ok =
