@@ -35,9 +35,13 @@ defmodule RailwayIpc.CommandsConsumer do
         }
       end
 
-      def basic_consume_ok(%{exchange: exchange, queue: queue}, consumer_tag) do
+      def basic_consume_ok(%{queue: queue}, consumer_tag) do
+        commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
+        events_exchange = Keyword.get(unquote(opts), :events_exchange)
+
         Telemetry.track_consumer_connected(%{
-          exchange: exchange,
+          commands_exchange: commands_exchange,
+          events_exchange: events_exchange,
           queue: queue,
           module: __MODULE__,
           consumer_tag: consumer_tag
