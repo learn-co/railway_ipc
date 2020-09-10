@@ -23,7 +23,6 @@ defmodule RailwayIpc.StreamBehaviour do
   @callback ack(channel :: map(), deliver_tag :: binary()) :: any()
   @callback direct_publish(channel :: map(), queue :: binary(), message :: map()) :: any()
   @callback publish(channel :: map(), exchange :: binary(), message :: map()) :: any()
-  @callback reply(channel :: map(), queue :: binary(), message :: map()) :: any()
   @callback maybe_create_exchange(channel :: map(), exchange_name :: String.t()) :: any()
   @callback maybe_bind_queue(channel :: map(), queue :: String.t(), exchange :: String.t()) ::
               any()

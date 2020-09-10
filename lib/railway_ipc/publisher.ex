@@ -91,7 +91,7 @@ defmodule RailwayIpc.Publisher do
   end
 
   def reply(channel, queue, reply) do
-    @stream_adapter.reply(
+    @stream_adapter.direct_publish(
       channel,
       queue,
       prepare_message(reply)

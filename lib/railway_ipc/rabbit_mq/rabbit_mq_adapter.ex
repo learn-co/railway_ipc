@@ -115,16 +115,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     )
   end
 
-  def reply(channel, queue, payload) do
-    Telemetry.track_rabbit_direct_publish(
-      %{channel: channel, queue: queue, payload: payload},
-      fn ->
-        result = RabbitMQ.publish(channel, "", queue, payload)
-        {result, %{}}
-      end
-    )
-  end
-
   def publish(channel, exchange, payload) do
     Telemetry.track_rabbit_publish(
       %{channel: channel, exchange: exchange, payload: payload},

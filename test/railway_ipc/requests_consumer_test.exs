@@ -64,7 +64,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
     )
     |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(
-      :reply,
+      :direct_publish,
       fn _channel, "8675309", encoded ->
         {:ok, decoded} = encoded |> Payload.decode()
         response = Map.put(response, :uuid, decoded.uuid)
