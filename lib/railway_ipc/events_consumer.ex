@@ -38,6 +38,19 @@ defmodule RailwayIpc.EventsConsumer do
         }
       end
 
+      def basic_consume_ok(%{queue: queue}, consumer_tag) do
+        exchange = Keyword.get(unquote(opts), :exchange)
+
+        Telemetry.track_consumer_connected(%{
+          exchange: exchange,
+          queue: queue,
+          module: __MODULE__,
+          consumer_tag: consumer_tag
+        })
+
+        :ok
+      end
+
       def basic_deliver(%{adapter: adapter, channel: channel, queue: queue}, payload, %{
             delivery_tag: delivery_tag
           }) do
@@ -56,17 +69,6 @@ defmodule RailwayIpc.EventsConsumer do
             {:ok, %{result: result}}
           end
         )
-      end
-
-      def basic_consume_ok(%{exchange: exchange, queue: queue}, consumer_tag) do
-        Telemetry.track_consumer_connected(%{
-          exchange: exchange,
-          queue: queue,
-          module: __MODULE__,
-          consumer_tag: consumer_tag
-        })
-
-        :ok
       end
 
       def handle_in(_payload), do: :ok
