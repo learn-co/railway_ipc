@@ -5,6 +5,10 @@ defmodule RailwayIpc.ConsumerGroup.Supervisor do
     Supervisor.start_link(__MODULE__, children, name: name)
   end
 
+  def setup_group(children: children, name: name) when is_atom(name) do
+    Supervisor.child_spec({__MODULE__, [children: children, name: name]}, id: name)
+  end
+
   def consumer_supervisor(pid) do
     Supervisor.which_children(pid)
     |> Enum.find_value(fn {module, child_pid, _, _} ->
