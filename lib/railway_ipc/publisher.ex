@@ -163,32 +163,36 @@ defmodule RailwayIpc.Publisher do
               {result, %{}}
             end
           )
-        end)
 
-        Telemetry.track_rpc_response(
-          %{
-            message: message,
-            timeout: timeout
-          },
-          fn ->
-            receive do
-              {:basic_deliver, payload, _meta} = msg ->
-                {:ok, decoded_message} = Payload.decode(payload)
-
-                if decoded_message.correlation_id == message.correlation_id do
-                  {{:ok, decoded_message},
-                   %{
-                     message: message,
-                     timeout: timeout,
-                     decoded_message: decoded_message
-                   }}
-                end
-            after
-              timeout ->
-                {{:error, :timeout}, %{error: "Timeout reached", reason: timeout}}
+          Telemetry.track_rpc_response(
+            %{
+              message: message,
+              timeout: timeout
+            },
+            fn ->
+              wait_for_response(message, timeout)
             end
-          end
-        )
+          )
+        end)
+      end
+
+      defp wait_for_response(message, timeout) do
+        receive do
+          {:basic_deliver, payload, _meta} = msg ->
+            {:ok, decoded_message} = Payload.decode(payload)
+
+            if decoded_message.correlation_id == message.correlation_id do
+              {{:ok, decoded_message},
+               %{
+                 message: message,
+                 timeout: timeout,
+                 decoded_message: decoded_message
+               }}
+            end
+        after
+          timeout ->
+            {{:error, :timeout}, %{error: "Timeout reached", reason: timeout, message: message}}
+        end
       end
     end
   end
