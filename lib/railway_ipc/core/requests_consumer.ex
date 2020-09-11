@@ -49,6 +49,7 @@ defmodule RailwayIpc.Core.RequestsConsumer do
     reply
     |> update_context(original_message)
     |> update_correlation_id(original_message)
+    |> update_user_id(original_message)
     |> reply_func.(reply_to)
 
     ack_func.()
@@ -68,5 +69,10 @@ defmodule RailwayIpc.Core.RequestsConsumer do
   defp update_correlation_id(event, %{correlation_id: correlation_id}) do
     event
     |> Map.put(:correlation_id, correlation_id)
+  end
+
+  defp update_user_id(event, %{user_uuid: user_uuid}) do
+    event
+    |> Map.put(:user_uuid, user_uuid)
   end
 end
