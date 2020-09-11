@@ -63,7 +63,7 @@ defmodule RailwayIpc.CommandsConsumerTest do
     StreamMock
     |> expect(
       :setup_exchange_and_queue,
-      fn %{pid: _conn_pid}, ^events_exchange, ^queue ->
+      fn %{pid: _conn_pid}, ^exchange, ^queue ->
         :ok
       end
     )
