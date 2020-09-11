@@ -27,7 +27,7 @@ defmodule RailwayIpc.RepublishCommandConsumer do
           start:
             {__MODULE__, :start_consumer,
              [[pool_id: :consumer_pool, queue: queue, adapter: @stream_adapter]]},
-          restart: :temporary,
+          restart: :permanent,
           shutdown: 5000,
           type: :worker
         }
