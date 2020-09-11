@@ -17,8 +17,8 @@ defmodule RailwayIpc.CommandsConsumer do
       end
 
       def setup_channel(%{adapter: adapter, queue: queue}, channel) do
-        events_exchange = Keyword.get(unquote(opts), :events_exchange)
-        adapter.setup_exchange_and_queue(channel, events_exchange, queue)
+        commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
+        adapter.setup_exchange_and_queue(channel, commands_exchange, queue)
       end
 
       def child_spec(_opts) do
