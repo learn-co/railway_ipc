@@ -136,7 +136,7 @@ defmodule RailwayIpc.Publisher do
       end
 
       def publish_sync(message, timeout \\ :timer.seconds(5)) do
-        ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
+        ExRabbitPool.with_channel(:rpc_pool, fn {:ok, channel} ->
           {:ok, %{queue: callback_queue}} =
             @stream_adapter.create_queue(
               channel,

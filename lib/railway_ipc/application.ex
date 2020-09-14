@@ -50,6 +50,7 @@ defmodule RailwayIpc.Application do
   def pools do
     [
       RailwayIpc.ConsumerPool,
+      RailwayIpc.RPCPool,
       RailwayIpc.PublisherPool
     ]
   end
