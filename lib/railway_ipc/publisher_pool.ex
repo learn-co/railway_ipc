@@ -1,6 +1,7 @@
 defmodule RailwayIpc.PublisherPool do
+  @publisher_max_channels Application.get_env(:railway_ipc, :publisher_max_channels, 2)
   def rabbitmq_config do
-    [channels: 2]
+    [channels: @publisher_max_channels]
   end
 
   def connection_pools do

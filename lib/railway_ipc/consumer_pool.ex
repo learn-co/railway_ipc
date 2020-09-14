@@ -1,6 +1,7 @@
 defmodule RailwayIpc.ConsumerPool do
+  @consumer_max_channels Application.get_env(:railway_ipc, :consumer_max_channels, 10)
   def rabbitmq_config do
-    [channels: 10]
+    [channels: @consumer_max_channels]
   end
 
   def connection_pools do
