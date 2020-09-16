@@ -20,6 +20,7 @@ defmodule RailwayIpc.CommandMessageHandler do
     event
     |> update_context(message)
     |> update_correlation_id(message)
+    |> update_user_id(message)
   end
 
   defp update_context(new_event, previous_event) do
@@ -36,5 +37,10 @@ defmodule RailwayIpc.CommandMessageHandler do
   defp update_correlation_id(event, %{correlation_id: correlation_id}) do
     event
     |> Map.put(:correlation_id, correlation_id)
+  end
+
+  defp update_user_id(event, %{user_uuid: user_uuid}) do
+    event
+    |> Map.put(:user_uuid, user_uuid)
   end
 end

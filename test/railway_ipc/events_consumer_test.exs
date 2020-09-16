@@ -5,7 +5,6 @@ defmodule RailwayIpc.EventsConsumerTest do
   setup :verify_on_exit!
 
   alias RailwayIpc.Test.BatchEventsConsumer
-  alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.MessageConsumption
@@ -39,12 +38,11 @@ defmodule RailwayIpc.EventsConsumerTest do
       end
     )
 
-    Connection.start_link(name: Connection)
     :ok
   end
 
   test "starts and names process" do
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchEventsConsumer)
     found_pid = Process.whereis(BatchEventsConsumer)
     assert found_pid == pid
   end
@@ -57,20 +55,15 @@ defmodule RailwayIpc.EventsConsumerTest do
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: ^consumer_module,
-           consumer_pid: _pid,
-           exchange: ^exchange,
-           queue: ^queue
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, ^exchange, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchEventsConsumer)
     {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
 
     RailwayIpc.MessageConsumptionMock
@@ -96,20 +89,15 @@ defmodule RailwayIpc.EventsConsumerTest do
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: ^consumer_module,
-           consumer_pid: _pid,
-           exchange: ^exchange,
-           queue: ^queue
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, ^exchange, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchEventsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchEventsConsumer)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     RailwayIpc.MessageConsumptionMock

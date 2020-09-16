@@ -68,28 +68,26 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
   def handle_event(
         [:railway_ipc, :publisher_rpc_response, :stop],
         _measurement,
+        %{message: message, error: error, reason: reason},
+        _config
+      ) do
+    Logger.error("RPC Failed",
+      protobuf: protobuf_to_json(message),
+      error: error,
+      reason: reason
+    )
+  end
+
+  def handle_event(
+        [:railway_ipc, :publisher_rpc_response, :stop],
+        _measurement,
         metadata,
         _config
       ) do
-    case metadata do
-      %{error: _error} ->
-        Logger.error("Received RPC Response",
-          protobuf: protobuf_to_json(metadata.message),
-          queue: inspect(metadata.queue),
-          channel: inspect(metadata.channel),
-          timeout: metadata.timeout,
-          error: metadata.error,
-          reason: metadata.reason
-        )
-
-      _ ->
-        Logger.info("Received RPC Response",
-          protobuf: protobuf_to_json(metadata.message),
-          queue: inspect(metadata.queue),
-          channel: inspect(metadata.channel),
-          timeout: metadata.timeout,
-          response_protobuf: protobuf_to_json(metadata.decoded_message)
-        )
-    end
+    Logger.info("Received RPC Response",
+      protobuf: protobuf_to_json(metadata.message),
+      timeout: metadata.timeout,
+      response_protobuf: protobuf_to_json(metadata.decoded_message)
+    )
   end
 end

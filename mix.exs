@@ -25,7 +25,8 @@ defmodule RailwayIpc.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:amqp, "~> 1.2"},
+      {:amqp, "~> 1.5"},
+      {:ex_rabbit_pool, "~> 1.0.3"},
       {:mox, "~> 0.5", only: :test},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
       {:protobuf, "~> 0.5.3"},

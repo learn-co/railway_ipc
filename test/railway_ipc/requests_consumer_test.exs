@@ -5,7 +5,6 @@ defmodule RailwayIpc.RequestsConsumerTest do
   setup :verify_on_exit!
 
   alias RailwayIpc.Test.BatchRequestsConsumer
-  alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
 
@@ -38,17 +37,19 @@ defmodule RailwayIpc.RequestsConsumerTest do
       end
     )
 
-    Connection.start_link(name: Connection)
     :ok
   end
 
   test "starts and names process" do
-    {:ok, pid} = BatchRequestsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchRequestsConsumer)
     found_pid = Process.whereis(BatchRequestsConsumer)
     assert found_pid == pid
   end
 
   test "acks message when successful" do
+    exchange = "experts"
+    queue = "are_es_tee"
+
     {:ok, request} =
       Requests.RequestAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
 
@@ -56,17 +57,12 @@ defmodule RailwayIpc.RequestsConsumerTest do
 
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: BatchRequestsConsumer,
-           consumer_pid: _pid,
-           exchange: "experts",
-           queue: "are_es_tee"
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, ^exchange, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(
       :direct_publish,
       fn _channel, "8675309", encoded ->
@@ -78,7 +74,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
     )
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchRequestsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchRequestsConsumer)
 
     send(pid, {:basic_deliver, request, %{delivery_tag: "tag"}})
     # yey async programming
@@ -86,22 +82,20 @@ defmodule RailwayIpc.RequestsConsumerTest do
   end
 
   test "acks message even if there's an issue with the payload" do
+    exchange = "experts"
+    queue = "are_es_tee"
+
     StreamMock
     |> expect(
-      :bind_queue,
-      fn %{pid: _conn_pid},
-         %{
-           consumer_module: BatchRequestsConsumer,
-           consumer_pid: _pid,
-           exchange: "experts",
-           queue: "are_es_tee"
-         } ->
+      :setup_exchange_and_queue,
+      fn %{pid: _conn_pid}, ^exchange, ^queue ->
         :ok
       end
     )
+    |> expect(:consume, fn %AMQP.Channel{}, ^queue, _, _ -> {:ok, "test_tag"} end)
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
-    {:ok, pid} = BatchRequestsConsumer.start_link(:ok)
+    {:ok, pid} = start_supervised(BatchRequestsConsumer)
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})

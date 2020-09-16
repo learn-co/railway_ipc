@@ -1,6 +1,6 @@
 defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
-  use AMQP
   @behaviour RailwayIpc.StreamBehaviour
+  alias ExRabbitPool.RabbitMQ
   alias RailwayIpc.Telemetry
 
   def connection_url do
@@ -12,7 +12,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   def connect do
     Telemetry.track_connecting_to_rabbit(fn ->
       with {:ok, connection} when not is_nil(connection) <-
-             Connection.open(connection_url()) do
+             RabbitMQ.open_connection(connection_url()) do
         {{:ok, connection}, %{connection: connection}}
       else
         error ->
@@ -36,9 +36,16 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
 
   def get_channel(connection) do
     Telemetry.track_getting_rabbit_channel(fn ->
-      result = Channel.open(connection)
+      result = RabbitMQ.open_channel(connection)
       {result, %{result: result}}
     end)
+  end
+
+  def setup_exchange_and_queue(channel, exchange, queue) do
+    {:ok, _} = create_queue(channel, queue, durable: true)
+    :ok = maybe_create_exchange(channel, exchange)
+    :ok = maybe_bind_queue(channel, queue, exchange)
+    :ok
   end
 
   # maybe we refactor this to two separate functions
@@ -56,7 +63,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     with {:ok, _} <- create_queue(channel, queue, durable: true),
          :ok <- maybe_create_exchange(channel, exchange),
          :ok <- maybe_bind_queue(channel, queue, exchange),
-         {:ok, _consumer_tag} <- subscribe(channel, queue, consumer) do
+         {:ok, _consumer_tag} <- consume(channel, queue, consumer) do
       :ok
     else
       error ->
@@ -64,18 +71,18 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     end
   end
 
-  def subscribe(channel, queue, consumer \\ self()) do
-    Basic.consume(channel, queue, consumer)
+  def consume(channel, queue, consumer \\ self(), options \\ []) do
+    RabbitMQ.consume(channel, queue, consumer, options)
   end
 
   def create_queue(channel, queue, opts \\ [])
 
   def create_queue(channel, "anonymous", opts) do
-    Queue.declare(channel, "", opts)
+    RabbitMQ.declare_queue(channel, "", opts)
   end
 
   def create_queue(channel, queue, opts) do
-    Queue.declare(channel, queue, opts)
+    RabbitMQ.declare_queue(channel, queue, opts)
   end
 
   def maybe_create_exchange(_channel, nil) do
@@ -83,7 +90,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def maybe_create_exchange(channel, exchange) do
-    Exchange.declare(channel, exchange, :fanout, durable: true)
+    RabbitMQ.declare_exchange(channel, exchange, type: :fanout, durable: true)
   end
 
   def maybe_bind_queue(_channel, _queue, nil) do
@@ -91,18 +98,18 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def maybe_bind_queue(channel, queue, exchange) do
-    Queue.bind(channel, queue, exchange)
+    RabbitMQ.queue_bind(channel, queue, exchange)
   end
 
   def ack(channel, delivery_tag) do
-    Basic.ack(channel, delivery_tag)
+    RabbitMQ.ack(channel, delivery_tag)
   end
 
   def direct_publish(channel, queue, payload) do
     Telemetry.track_rabbit_direct_publish(
       %{channel: channel, queue: queue, payload: payload},
       fn ->
-        result = Basic.publish(channel, "", queue, payload)
+        result = RabbitMQ.publish(channel, "", queue, payload)
         {result, %{}}
       end
     )
@@ -113,7 +120,7 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
       %{channel: channel, exchange: exchange, payload: payload},
       fn ->
         maybe_create_exchange(channel, exchange)
-        result = Basic.publish(channel, exchange, "", payload)
+        result = RabbitMQ.publish(channel, exchange, "", payload)
         {result, %{}}
       end
     )
@@ -124,6 +131,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   end
 
   def close_connection(connection) do
-    Connection.close(connection)
+    RabbitMQ.close_connection(connection)
   end
 end

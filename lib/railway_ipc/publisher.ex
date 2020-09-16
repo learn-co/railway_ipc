@@ -20,25 +20,35 @@ defmodule RailwayIpc.Publisher do
         encoded_message: encoded_message,
         exchange: exchange
       }) do
-    channel = RailwayIpc.Connection.publisher_channel()
-
-    @stream_adapter.publish(
-      channel,
-      exchange,
-      encoded_message
-    )
+    ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
+      @stream_adapter.publish(
+        channel,
+        exchange,
+        encoded_message
+      )
+    end)
   end
 
-  def publish(channel, exchange, message) do
+  def publish(exchange, message) do
     message = message |> ensure_uuid()
 
     case @message_publishing.process(message, %RoutingInfo{exchange: exchange}) do
       {:ok, %{persisted_message: persisted_message}} ->
-        @stream_adapter.publish(
-          channel,
-          exchange,
-          persisted_message.encoded_message
-        )
+        ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
+          Telemetry.track_publisher_publish(
+            %{publisher: __MODULE__, message: message, exchange: exchange, channel: channel},
+            fn ->
+              result =
+                @stream_adapter.publish(
+                  channel,
+                  exchange,
+                  persisted_message.encoded_message
+                )
+
+              {result, %{}}
+            end
+          )
+        end)
 
         :ok
 
@@ -48,16 +58,26 @@ defmodule RailwayIpc.Publisher do
     end
   end
 
-  def direct_publish(channel, queue, message) do
+  def direct_publish(queue, message) do
     message = message |> ensure_uuid()
 
     case @message_publishing.process(message, %RoutingInfo{queue: queue}) do
       {:ok, %{persisted_message: persisted_message}} ->
-        @stream_adapter.direct_publish(
-          channel,
-          queue,
-          persisted_message.encoded_message
-        )
+        ExRabbitPool.with_channel(:publisher_pool, fn {:ok, channel} ->
+          Telemetry.track_publisher_direct_publish(
+            %{publisher: __MODULE__, message: message, queue: queue, channel: channel},
+            fn ->
+              result =
+                @stream_adapter.direct_publish(
+                  channel,
+                  queue,
+                  persisted_message.encoded_message
+                )
+
+              {result, %{}}
+            end
+          )
+        end)
 
         :ok
 
@@ -104,97 +124,75 @@ defmodule RailwayIpc.Publisher do
       alias RailwayIpc.Core.Payload
 
       def publish(message) do
-        channel = RailwayIpc.Connection.publisher_channel()
         exchange = unquote(Keyword.get(opts, :exchange))
 
-        Telemetry.track_publisher_publish(
-          %{publisher: __MODULE__, message: message, exchange: exchange, channel: channel},
-          fn ->
-            result = RailwayIpc.Publisher.publish(channel, exchange, message)
-            {result, %{}}
-          end
-        )
+        RailwayIpc.Publisher.publish(exchange, message)
       end
 
       def direct_publish(message) do
-        channel = RailwayIpc.Connection.publisher_channel()
         queue = unquote(Keyword.get(opts, :queue))
 
-        Telemetry.track_publisher_direct_publish(
-          %{publisher: __MODULE__, message: message, queue: queue, channel: channel},
-          fn ->
-            result = RailwayIpc.Publisher.direct_publish(channel, queue, message)
-            {result, %{}}
-          end
-        )
+        RailwayIpc.Publisher.direct_publish(queue, message)
       end
 
       def publish_sync(message, timeout \\ :timer.seconds(5)) do
-        channel = RailwayIpc.Connection.publisher_channel()
+        ExRabbitPool.with_channel(:rpc_pool, fn {:ok, channel} ->
+          {:ok, %{queue: callback_queue}} =
+            @stream_adapter.create_queue(
+              channel,
+              "anonymous",
+              exclusive: true,
+              auto_delete: true
+            )
 
-        {:ok, %{queue: callback_queue}} =
-          @stream_adapter.create_queue(
-            channel,
-            "anonymous",
-            exclusive: true,
-            auto_delete: true
+          @stream_adapter.consume(channel, callback_queue)
+
+          Telemetry.track_rpc_publish(
+            %{
+              message: message,
+              queue: callback_queue,
+              channel: channel,
+              timeout: timeout
+            },
+            fn ->
+              result =
+                message
+                |> Map.put(:reply_to, callback_queue)
+                |> publish
+
+              {result, %{}}
+            end
           )
 
-        @stream_adapter.subscribe(channel, callback_queue)
-
-        Telemetry.track_rpc_publish(
-          %{
-            message: message,
-            queue: callback_queue,
-            channel: channel,
-            timeout: timeout
-          },
-          fn ->
-            result =
-              message
-              |> Map.put(:reply_to, callback_queue)
-              |> publish
-
-            {result, %{}}
-          end
-        )
-
-        Telemetry.track_rpc_response(
-          %{
-            message: message,
-            queue: callback_queue,
-            channel: channel,
-            timeout: timeout
-          },
-          fn ->
-            receive do
-              {:basic_deliver, payload, _meta} = msg ->
-                {:ok, decoded_message} = Payload.decode(payload)
-
-                if decoded_message.correlation_id == message.correlation_id do
-                  {{:ok, decoded_message},
-                   %{
-                     message: message,
-                     queue: callback_queue,
-                     channel: channel,
-                     timeout: timeout,
-                     decoded_message: decoded_message
-                   }}
-                end
-            after
-              timeout ->
-                {{:error, :timeout},
-                 %{
-                   message: message,
-                   queue: callback_queue,
-                   channel: channel,
-                   timeout: timeout,
-                   error: "Timeout reached",
-                   reason: timeout
-                 }}
+          Telemetry.track_rpc_response(
+            %{
+              message: message,
+              timeout: timeout
+            },
+            fn ->
+              wait_for_response(message, timeout)
             end
-          end
-        )
+          )
+        end)
+      end
+
+      defp wait_for_response(message, timeout) do
+        receive do
+          {:basic_deliver, payload, _meta} = msg ->
+            {:ok, decoded_message} = Payload.decode(payload)
+
+            if decoded_message.correlation_id == message.correlation_id do
+              {{:ok, decoded_message},
+               %{
+                 message: message,
+                 timeout: timeout,
+                 decoded_message: decoded_message
+               }}
+            end
+        after
+          timeout ->
+            {{:error, :timeout}, %{error: "Timeout reached", reason: timeout, message: message}}
+        end
       end
     end
   end
