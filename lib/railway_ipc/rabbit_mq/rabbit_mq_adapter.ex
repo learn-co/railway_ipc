@@ -9,6 +9,31 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
       raise "Must set config value :railway_ipc, :rabbitmq_connection_url, or export environment variable RABBITMQ_CONNECTION_URL"
   end
 
+  # Converting Erlang Record to options we can use to connect with via AMQP.
+  # https://github.com/rabbitmq/rabbitmq-erlang-client/blob/0f8f6f5a9f1f4b5866706df3e66eb6e66579cd3e/include/amqp_client.hrl
+  def connection_options do
+    {:ok,
+     {:amqp_params_network, username, password, virtual_host, host, port, channel_max, frame_max,
+      heart_beat, connection_timeout, ssl_options, auth_mechanisms, client_properties,
+      socket_options}} = :amqp_uri.parse(connection_url())
+
+    [
+      username: username,
+      password: password,
+      virtual_host: virtual_host,
+      host: host,
+      port: port,
+      channel_max: channel_max,
+      frame_max: frame_max,
+      heart_beat: heart_beat,
+      connection_timeout: connection_timeout,
+      ssl_options: ssl_options,
+      auth_mechanisms: auth_mechanisms,
+      client_properties: client_properties,
+      socket_options: socket_options
+    ]
+  end
+
   def connect do
     Telemetry.track_connecting_to_rabbit(fn ->
       with {:ok, connection} when not is_nil(connection) <-

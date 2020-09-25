@@ -1,7 +1,10 @@
 defmodule RailwayIpc.PublisherPool do
   @publisher_max_channels Application.get_env(:railway_ipc, :publisher_max_channels, 2)
+  import RailwayIpc.RabbitMQ.RabbitMQAdapter, only: [connection_options: 0]
+
   def rabbitmq_config do
     [channels: @publisher_max_channels]
+    |> Keyword.merge(connection_options())
   end
 
   def connection_pools do
