@@ -5,7 +5,7 @@ defmodule RailwayIpc.PublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.{StreamMock, MessagePublishing}
+  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.Test.BatchEventsPublisher
 
@@ -37,6 +37,8 @@ defmodule RailwayIpc.PublisherTest do
         }
       end
     )
+
+    Connection.start_link(name: Connection)
 
     StreamMock
     |> stub(
@@ -87,7 +89,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      RailwayIpc.Publisher.publish("commands:a_thing", message)
+      RailwayIpc.Publisher.publish("channel", "commands:a_thing", message)
     end
 
     test "it does not overwrite existing UUID" do
@@ -111,7 +113,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      RailwayIpc.Publisher.publish("commands:a_thing", message)
+      RailwayIpc.Publisher.publish("channel", "commands:a_thing", message)
     end
 
     test "persists the message with a status of 'sent'" do
@@ -136,7 +138,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      RailwayIpc.Publisher.publish(exchange, message)
+      RailwayIpc.Publisher.publish("channel", exchange, message)
     end
 
     test "it returns :ok on publish sucess" do
@@ -161,7 +163,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      :ok = RailwayIpc.Publisher.publish(exchange, message)
+      :ok = RailwayIpc.Publisher.publish("channel", exchange, message)
     end
 
     test "it returns the error tuple on failure" do
@@ -184,7 +186,8 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      {:error, "Failure to process message"} = RailwayIpc.Publisher.publish(exchange, message)
+      {:error, "Failure to process message"} =
+        RailwayIpc.Publisher.publish("channel", exchange, message)
     end
   end
 
@@ -219,7 +222,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      :ok = RailwayIpc.Publisher.direct_publish("queue", message)
+      :ok = RailwayIpc.Publisher.direct_publish("channel", "queue", message)
     end
 
     test "it does not overwrite existing UUID" do
@@ -243,7 +246,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      :ok = RailwayIpc.Publisher.direct_publish("queue", message)
+      :ok = RailwayIpc.Publisher.direct_publish("channel", "queue", message)
     end
 
     test "it returns :ok on success" do
@@ -268,7 +271,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      :ok = RailwayIpc.Publisher.direct_publish(queue, message)
+      :ok = RailwayIpc.Publisher.direct_publish("channel", queue, message)
     end
 
     test "it returns the error tuple on failure" do
@@ -291,7 +294,8 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      {:error, "Failed to process message"} = RailwayIpc.Publisher.direct_publish(queue, message)
+      {:error, "Failed to process message"} =
+        RailwayIpc.Publisher.direct_publish("channel", queue, message)
     end
   end
 end

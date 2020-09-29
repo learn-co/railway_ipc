@@ -6,7 +6,7 @@ defmodule RailwayIpcTest do
   import Mox
   import RailwayIpc.Factory
 
-  alias RailwayIpc.{StreamMock, MessagePublishing, Persistence}
+  alias RailwayIpc.{StreamMock, Connection, MessagePublishing, Persistence}
 
   setup :set_mox_global
   setup :verify_on_exit!
@@ -48,6 +48,7 @@ defmodule RailwayIpcTest do
         end
       )
 
+      Connection.start_link(name: Connection)
       :ok
     end
 

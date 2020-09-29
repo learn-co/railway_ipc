@@ -4,7 +4,7 @@ defmodule RailwayIpc.MixProject do
   def project do
     [
       app: :railway_ipc,
-      version: "0.2.6",
+      version: "0.2.7",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -25,8 +25,7 @@ defmodule RailwayIpc.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:amqp, "~> 1.5"},
-      {:ex_rabbit_pool, "~> 1.0.3"},
+      {:amqp, "~> 1.2"},
       {:mox, "~> 0.5", only: :test},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
       {:protobuf, "~> 0.5.3"},

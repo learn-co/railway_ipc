@@ -26,3 +26,5 @@ railway_ipc-*.tar
 
 # Version Manager
 .tool-versions
+
+log

@@ -82,6 +82,10 @@ defmodule RailwayIpc.Telemetry do
     span(:publisher_rpc_response, meta, func)
   end
 
+  def track_rpc_response(meta, func) when is_function(func, 0) do
+    span(:publisher_rpc_response, meta, func)
+  end
+
   def track_adding_consumer(meta, func) when is_function(func, 0) do
     span(:add_consumer, meta, func)
   end

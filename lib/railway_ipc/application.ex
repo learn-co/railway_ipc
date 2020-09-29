@@ -4,56 +4,43 @@ defmodule RailwayIpc.Application do
   use Application
   @use_dev_repo Application.get_env(:railway_ipc, :dev_repo)
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
+  @start_supervisor Application.get_env(:railway_ipc, :start_supervisor)
   @mix_env Application.get_env(:railway_ipc, :mix_env, :prod)
   alias RailwayIpc.Loggers.ConsumerEvents
   alias RailwayIpc.Loggers.PublisherEvents
   alias RailwayIpc.Telemetry
 
   def start(_type, _args) do
-    Telemetry.track_application_start(
-      %{},
-      fn ->
-        setup_rabbit_log_level()
+    setup_rabbit_log_level()
 
-        attach_consumer_loggers()
-        attach_publisher_loggers()
-        opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
-
-        result =
-          Supervisor.start_link(
-            pools() ++
-              start_republished_messages_consumer(@mix_env) ++ maybe_load_repo(@use_dev_repo),
-            opts
-          )
-
-        {result, %{}}
-      end
-    )
+    attach_consumer_loggers()
+    attach_publisher_loggers()
+    opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
+    Supervisor.start_link(children(@use_dev_repo, @start_supervisor, @mix_env), opts)
   end
 
-  def maybe_load_repo(true) do
-    [@repo]
-  end
-
-  def maybe_load_repo(_) do
-    []
-  end
-
-  def start_republished_messages_consumer(:test) do
-    []
-  end
-
-  def start_republished_messages_consumer(_) do
-    [RailwayIpc.Ipc.RepublishedMessagesConsumer]
-  end
-
-  def pools do
+  def children(true, true, :dev) do
     [
-      RailwayIpc.ConsumerPool,
-      RailwayIpc.RPCPool,
-      RailwayIpc.PublisherPool
+      @repo,
+      {RailwayIpc.Connection.Supervisor, []}
     ]
   end
+
+  def children(_, true, :dev) do
+    [
+      {RailwayIpc.Connection.Supervisor, []}
+    ]
+  end
+
+  def children(_, _, :dev), do: []
+
+  def children(true, _, :test) do
+    [
+      @repo
+    ]
+  end
+
+  def children(_, _, _), do: []
 
   defp attach_publisher_loggers do
     :ok =
