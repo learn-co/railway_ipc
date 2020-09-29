@@ -1,10 +1,8 @@
 defmodule RailwayIpc.CommandsConsumer do
   defmacro __using__(opts) do
     quote do
-      use ExRabbitPool.Consumer
-      alias RailwayIpc.Core.CommandsConsumer
-      alias RailwayIpc.Telemetry
       require Logger
+      use GenServer
 
       @stream_adapter Application.get_env(
                         :railway_ipc,
@@ -12,57 +10,44 @@ defmodule RailwayIpc.CommandsConsumer do
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
 
-      def start_consumer(config) do
-        GenServer.start_link(__MODULE__, config, name: __MODULE__)
-      end
+      alias RailwayIpc.Connection, as: Connection
+      alias RailwayIpc.Core.CommandsConsumer
 
-      def setup_channel(%{adapter: adapter, queue: queue}, channel) do
+      def start_link(_state) do
         commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
-        adapter.setup_exchange_and_queue(channel, commands_exchange, queue)
-      end
-
-      def child_spec(_opts) do
+        events_exchange = Keyword.get(unquote(opts), :events_exchange)
         queue = Keyword.get(unquote(opts), :queue)
 
-        %{
-          id: __MODULE__,
-          start:
-            {__MODULE__, :start_consumer,
-             [[pool_id: :consumer_pool, queue: queue, adapter: @stream_adapter]]},
-          restart: :temporary,
-          shutdown: 5000,
-          type: :worker
-        }
+        GenServer.start_link(
+          __MODULE__,
+          %{commands_exchange: commands_exchange, events_exchange: events_exchange, queue: queue},
+          name: __MODULE__
+        )
       end
 
-      def basic_consume_ok(%{queue: queue}, consumer_tag) do
-        commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
-        events_exchange = Keyword.get(unquote(opts), :events_exchange)
-
-        Telemetry.track_consumer_connected(%{
-          commands_exchange: commands_exchange,
-          events_exchange: events_exchange,
-          queue: queue,
-          module: __MODULE__,
-          consumer_tag: consumer_tag
-        })
-
-        :ok
+      def init(state) do
+        {:ok, state, {:continue, :start_consuming}}
       end
 
-      def basic_deliver(%{adapter: adapter, channel: channel, queue: queue}, payload, %{
-            delivery_tag: delivery_tag
-          }) do
+      def handle_info({:basic_consume_ok, _payload}, state), do: {:noreply, state}
+
+      def handle_info(
+            {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
+            state = %{
+              channel: channel,
+              events_exchange: exchange,
+              commands_exchange: commands_exchange,
+              queue: queue
+            }
+          ) do
         Logger.metadata(feature: "railway_ipc_commands_consumer")
-        commands_exchange = Keyword.get(unquote(opts), :commands_exchange)
-        events_exchange = Keyword.get(unquote(opts), :events_exchange)
 
         ack_function = fn ->
-          adapter.ack(channel, delivery_tag)
+          @stream_adapter.ack(channel, delivery_tag)
         end
 
         publish_function = fn event ->
-          RailwayIpc.Publisher.publish(events_exchange, event)
+          RailwayIpc.Publisher.publish(channel, exchange, event)
         end
 
         CommandsConsumer.process(
@@ -74,10 +59,25 @@ defmodule RailwayIpc.CommandsConsumer do
           publish_function
         )
 
+        {:noreply, state}
+      end
+
+      def handle_continue(:start_consuming, %{commands_exchange: exchange, queue: queue} = state) do
+        {:ok, channel} =
+          Connection.consume(%{
+            exchange: exchange,
+            queue: queue,
+            consumer_pid: self(),
+            consumer_module: __MODULE__
+          })
+
+        {:noreply, Map.put(state, :channel, channel)}
+      end
+
+      def handle_in(_payload) do
         :ok
       end
 
-      def handle_in(_payload), do: :ok
       defoverridable handle_in: 1
     end
   end
