@@ -50,12 +50,15 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
         %{
           exchange: exchange,
           queue: queue,
-          consumer_pid: consumer
+          consumer_pid: consumer,
+          arguments: arguments
         }
       ) do
-    with {:ok, _} <- create_queue(channel, queue, durable: true, arguments: [
-      {"x-dead-letter-exchange", :longstr, "ipc:errors"}
-    ]),
+    with {:ok, _} <-
+           create_queue(channel, queue,
+             durable: true,
+             arguments: arguments
+           ),
          :ok <- maybe_create_exchange(channel, exchange),
          :ok <- maybe_bind_queue(channel, queue, exchange),
          {:ok, _consumer_tag} <- subscribe(channel, queue, consumer) do

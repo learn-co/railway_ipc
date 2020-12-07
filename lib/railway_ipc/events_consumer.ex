@@ -4,6 +4,10 @@ defmodule RailwayIpc.EventsConsumer do
       require Logger
       use GenServer
 
+      @default_arguments [
+        {"x-dead-letter-exchange", :longstr, "ipc:errors"}
+      ]
+
       @stream_adapter Application.get_env(
                         :railway_ipc,
                         :stream_adapter,
@@ -17,7 +21,14 @@ defmodule RailwayIpc.EventsConsumer do
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)
         queue = Keyword.get(unquote(opts), :queue)
-        GenServer.start_link(__MODULE__, %{exchange: exchange, queue: queue}, name: __MODULE__)
+
+        arguments = Keyword.get(unquote(opts), :arguments) || @default_arguments
+
+        GenServer.start_link(
+          __MODULE__,
+          %{exchange: exchange, queue: queue, arguments: arguments},
+          name: __MODULE__
+        )
       end
 
       def init(state) do
@@ -49,11 +60,18 @@ defmodule RailwayIpc.EventsConsumer do
         )
       end
 
-      def handle_continue(:start_consuming, %{exchange: exchange, queue: queue} = state) do
+      def handle_continue(
+            :start_consuming,
+            %{exchange: exchange, queue: queue, arguments: arguments} = state
+          ) do
+        IO.puts("State in EventsConsumer.handle_continue/2")
+        IO.inspect(state)
+
         {:ok, channel} =
           Connection.consume(%{
             exchange: exchange,
             queue: queue,
+            arguments: arguments,
             consumer_pid: self(),
             consumer_module: __MODULE__
           })

@@ -5,6 +5,7 @@ defmodule RailwayIpc.EventsConsumerTest do
   setup :verify_on_exit!
 
   alias RailwayIpc.Test.BatchEventsConsumer
+  alias RailwayIpc.Test.CustomDeadLetterExchangeConsumer
   alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
@@ -54,6 +55,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     exchange = "experts"
     queue = "are_es_tee"
     message_module = RailwayIpc.Core.EventMessage
+    default_arguments = [{"x-dead-letter-exchange", :longstr, "ipc:errors"}]
 
     StreamMock
     |> expect(
@@ -63,7 +65,8 @@ defmodule RailwayIpc.EventsConsumerTest do
            consumer_module: ^consumer_module,
            consumer_pid: _pid,
            exchange: ^exchange,
-           queue: ^queue
+           queue: ^queue,
+           arguments: ^default_arguments
          } ->
         :ok
       end
@@ -84,8 +87,33 @@ defmodule RailwayIpc.EventsConsumerTest do
     end)
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
-    # yey async programming
-    Process.sleep(100)
+    await_for_async_work()
+  end
+
+  test "allows overriden arguments to be binded to Rabbit queue" do
+    consumer_module = CustomDeadLetterExchangeConsumer
+    exchange = "experts"
+    queue = "are_es_tee"
+    message_module = RailwayIpc.Core.EventMessage
+    arguments = [{"x-dead-letter-exchange", :longstr, "test:errors"}]
+
+    StreamMock
+    |> expect(
+      :bind_queue,
+      fn %{pid: _conn_pid},
+         %{
+           consumer_module: ^consumer_module,
+           consumer_pid: _pid,
+           exchange: ^exchange,
+           queue: ^queue,
+           arguments: ^arguments
+         } ->
+        :ok
+      end
+    )
+
+    {:ok, pid} = CustomDeadLetterExchangeConsumer.start_link(:ok)
+    await_for_async_work()
   end
 
   test "acks message even if there's an issue with the payload" do
@@ -123,7 +151,8 @@ defmodule RailwayIpc.EventsConsumerTest do
     end)
 
     send(pid, {:basic_deliver, message, %{delivery_tag: "tag"}})
-    # yey async programming
-    Process.sleep(100)
+    await_for_async_work()
   end
+
+  def await_for_async_work(), do: Process.sleep(100)
 end

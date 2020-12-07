@@ -5,7 +5,8 @@ defmodule RailwayIpc.StreamBehaviour do
               %{
                 exchange: binary(),
                 queue: binary(),
-                consumer: binary()
+                consumer: binary(),
+                arguments: list()
               }
             ) :: :ok | {:error, any()}
 
