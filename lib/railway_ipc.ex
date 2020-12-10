@@ -1,4 +1,5 @@
 defmodule RailwayIpc do
+  @moduledoc false
   alias RailwayIpc.Ipc.RepublishedMessagesPublisher
   @behaviour RailwayIpcBehaviour
 

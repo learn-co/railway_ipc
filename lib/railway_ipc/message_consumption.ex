@@ -1,4 +1,5 @@
 defmodule RailwayIpc.MessageConsumption do
+  @moduledoc false
   alias RailwayIpc.Core.{CommandMessage, EventMessage}
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
   alias RailwayIpc.CommandMessageHandler

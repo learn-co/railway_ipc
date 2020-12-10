@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Ipc.RepublishedMessagesConsumer do
+  @moduledoc false
   use RailwayIpc.RepublishCommandConsumer,
     queue: "railway_ipc:republished_messages:commands"
 

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Ipc.RepublishedMessageAdapter do
+  @moduledoc false
   alias RailwayIpc.Commands.RepublishMessage
 
   def republish_message(published_message_uuid, %{

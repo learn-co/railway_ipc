@@ -1,4 +1,5 @@
 defmodule RailwayIpc.MessagePublishing do
+  @moduledoc false
   alias RailwayIpc.Core.{RoutingInfo, PublishedMessage}
   alias RailwayIpc.PublishedMessage, as: PublishedMessageContext
   @behaviour RailwayIpc.MessagePublishingBehaviour

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.PublishedMessage do
+  @moduledoc false
   defstruct ~w[encoded_message decoded_message type]a
   alias alias RailwayIpc.Core.Payload
 

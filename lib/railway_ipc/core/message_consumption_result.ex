@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.MessageConsumptionResult do
+  @moduledoc false
   defstruct [:status, :reason]
 
   def new({status, reason}) do

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.PersistenceBehaviour do
+  @moduledoc false
   alias RailwayIpc.Persistence.{ConsumedMessage, PublishedMessage}
   @moduledoc false
   alias RailwayIpc.Persistence.ConsumedMessage

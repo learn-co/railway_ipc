@@ -1,4 +1,5 @@
 defmodule Mix.Support.SystemCommandHelper do
+  @moduledoc false
   def run_system_command(command) when is_binary(command) do
     command
     |> String.to_charlist()

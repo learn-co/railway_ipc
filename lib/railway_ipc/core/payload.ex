@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.Payload do
+  @moduledoc false
   @behaviour RailwayIpc.PayloadBehaviour
   import RailwayIpc.Utils, only: [module_defined?: 1]
 

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.RequestsConsumer do
+  @moduledoc false
   require Logger
   alias RailwayIpc.Telemetry
   alias RailwayIpc.Core.Payload

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Persistence do
+  @moduledoc false
   @behaviour RailwayIpc.PersistenceBehaviour
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
   alias RailwayIpc.Persistence.{

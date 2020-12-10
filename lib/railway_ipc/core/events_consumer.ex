@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.EventsConsumer do
+  @moduledoc false
   require Logger
   alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.Telemetry

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.ConsumedMessage do
+  @moduledoc false
   @persistence Application.get_env(:railway_ipc, :persistence, RailwayIpc.Persistence)
 
   def get(uuid) do

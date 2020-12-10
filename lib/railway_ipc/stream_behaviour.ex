@@ -1,4 +1,5 @@
 defmodule RailwayIpc.StreamBehaviour do
+  @moduledoc false
   @callback connect :: {:ok, %{connection: map(), channel: map()}} | {:error, any()}
   @callback bind_queue(
               channel :: map(),

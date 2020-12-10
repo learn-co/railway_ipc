@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Connection.Supervisor do
+  @moduledoc false
   use Supervisor
   alias RailwayIpc.Telemetry
 

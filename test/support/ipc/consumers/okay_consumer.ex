@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Test.OkayConsumer do
+  @moduledoc false
   use RailwayIpc.CommandsConsumer,
     commands_exchange: "commands_exchange",
     events_exchange: "events_exchange",

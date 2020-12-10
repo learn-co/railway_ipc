@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Ipc.Logger do
+  @moduledoc false
   require Logger
 
   def log_republishing_message(message) do

@@ -1,4 +1,6 @@
 defmodule RailwayIpc.Utils do
+  @moduledoc false
+
   def module_defined?(module) do
     try do
       # forces module to be loaded

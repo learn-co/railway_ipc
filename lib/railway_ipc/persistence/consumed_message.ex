@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Persistence.ConsumedMessage do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 

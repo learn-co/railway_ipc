@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Persistence.PublishedMessage do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Persistence.PublishedMessageAdapter do
+  @moduledoc false
   alias RailwayIpc.Core.PublishedMessage
 
   def to_persistence(

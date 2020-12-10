@@ -1,4 +1,5 @@
 defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
+  @moduledoc false
   use AMQP
   @behaviour RailwayIpc.StreamBehaviour
   alias RailwayIpc.Telemetry

@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.GenerateTestProtobufs do
+  @moduledoc false
   use Mix.Task
 
   import Mix.Support.SystemCommandHelper

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Core.CommandsConsumer do
+  @moduledoc false
   require Logger
   alias RailwayIpc.Core.CommandMessage
 

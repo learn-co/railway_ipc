@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Loggers.ConsumerEvents do
+  @moduledoc false
   require Logger
   import RailwayIpc.Utils, only: [protobuf_to_json: 1]
 

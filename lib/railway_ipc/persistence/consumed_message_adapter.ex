@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Persistence.ConsumedMessageAdapter do
+  @moduledoc false
   alias RailwayIpc.Core.Payload
 
   def to_persistence(

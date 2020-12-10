@@ -1,4 +1,5 @@
 defmodule RailwayIpc.CommandMessageHandler do
+  @moduledoc false
   def handle_message(message, handle_module) do
     case handle_module.handle_in(message) do
       :ok ->

@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Factory do
+  @moduledoc false
   use ExMachina.Ecto, repo: RailwayIpc.Dev.Repo
   alias RailwayIpc.Persistence.{PublishedMessage, ConsumedMessage}
 

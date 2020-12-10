@@ -1,4 +1,5 @@
 defmodule RailwayIpc.CommandsConsumer do
+  @moduledoc false
   defmacro __using__(opts) do
     quote do
       require Logger

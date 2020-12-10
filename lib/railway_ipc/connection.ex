@@ -1,4 +1,5 @@
 defmodule RailwayIpc.Connection do
+  @moduledoc false
   @stream_adapter Application.get_env(
                     :railway_ipc,
                     :stream_adapter,
