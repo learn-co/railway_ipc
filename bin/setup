@@ -1,0 +1,10 @@
+#!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
+if [ "${1-}" = "circleci" ]; then
+    mix local.hex --force
+    mix local.rebar --force
+fi
+
+mix do deps.get, compile --warnings-as-errors
