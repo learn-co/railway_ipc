@@ -32,10 +32,10 @@ defmodule RailwayIpc.RepublishCommandConsumer do
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{
+            %{
               channel: channel,
               queue: queue
-            }
+            } = state
           ) do
         ack_function = fn ->
           @stream_adapter.ack(channel, delivery_tag)

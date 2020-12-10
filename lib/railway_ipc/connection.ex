@@ -53,17 +53,17 @@ defmodule RailwayIpc.Connection do
     {:stop, :normal, state}
   end
 
-  def handle_call(:publisher_channel, _from, state = %{publisher_channel: channel}) do
+  def handle_call(:publisher_channel, _from, %{publisher_channel: channel} = state) do
     {:reply, channel, state}
   end
 
   def handle_call(
         {:consume, spec},
         _from,
-        state = %{
+        %{
           consumer_channels: channels,
           connection: connection
-        }
+        } = state
       ) do
     Telemetry.track_adding_consumer(
       %{spec: spec},
