@@ -33,12 +33,12 @@ defmodule RailwayIpc.CommandsConsumer do
 
       def handle_info(
             {:basic_deliver, payload, %{delivery_tag: delivery_tag}},
-            state = %{
+            %{
               channel: channel,
               events_exchange: exchange,
               commands_exchange: commands_exchange,
               queue: queue
-            }
+            } = state
           ) do
         Logger.metadata(feature: "railway_ipc_commands_consumer")
 
