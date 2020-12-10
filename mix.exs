@@ -26,16 +26,18 @@ defmodule RailwayIpc.MixProject do
   defp deps do
     [
       {:amqp, "~> 1.2"},
-      {:mox, "~> 0.5", only: :test},
-      {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
-      {:protobuf, "~> 0.5.3"},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:ecto_sql, "~> 3.0"},
+      {:elixir_uuid, "~> 1.2"},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ex_machina, "~> 2.3", only: :test},
       {:google_protos, "~> 0.1"},
       {:jason, "~> 1.1"},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:elixir_uuid, "~> 1.2"},
-      {:ecto_sql, "~> 3.0"},
+      {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
+      {:mox, "~> 0.5", only: :test},
       {:postgrex, ">= 0.0.0"},
-      {:ex_machina, "~> 2.3", only: :test},
+      {:protobuf, "~> 0.5.3"},
       {:telemetry, "~> 0.4"}
     ]
   end
