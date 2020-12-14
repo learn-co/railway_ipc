@@ -11,6 +11,8 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
     setup do
       persisted_message = build(:published_message)
       uuid = persisted_message.uuid
+
+      # credo:disable-for-lines:2 Credo.Check.Design.AliasUsage
       data = RailwayIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
       command = RailwayIpc.Commands.RepublishMessage.new(data: data)
       [persisted_message: persisted_message, uuid: uuid, command: command]
@@ -68,6 +70,8 @@ defmodule RailwayIpc.Ipc.RebublishedMessagesConsumerTest do
 
     test "it returns an error tuple when the persisted published message UUID is invalid" do
       uuid = "12345"
+
+      # credo:disable-for-lines:2 Credo.Check.Design.AliasUsage
       data = RailwayIpc.Commands.RepublishMessage.Data.new(published_message_uuid: uuid)
       command = RailwayIpc.Commands.RepublishMessage.new(data: data)
 

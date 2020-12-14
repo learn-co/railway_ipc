@@ -206,6 +206,7 @@ defmodule RailwayIpc.PublisherTest do
 
     test "it adds a uuid to the message" do
       message =
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
         RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: Ecto.UUID.generate()
         })
@@ -229,6 +230,7 @@ defmodule RailwayIpc.PublisherTest do
       message_uuid = Ecto.UUID.generate()
 
       message =
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
         RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: Ecto.UUID.generate(),
           uuid: message_uuid
@@ -255,6 +257,7 @@ defmodule RailwayIpc.PublisherTest do
       queue = "republish_queue"
 
       message =
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
         RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: user_uuid,
           correlation_id: correlation_id,
@@ -280,6 +283,7 @@ defmodule RailwayIpc.PublisherTest do
       queue = "republish_queue"
 
       message =
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
         RailwayIpc.Commands.RepublishMessage.new(%{
           user_uuid: user_uuid,
           correlation_id: correlation_id,

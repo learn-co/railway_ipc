@@ -26,9 +26,11 @@ defmodule RailwayIpc.DataCase do
   end
 
   setup tags do
+    # credo:disable-for-next-line Credo.Check.Design.AliasUsage
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(RailwayIpc.Dev.Repo)
 
     unless tags[:async] do
+      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
       Ecto.Adapters.SQL.Sandbox.mode(RailwayIpc.Dev.Repo, {:shared, self()})
     end
 

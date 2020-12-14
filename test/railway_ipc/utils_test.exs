@@ -21,12 +21,15 @@ defmodule RailwayIpc.UtilsTest do
       correlation_id = "correlation_id"
       context = %{"context" => "data"}
 
+      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+      data = Events.AThingWasDone.Data.new(value: "Something useful")
+
       assert Events.AThingWasDone.new(
                uuid: uuid,
                user_uuid: user_uuid,
                correlation_id: correlation_id,
                context: context,
-               data: Events.AThingWasDone.Data.new(value: "Something useful")
+               data: data
              )
              |> Utils.protobuf_to_json() ==
                "{\"data\":{\"context\":{\"context\":\"data\"},\"correlationId\":\"correlation_id\",\"data\":{\"data\":{\"value\":\"Something useful\"},\"type\":\"Events.AThingWasDone.Data\"},\"userUuid\":\"user_uuid\",\"uuid\":\"uuid\"},\"type\":\"Events.AThingWasDone\"}"
