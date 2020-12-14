@@ -1,9 +1,9 @@
 defmodule RailwayIpc.MessageConsumption do
   @moduledoc false
-  alias RailwayIpc.Core.{CommandMessage, EventMessage}
-  alias RailwayIpc.Core.MessageConsumptionResult, as: Result
   alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.ConsumedMessage, as: ConsumedMessageContext
+  alias RailwayIpc.Core.MessageConsumptionResult, as: Result
+  alias RailwayIpc.Core.{CommandMessage, EventMessage}
   alias RailwayIpc.Telemetry
 
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)

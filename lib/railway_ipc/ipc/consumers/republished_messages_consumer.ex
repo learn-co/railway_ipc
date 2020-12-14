@@ -3,8 +3,8 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesConsumer do
   use RailwayIpc.RepublishCommandConsumer,
     queue: "railway_ipc:republished_messages:commands"
 
-  alias RailwayIpc.Ipc.Logger
   alias RailwayIpc.Commands.RepublishMessage
+  alias RailwayIpc.Ipc.Logger
   alias RailwayIpc.PublishedMessage
 
   def handle_in(

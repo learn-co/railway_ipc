@@ -7,14 +7,14 @@ defmodule RailwayIpc.MessageConsumptionTest do
   import Mox
   import RailwayIpc.Factory
 
-  alias RailwayIpc.MessageConsumption
-  alias RailwayIpc.Core.Payload
-  alias RailwayIpc.Test.BatchCommandsConsumer
-  alias RailwayIpc.Test.OkayConsumer
-  alias RailwayIpc.Test.ErrorConsumer
   alias RailwayIpc.Core.CommandMessage
   alias RailwayIpc.Core.EventMessage
+  alias RailwayIpc.Core.Payload
+  alias RailwayIpc.MessageConsumption
   alias RailwayIpc.Persistence.ConsumedMessage
+  alias RailwayIpc.Test.BatchCommandsConsumer
+  alias RailwayIpc.Test.ErrorConsumer
+  alias RailwayIpc.Test.OkayConsumer
 
   setup :verify_on_exit!
 

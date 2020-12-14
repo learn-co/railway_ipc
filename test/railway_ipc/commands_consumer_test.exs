@@ -5,10 +5,10 @@ defmodule RailwayIpc.CommandsConsumerTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.Test.BatchCommandsConsumer
   alias RailwayIpc.Connection
-  alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
+  alias RailwayIpc.StreamMock
+  alias RailwayIpc.Test.BatchCommandsConsumer
 
   setup do
     StreamMock

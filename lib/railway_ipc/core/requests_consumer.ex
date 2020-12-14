@@ -1,8 +1,8 @@
 defmodule RailwayIpc.Core.RequestsConsumer do
   @moduledoc false
   require Logger
-  alias RailwayIpc.Telemetry
   alias RailwayIpc.Core.Payload
+  alias RailwayIpc.Telemetry
 
   def process(payload, module, ack_func, reply_func) do
     Telemetry.track_process_message(

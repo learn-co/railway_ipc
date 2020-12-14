@@ -2,8 +2,8 @@ defmodule RailwayIpc.PersistenceTest do
   use ExUnit.Case
   use RailwayIpc.DataCase
 
-  alias RailwayIpc.{Persistence, MessageConsumption, MessagePublishing}
   alias RailwayIpc.Core.{CommandMessage, Payload, RoutingInfo}
+  alias RailwayIpc.{MessageConsumption, MessagePublishing, Persistence}
 
   @tag capture_log: true
   describe "insert_published_message/3" do

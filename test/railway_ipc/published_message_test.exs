@@ -4,8 +4,8 @@ defmodule RailwayIpc.PublishedMessageTest do
 
   import RailwayIpc.Factory
   use RailwayIpc.DataCase
-  alias RailwayIpc.MessagePublishing
   alias RailwayIpc.Core.RoutingInfo
+  alias RailwayIpc.MessagePublishing
   @tag capture_log: true
 
   setup do

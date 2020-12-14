@@ -1,7 +1,7 @@
 defmodule RailwayIpc.Core.RequestsConsumerTest do
   use ExUnit.Case
-  alias RailwayIpc.Core.RequestsConsumer
   alias RailwayIpc.Core.Payload
+  alias RailwayIpc.Core.RequestsConsumer
 
   test "acks and replies when reply tuple returned" do
     {:ok, request} =

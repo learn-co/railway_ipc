@@ -4,9 +4,9 @@ defmodule RailwayIpc.ConsumedMessageTest do
 
   import RailwayIpc.Factory
   use RailwayIpc.DataCase
-  alias RailwayIpc.{MessageConsumption, ConsumedMessage}
-  alias RailwayIpc.Test.BatchEventsConsumer
   alias RailwayIpc.Core.{EventMessage, Payload}
+  alias RailwayIpc.Test.BatchEventsConsumer
+  alias RailwayIpc.{ConsumedMessage, MessageConsumption}
   @tag capture_log: true
 
   setup do

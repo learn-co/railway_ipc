@@ -3,9 +3,9 @@ defmodule RailwayIpc.Persistence do
   @behaviour RailwayIpc.PersistenceBehaviour
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
   alias RailwayIpc.Persistence.{
-    PublishedMessage,
     ConsumedMessage,
     ConsumedMessageAdapter,
+    PublishedMessage,
     PublishedMessageAdapter
   }
 

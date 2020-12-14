@@ -4,11 +4,11 @@ defmodule RailwayIpc.EventsConsumerTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.Test.BatchEventsConsumer
   alias RailwayIpc.Connection
-  alias RailwayIpc.StreamMock
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.MessageConsumption
+  alias RailwayIpc.StreamMock
+  alias RailwayIpc.Test.BatchEventsConsumer
 
   setup do
     StreamMock

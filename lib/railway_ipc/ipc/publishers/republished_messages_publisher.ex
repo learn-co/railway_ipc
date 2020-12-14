@@ -3,8 +3,8 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisher do
   use RailwayIpc.Publisher,
     queue: "railway_ipc:republished_messages:commands"
 
-  alias RailwayIpc.Ipc.RepublishedMessageAdapter, as: DataAdapter
   alias RailwayIpc.Ipc.Logger, as: IpcLogger
+  alias RailwayIpc.Ipc.RepublishedMessageAdapter, as: DataAdapter
   require Logger
 
   def invoke_republish_message(

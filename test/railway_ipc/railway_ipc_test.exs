@@ -6,7 +6,7 @@ defmodule RailwayIpcTest do
   import Mox
   import RailwayIpc.Factory
 
-  alias RailwayIpc.{StreamMock, Connection, MessagePublishing, Persistence}
+  alias RailwayIpc.{Connection, MessagePublishing, Persistence, StreamMock}
 
   setup :set_mox_global
   setup :verify_on_exit!

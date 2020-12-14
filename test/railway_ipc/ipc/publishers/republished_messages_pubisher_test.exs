@@ -5,9 +5,9 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
   alias RailwayIpc.Core.{Payload, RoutingInfo}
   alias RailwayIpc.Ipc.RepublishedMessagesPublisher
+  alias RailwayIpc.{Connection, MessagePublishing, StreamMock}
   @queue "railway_ipc:republished_messages:commands"
 
   setup do

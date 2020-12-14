@@ -5,9 +5,9 @@ defmodule RailwayIpc.PublisherTest do
   setup :set_mox_global
   setup :verify_on_exit!
 
-  alias RailwayIpc.{StreamMock, Connection, MessagePublishing}
   alias RailwayIpc.Core.Payload
   alias RailwayIpc.Test.BatchEventsPublisher
+  alias RailwayIpc.{Connection, MessagePublishing, StreamMock}
 
   setup do
     StreamMock

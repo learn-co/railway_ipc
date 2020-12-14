@@ -1,7 +1,7 @@
 defmodule RailwayIpc.Persistence.PublishedMessageAdapterTest do
   use ExUnit.Case
-  alias RailwayIpc.MessagePublishing
   alias RailwayIpc.Core.RoutingInfo
+  alias RailwayIpc.MessagePublishing
   alias RailwayIpc.Persistence.PublishedMessageAdapter
 
   describe "to_persistence/1" do

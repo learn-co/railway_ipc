@@ -4,9 +4,9 @@ defmodule RailwayIpc.MessagePublishingTest do
   use ExUnit.Case
   import Mox
   import RailwayIpc.Factory
-  alias RailwayIpc.Persistence.PublishedMessage
-  alias RailwayIpc.MessagePublishing
   alias RailwayIpc.Core.RoutingInfo
+  alias RailwayIpc.MessagePublishing
+  alias RailwayIpc.Persistence.PublishedMessage
   setup :verify_on_exit!
 
   describe "process/2" do

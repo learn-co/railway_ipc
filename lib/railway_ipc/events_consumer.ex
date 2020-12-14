@@ -11,9 +11,9 @@ defmodule RailwayIpc.EventsConsumer do
                         RailwayIpc.RabbitMQ.RabbitMQAdapter
                       )
 
-      alias RailwayIpc.Telemetry
       alias RailwayIpc.Connection, as: Connection
       alias RailwayIpc.Core.EventsConsumer
+      alias RailwayIpc.Telemetry
 
       def start_link(_state) do
         exchange = Keyword.get(unquote(opts), :exchange)

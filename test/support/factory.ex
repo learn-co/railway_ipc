@@ -1,7 +1,7 @@
 defmodule RailwayIpc.Factory do
   @moduledoc false
   use ExMachina.Ecto, repo: RailwayIpc.Dev.Repo
-  alias RailwayIpc.Persistence.{PublishedMessage, ConsumedMessage}
+  alias RailwayIpc.Persistence.{ConsumedMessage, PublishedMessage}
 
   def published_message_factory do
     uuid = Ecto.UUID.generate()
