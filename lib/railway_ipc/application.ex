@@ -75,7 +75,7 @@ defmodule RailwayIpc.Application do
       )
   end
 
-  defp setup_rabbit_log_level() do
+  defp setup_rabbit_log_level do
     :logger.add_primary_filter(
       :ignore_rabbitmq_progress_reports,
       {&:logger_filters.domain/2, {:stop, :equal, [:progress]}}

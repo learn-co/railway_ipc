@@ -7,18 +7,16 @@ defmodule RailwayIpc.PublishedMessage do
   end
 
   def create(%{outbound_message: %{decoded_message: %{uuid: uuid}}} = message_publishing) do
-    try do
-      @persistence.insert_published_message(message_publishing)
-    rescue
-      error ->
-        case error do
-          %{type: :unique} ->
-            message = get(uuid)
-            {:ok, message}
+    @persistence.insert_published_message(message_publishing)
+  rescue
+    error ->
+    case error do
+      %{type: :unique} ->
+        message = get(uuid)
+        {:ok, message}
 
-          error ->
-            {:error, error}
-        end
+      error ->
+        {:error, error}
     end
   end
 end

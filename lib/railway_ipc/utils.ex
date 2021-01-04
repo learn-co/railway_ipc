@@ -2,13 +2,11 @@ defmodule RailwayIpc.Utils do
   @moduledoc false
 
   def module_defined?(module) do
-    try do
-      # forces module to be loaded
-      module.__info__(:module)
-      true
-    rescue
-      UndefinedFunctionError -> false
-    end
+    # forces module to be loaded
+    module.__info__(:module)
+    true
+  rescue
+    UndefinedFunctionError -> false
   end
 
   def protobuf_to_json(protobuf) do

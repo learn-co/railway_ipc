@@ -7,15 +7,14 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   def connection_url do
     Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||
       System.get_env("RABBITMQ_CONNECTION_URL") ||
-      raise "Must set config value :railway_ipc, :rabbitmq_connection_url, or export environment variable RABBITMQ_CONNECTION_URL"
+        raise "Must set config value :railway_ipc, :rabbitmq_connection_url, or export environment variable RABBITMQ_CONNECTION_URL"
   end
 
   def connect do
     Telemetry.track_connecting_to_rabbit(fn ->
-      with {:ok, connection} when not is_nil(connection) <-
-             Connection.open(connection_url()) do
-        {{:ok, connection}, %{connection: connection}}
-      else
+      case Connection.open(connection_url()) do
+        {:ok, connection} when not is_nil(connection) ->
+          {{:ok, connection}, %{connection: connection}}
         error ->
           {{:error, error}, %{error: error}}
       end
@@ -47,13 +46,13 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   # one to bind_queue which we call `maybe_bind_queue` and we call both of these
   # in sequence from Connection.
   def bind_queue(
-        channel,
-        %{
-          exchange: exchange,
-          queue: queue,
-          consumer_pid: consumer
-        }
-      ) do
+    channel,
+    %{
+      exchange: exchange,
+      queue: queue,
+      consumer_pid: consumer
+    }
+  ) do
     with {:ok, _} <- create_queue(channel, queue, durable: true),
          :ok <- maybe_create_exchange(channel, exchange),
          :ok <- maybe_bind_queue(channel, queue, exchange),
