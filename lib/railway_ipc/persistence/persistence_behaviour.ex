@@ -1,7 +1,6 @@
 defmodule RailwayIpc.PersistenceBehaviour do
   @moduledoc false
   alias RailwayIpc.Persistence.{ConsumedMessage, PublishedMessage}
-  @moduledoc false
   alias RailwayIpc.Persistence.ConsumedMessage
   @callback insert_published_message(Map.t()) :: tuple()
   @callback insert_consumed_message(Map.t()) :: tuple()

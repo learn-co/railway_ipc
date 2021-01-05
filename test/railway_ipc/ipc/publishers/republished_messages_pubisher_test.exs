@@ -64,7 +64,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
       request_data: request_data,
       original_published_message_uuid: original_published_message_uuid
     } do
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+      # credo:disable-for-lines:2 Credo.Check.Design.AliasUsage
       command =
         RailwayIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
 
@@ -94,7 +94,7 @@ defmodule RailwayIpc.Ipc.RepublishedMessagesPublisherTest do
       request_data: request_data,
       original_published_message_uuid: original_published_message_uuid
     } do
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+      # credo:disable-for-lines:2 Credo.Check.Design.AliasUsage
       command =
         RailwayIpc.Commands.RepublishMessage.new(user_uuid: "abcabc", uuid: Ecto.UUID.generate())
 

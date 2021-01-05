@@ -7,4 +7,6 @@ if [ "${1-}" = "circleci" ]; then
     mix local.rebar --force
 fi
 
-mix do deps.get, compile --warnings-as-errors
+mix deps.get
+mix deps.compile
+mix compile
