@@ -6,13 +6,11 @@ defmodule Mix.Tasks.GenerateTestProtobufs do
 
   @shortdoc "Generates test protobufs"
   def run(_arg) do
-    run_system_command(
-      """
-      protoc --proto_path=test/support/ipc/protobuf \
-              --elixir_out=test/support/ipc/messages \
-              test/support/ipc/protobuf/*.proto
-      """
-    )
+    run_system_command("""
+    protoc --proto_path=test/support/ipc/protobuf \
+            --elixir_out=test/support/ipc/messages \
+            test/support/ipc/protobuf/*.proto
+    """)
 
     IO.puts("Generated successfully")
   end

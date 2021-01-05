@@ -59,14 +59,14 @@ defmodule RailwayIpc.RepublishedMessagesConsumerTest do
   end
 
   test "acks message when successful", %{persisted_published_message: persisted_published_message} do
+    # credo:disable-for-next-line Credo.Check.Design.AliasUsage
     data =
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
       RailwayIpc.Commands.RepublishMessage.Data.new(
         published_message_uuid: persisted_published_message.uuid
       )
 
+    # credo:disable-for-next-line Credo.Check.Design.AliasUsage
     {:ok, command} =
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
       RailwayIpc.Commands.RepublishMessage.new(correlation_id: "123", data: data)
       |> Payload.encode()
 

@@ -10,13 +10,13 @@ defmodule RailwayIpc.PublishedMessage do
     @persistence.insert_published_message(message_publishing)
   rescue
     error ->
-    case error do
-      %{type: :unique} ->
-        message = get(uuid)
-        {:ok, message}
+      case error do
+        %{type: :unique} ->
+          message = get(uuid)
+          {:ok, message}
 
-      error ->
-        {:error, error}
-    end
+        error ->
+          {:error, error}
+      end
   end
 end
