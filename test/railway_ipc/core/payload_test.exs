@@ -8,12 +8,6 @@ defmodule RailwayIpc.Core.PayloadTest do
     assert encoded_type == "Commands::DoAThing"
   end
 
-  test "properly encodes struct" do
-    command = Commands.DoAThing.new(uuid: "123123")
-    encoded_message = Payload.encode_message(command)
-    assert encoded_message == "GgYxMjMxMjM="
-  end
-
   test "encodes payloads properly" do
     command = Commands.DoAThing.new(uuid: "123123")
     {:ok, encoded} = Payload.encode(command)
@@ -43,18 +37,17 @@ defmodule RailwayIpc.Core.PayloadTest do
 
     {:error, reason} = Payload.decode(json)
 
-    assert reason ==
-             "Missing keys: {\"bogus_key\":\"Banana\"}. Expecting type and encoded_message keys"
+    assert reason == "Message is missing the `type` attribute"
   end
 
   test "returns an error if given bad data" do
-    {:error, reason} = Payload.decode("")
-    assert reason == "Malformed JSON given: "
+    {:error, reason} = Payload.decode("not_json")
+    assert reason == "Message is invalid JSON (not_json)"
   end
 
   test "returns an error if anything other than a string given" do
     {:error, reason} = Payload.decode(123_123)
-    assert reason == "Malformed JSON given: 123123. Must be a string"
+    assert reason == "Malformed JSON given. Must be a string. (123123)"
   end
 
   test "returns :unknown_message_type tuple if the module is unknown after decoding" do
