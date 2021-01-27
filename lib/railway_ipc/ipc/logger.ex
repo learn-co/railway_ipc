@@ -2,10 +2,6 @@ defmodule RailwayIpc.Ipc.Logger do
   @moduledoc false
   require Logger
 
-  def log_republishing_message(message) do
-    Logger.info("Republishing message", message_metadata(message))
-  end
-
   def log_consuming_message(message) do
     Logger.info("Consuming message", message_metadata(message))
   end
@@ -21,7 +17,7 @@ defmodule RailwayIpc.Ipc.Logger do
 
   defp message_metadata(message) do
     [
-      feature: "ipc_republish_message",
+      feature: "ipc_consume_message",
       correlation_id: message.correlation_id,
       message_uuid: message.uuid,
       learn_uuid: Map.get(message, :user_uuid, nil),

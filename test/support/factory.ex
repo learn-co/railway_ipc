@@ -10,11 +10,11 @@ defmodule RailwayIpc.Factory do
       uuid: uuid,
       correlation_id: Ecto.UUID.generate(),
       user_uuid: Ecto.UUID.generate(),
-      message_type: "Commands::AThing",
-      exchange: "things:commands",
+      message_type: "Events::AThing",
+      exchange: "things:events",
       status: "sent",
       encoded_message:
-        "{\"encoded_message\":\"\",\"type\":\"Commands::AThing\",\"uuid\":\"#{uuid}\"}"
+        "{\"encoded_message\":\"\",\"type\":\"Events::AThing\",\"uuid\":\"#{uuid}\"}"
     }
   end
 
@@ -23,8 +23,8 @@ defmodule RailwayIpc.Factory do
       uuid: Ecto.UUID.generate(),
       correlation_id: Ecto.UUID.generate(),
       user_uuid: Ecto.UUID.generate(),
-      message_type: "Commands::AThing",
-      exchange: "things:commands",
+      message_type: "Events::AThing",
+      exchange: "things:events",
       status: "processing",
       encoded_message: "",
       queue: "queue"

@@ -1,7 +1,6 @@
 defmodule RailwayIpc.Test.OkayConsumer do
   @moduledoc false
-  use RailwayIpc.CommandsConsumer,
-    commands_exchange: "commands_exchange",
+  use RailwayIpc.EventsConsumer,
     events_exchange: "events_exchange",
     queue: "are_es_tee"
 

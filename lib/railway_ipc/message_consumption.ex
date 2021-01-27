@@ -1,9 +1,8 @@
 defmodule RailwayIpc.MessageConsumption do
   @moduledoc false
-  alias RailwayIpc.CommandMessageHandler
   alias RailwayIpc.ConsumedMessage, as: ConsumedMessageContext
+  alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.Core.MessageConsumptionResult, as: Result
-  alias RailwayIpc.Core.{CommandMessage, EventMessage}
   alias RailwayIpc.Telemetry
 
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
@@ -128,37 +127,6 @@ defmodule RailwayIpc.MessageConsumption do
           {:error, reason} = result ->
             {handle_error(message_consumption, result),
              %{state: message_consumption, error: "Failed to handle Event", reason: reason}}
-        end
-      end
-    )
-  end
-
-  def handle_message(
-        {:ok,
-         %{
-           inbound_message: %{decoded_message: decoded_message} = %CommandMessage{},
-           handle_module: handle_module,
-           persisted_message: persisted_message
-         } = message_consumption}
-      ) do
-    Telemetry.track_handle_message(
-      %{decoded_message: decoded_message, consumer_type: :command},
-      fn ->
-        case CommandMessageHandler.handle_message(decoded_message, handle_module) do
-          :ok ->
-            {handle_processed_success(message_consumption, persisted_message), %{}}
-
-          {:emit, event} ->
-            {{:emit,
-              update(message_consumption, %{
-                result: Result.new(%{status: :handled}),
-                persisted_message: mark_persisted_message_handled(persisted_message),
-                outbound_message: event
-              })}, %{state: message_consumption, outbound_message: event}}
-
-          {:error, reason} = result ->
-            {handle_error(message_consumption, result),
-             %{state: message_consumption, error: "Failed to handle Command", reason: reason}}
         end
       end
     )

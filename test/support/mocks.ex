@@ -4,14 +4,6 @@ Mox.defmock(RailwayIpc.PersistenceMock,
   for: RailwayIpc.PersistenceBehaviour
 )
 
-Mox.defmock(RailwayIpcMock,
-  for: RailwayIpcBehaviour
-)
-
-Mox.defmock(RailwayIpcMock,
-  for: RailwayIpcBehaviour
-)
-
 Mox.defmock(RailwayIpc.MessagePublishingMock,
   for: RailwayIpc.MessagePublishingBehaviour
 )

@@ -6,12 +6,12 @@ defmodule RailwayIpc.Core.MessageFormat.BinaryProtobufTest do
 
   describe "#encode" do
     test "encode a protobuf" do
-      msg = Commands.DoAThing.new(uuid: "abc123")
+      msg = Events.AThingWasDone.new(uuid: "abc123")
 
       expected = {
         :ok,
-        "{\"encoded_message\":\"GgZhYmMxMjM=\",\"type\":\"Commands::DoAThing\"}",
-        "Commands::DoAThing"
+        "{\"encoded_message\":\"GgZhYmMxMjM=\",\"type\":\"Events::AThingWasDone\"}",
+        "Events::AThingWasDone"
       }
 
       assert expected == BinaryProtobuf.encode(msg)
@@ -30,18 +30,18 @@ defmodule RailwayIpc.Core.MessageFormat.BinaryProtobufTest do
 
   describe "#decode" do
     test "decode a message to a protobuf" do
-      msg = Commands.DoAThing.new(uuid: "abc123")
+      msg = Events.AThingWasDone.new(uuid: "abc123")
       {:ok, encoded, _type} = BinaryProtobuf.encode(msg)
 
       expected = {
         :ok,
-        %Commands.DoAThing{
+        %Events.AThingWasDone{
           context: %{},
           correlation_id: "",
           user_uuid: "",
           uuid: "abc123"
         },
-        "Commands::DoAThing"
+        "Events::AThingWasDone"
       }
 
       assert expected == BinaryProtobuf.decode(encoded)
@@ -77,7 +77,7 @@ defmodule RailwayIpc.Core.MessageFormat.BinaryProtobufTest do
 
     test "enclosed encoded message must be a decodable protobuf" do
       message =
-        %{type: "Commands.DoAThing", encoded_message: "invalid"}
+        %{type: "Events.AThingWasDone", encoded_message: "invalid"}
         |> Jason.encode!()
 
       {:error, error} = BinaryProtobuf.decode(message)

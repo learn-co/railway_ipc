@@ -11,14 +11,14 @@ defmodule RailwayIpc.Core.EventMessage do
     |> decode()
   end
 
-  def decode(%{encoded_message: encoded_message} = command_message) do
+  def decode(%{encoded_message: encoded_message} = event_message) do
     case Payload.decode(encoded_message) do
       {:ok, decoded_message} ->
-        message = update(command_message, %{decoded_message: decoded_message})
+        message = update(event_message, %{decoded_message: decoded_message})
         {:ok, message}
 
       {:unknown_message_type, decoded_message, type} ->
-        message = update(command_message, %{decoded_message: decoded_message, type: type})
+        message = update(event_message, %{decoded_message: decoded_message, type: type})
         {:unknown_message_type, message}
 
       {:error, error} ->

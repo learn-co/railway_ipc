@@ -8,15 +8,15 @@ defmodule RailwayIpc.Persistence.PublishedMessageAdapterTest do
     test "it constructs the attributes for persistence" do
       user_uuid = Ecto.UUID.generate()
       correlation_id = Ecto.UUID.generate()
-      exchange = "commands:a_thing"
-      message = Commands.DoAThing.new(%{user_uuid: user_uuid, correlation_id: correlation_id})
+      exchange = "events:a_thing"
+      message = Events.AThingWasDone.new(%{user_uuid: user_uuid, correlation_id: correlation_id})
       message_publishing = MessagePublishing.new(message, %RoutingInfo{exchange: exchange})
 
       {:ok,
        %{
          exchange: ^exchange,
          encoded_message: _encoded_message,
-         message_type: "Commands::DoAThing",
+         message_type: "Events::AThingWasDone",
          user_uuid: ^user_uuid,
          correlation_id: ^correlation_id,
          status: "sent",

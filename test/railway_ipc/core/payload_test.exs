@@ -3,31 +3,31 @@ defmodule RailwayIpc.Core.PayloadTest do
   alias RailwayIpc.Core.Payload
 
   test "properly encodes type" do
-    command = Commands.DoAThing.new(uuid: "123123")
-    encoded_type = Payload.encode_type(command)
-    assert encoded_type == "Commands::DoAThing"
+    event = Events.AThingWasDone.new(uuid: "123123")
+    encoded_type = Payload.encode_type(event)
+    assert encoded_type == "Events::AThingWasDone"
   end
 
   test "encodes payloads properly" do
-    command = Commands.DoAThing.new(uuid: "123123")
-    {:ok, encoded} = Payload.encode(command)
-    assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Commands::DoAThing\"}"
+    event = Events.AThingWasDone.new(uuid: "123123")
+    {:ok, encoded} = Payload.encode(event)
+    assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}"
   end
 
   test "properly decodes message" do
-    command = Commands.DoAThing.new(uuid: "123123")
-    {:ok, encoded} = Payload.encode(command)
+    event = Events.AThingWasDone.new(uuid: "123123")
+    {:ok, encoded} = Payload.encode(event)
     {:ok, decoded} = Payload.decode(encoded)
 
-    assert decoded.__struct__ == Commands.DoAThing
+    assert decoded.__struct__ == Events.AThingWasDone
     assert decoded.uuid == "123123"
   end
 
   test "properly decodes message with whitespace" do
-    encoded = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Commands::DoAThing\"}\n"
+    encoded = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}\n"
     {:ok, decoded} = Payload.decode(encoded)
 
-    assert decoded.__struct__ == Commands.DoAThing
+    assert decoded.__struct__ == Events.AThingWasDone
   end
 
   test "returns an error if given bad JSON" do
