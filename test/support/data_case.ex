@@ -14,6 +14,8 @@ defmodule RailwayIpc.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias RailwayIpc.Dev.Repo
+
   using do
     quote do
       alias RailwayIpc.Dev.Repo
@@ -51,5 +53,16 @@ defmodule RailwayIpc.DataCase do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+  end
+
+  @doc """
+  Retrieves the current row count for the given table. Since SQL `count`
+  requires a column, we have to provide that as well. This defaults the
+  column name to UUID since all Railway tables have it, but you can override
+  it if you want.
+
+  """
+  def row_count(table, column \\ :uuid) do
+    Repo.aggregate(table, :count, column)
   end
 end
