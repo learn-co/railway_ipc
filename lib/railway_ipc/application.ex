@@ -40,6 +40,13 @@ defmodule RailwayIpc.Application do
     ]
   end
 
+  def children(true, true, :e2e) do
+    [
+      @repo,
+      {RailwayIpc.Connection.Supervisor, []}
+    ]
+  end
+
   def children(_, _, _), do: []
 
   defp attach_publisher_loggers do

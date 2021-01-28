@@ -31,11 +31,11 @@ defmodule RailwayIpc.MixProject do
       {:ecto_sql, "~> 3.0"},
       {:elixir_uuid, "~> 1.2"},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:ex_machina, "~> 2.3", only: :test},
+      {:ex_machina, "~> 2.3", only: [:test, :e2e]},
       {:google_protos, "~> 0.1"},
       {:jason, "~> 1.1"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
-      {:mox, "~> 0.5", only: :test},
+      {:mox, "~> 0.5", only: [:test, :e2e]},
       {:postgrex, ">= 0.0.0"},
       {:protobuf, "~> 0.5.3"},
       {:telemetry, "~> 0.4"}
@@ -48,6 +48,7 @@ defmodule RailwayIpc.MixProject do
     ]
   end
 
+  defp elixirc_paths(:e2e), do: ["test/support", "lib"]
   defp elixirc_paths(:test), do: ["test/support", "lib"]
   defp elixirc_paths(_), do: ["lib", "priv"]
 

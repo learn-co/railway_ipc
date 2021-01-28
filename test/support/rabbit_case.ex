@@ -148,8 +148,7 @@ defmodule Test.Support.RabbitCase do
 
       defp options do
         [
-          durable: true,
-          arguments: [{"x-dead-letter-exchange", :longstr, "lightrail:errors"}]
+          durable: true
         ]
       end
     end

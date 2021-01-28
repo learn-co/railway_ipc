@@ -2,9 +2,18 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-echo "Checking formatting..."
+echo
+echo "> Checking formatting..."
 mix format --check-formatted
-echo "Linting..."
+
+echo
+echo "> Linting..."
 mix credo
-echo "Running tests..."
+
+echo
+echo "> Running tests..."
 mix test
+
+echo
+echo "> Running end to end tests..."
+MIX_ENV=e2e mix test --only e2e
