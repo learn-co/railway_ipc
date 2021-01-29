@@ -1,7 +1,6 @@
 defmodule RailwayIpc.Core.EventsConsumer do
   @moduledoc false
   require Logger
-  alias RailwayIpc.Core.EventMessage
   alias RailwayIpc.Telemetry
 
   @message_consumption Application.get_env(
@@ -14,7 +13,7 @@ defmodule RailwayIpc.Core.EventsConsumer do
     Telemetry.track_process_message(
       %{payload: payload, module: module, exchange: exchange, queue: queue},
       fn ->
-        result = @message_consumption.process(payload, module, exchange, queue, EventMessage)
+        result = @message_consumption.process(payload, module, exchange, queue)
         {result |> post_processing(ack_func), %{result: result}}
       end
     )

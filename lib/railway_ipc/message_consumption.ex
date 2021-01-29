@@ -22,11 +22,11 @@ defmodule RailwayIpc.MessageConsumption do
     :result
   ]
 
-  def process(payload, handle_module, exchange, queue, message_module) do
+  def process(payload, handle_module, exchange, queue) do
     {:ok, result} =
       @repo.transaction(fn ->
         new(payload, handle_module, exchange, queue)
-        |> decode_message(message_module)
+        |> decode_message()
         |> persist_message()
         |> handle_message()
       end)
@@ -49,9 +49,9 @@ defmodule RailwayIpc.MessageConsumption do
      %__MODULE__{payload: payload, handle_module: handle_module, exchange: exchange, queue: queue}}
   end
 
-  def decode_message({:ok, message_consumption}, message_module) do
+  def decode_message({:ok, message_consumption}) do
     Telemetry.track_decode(%{state: message_consumption}, fn ->
-      case do_decode_message(message_consumption, message_module) do
+      case do_decode_message(message_consumption) do
         {:ok, message} ->
           {handle_decode_success(message_consumption, message),
            %{state: message_consumption, message: message}}
@@ -72,8 +72,8 @@ defmodule RailwayIpc.MessageConsumption do
     end)
   end
 
-  def do_decode_message(message_consumption, message_module) do
-    message_module.new(message_consumption)
+  def do_decode_message(message_consumption) do
+    EventMessage.new(message_consumption)
   end
 
   def persist_message({:ok, message_consumption}) do

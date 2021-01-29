@@ -53,7 +53,6 @@ defmodule RailwayIpc.EventsConsumerTest do
     consumer_module = BatchEventsConsumer
     exchange = "experts"
     queue = "are_es_tee"
-    message_module = RailwayIpc.Core.EventMessage
 
     StreamMock
     |> expect(
@@ -74,7 +73,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
 
     RailwayIpc.MessageConsumptionMock
-    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue ->
       {:ok,
        %MessageConsumption{
          inbound_message: %{
@@ -92,7 +91,6 @@ defmodule RailwayIpc.EventsConsumerTest do
     consumer_module = BatchEventsConsumer
     exchange = "experts"
     queue = "are_es_tee"
-    message_module = RailwayIpc.Core.EventMessage
 
     StreamMock
     |> expect(
@@ -113,7 +111,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     RailwayIpc.MessageConsumptionMock
-    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, ^message_module ->
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue ->
       {:ok,
        %MessageConsumption{
          inbound_message: %{

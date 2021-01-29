@@ -25,7 +25,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
       exchange = "events_exchange"
       queue = "queue"
-      message_module = EventMessage
       consumed_message = build(:consumed_message)
       attrs = %{status: "success"}
 
@@ -55,7 +54,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
         payload: payload,
         exchange: exchange,
         queue: queue,
-        message_module: message_module,
         consumed_message: consumed_message,
         updated_message: updated_message,
         attrs: attrs
@@ -66,13 +64,11 @@ defmodule RailwayIpc.MessageConsumptionTest do
       payload: payload,
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       updated_message: updated_message
     } do
       handle_module = OkayConsumer
 
-      {:ok, struct} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:ok, struct} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert struct.result.reason == nil
       assert struct.persisted_message == updated_message
@@ -89,7 +85,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     setup do
       exchange = "events_exchange"
       queue = "are_es_tee"
-      message_module = EventMessage
       consumed_message = build(:consumed_message)
 
       RailwayIpc.PersistenceMock
@@ -110,7 +105,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
       [
         exchange: exchange,
         queue: queue,
-        message_module: message_module,
         consumed_message: consumed_message
       ]
     end
@@ -118,7 +112,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns a skip tuple when message type is unknown", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       consumed_message: consumed_message
     } do
       RailwayIpc.PersistenceMock
@@ -129,8 +122,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       payload = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
       handle_module = BatchEventsConsumer
 
-      {:skip, struct} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:skip, struct} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert struct.persisted_message != nil
       assert struct.result.reason == "Unknown message of type: Events::SomeUnknownThing"
@@ -138,8 +130,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
     test "returns an error tuple when persistence fails", %{
       exchange: exchange,
-      queue: queue,
-      message_module: message_module
+      queue: queue
     } do
       changeset =
         %ConsumedMessage{}
@@ -157,8 +148,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
       handle_module = BatchEventsConsumer
 
-      {:error, struct} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:error, struct} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert struct.persisted_message == nil
       error = Keyword.fetch!(struct.result.reason, :uuid)
@@ -167,8 +157,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
     test "returns an error tuple when the handler returns an error tuple", %{
       exchange: exchange,
-      queue: queue,
-      message_module: message_module
+      queue: queue
     } do
       {:ok, payload} =
         Events.AThingWasDone.new(correlation_id: "123")
@@ -176,8 +165,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
       handle_module = ErrorConsumer
 
-      {:error, struct} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:error, struct} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert struct.result.reason == "error message"
     end
@@ -187,7 +175,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     setup do
       exchange = "events_exchange"
       queue = "are_es_tee"
-      message_module = EventMessage
       consumed_message = build(:consumed_message)
 
       RailwayIpc.PersistenceMock
@@ -198,7 +185,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
       [
         exchange: exchange,
         queue: queue,
-        message_module: message_module,
         consumed_message: consumed_message
       ]
     end
@@ -206,7 +192,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns the ok tuple when a message with the status 'processing' exists", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       consumed_message: consumed_message
     } do
       {:ok, payload} =
@@ -225,8 +210,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         {:ok, Map.merge(consumed_message, %{status: "success"})}
       end)
 
-      {:ok, message} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:ok, message} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert message.persisted_message.uuid == consumed_message.uuid
     end
@@ -234,7 +218,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns the ok tuple when a message with the status 'unknown_message_type' exists", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       consumed_message: consumed_message
     } do
       {:ok, payload} =
@@ -253,8 +236,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         {:ok, Map.merge(consumed_message, %{status: "unknown_message_type"})}
       end)
 
-      {:ok, message} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+      {:ok, message} = MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert message.persisted_message.uuid == consumed_message.uuid
     end
@@ -262,7 +244,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns the skip tuple when a message with the status 'success' exists", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       consumed_message: consumed_message
     } do
       {:ok, payload} =
@@ -277,7 +258,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       end)
 
       {:skip, message_consumption} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+        MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert message_consumption.result.reason ==
                "Message with uuid: #{consumed_message.uuid} and status: success already exists"
@@ -286,7 +267,6 @@ defmodule RailwayIpc.MessageConsumptionTest do
     test "returns the skip tuple when a message with the status 'ignore' exists", %{
       exchange: exchange,
       queue: queue,
-      message_module: message_module,
       consumed_message: consumed_message
     } do
       {:ok, payload} =
@@ -306,7 +286,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       end)
 
       {:skip, message_consumption} =
-        MessageConsumption.process(payload, handle_module, exchange, queue, message_module)
+        MessageConsumption.process(payload, handle_module, exchange, queue)
 
       assert message_consumption.result.status == :ignore
 
