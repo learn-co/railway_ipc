@@ -4,15 +4,13 @@ defmodule RailwayIpc.Core.EventMessage do
 
   alias RailwayIpc.Core.Payload
 
-  def new(%{
-        payload: payload
-      }) do
+  def new(%{payload: payload}, message_format \\ nil) do
     %__MODULE__{encoded_message: payload}
-    |> decode()
+    |> decode(message_format)
   end
 
-  def decode(%{encoded_message: encoded_message} = event_message) do
-    case Payload.decode(encoded_message) do
+  def decode(%{encoded_message: encoded_message} = event_message, message_format) do
+    case Payload.decode(encoded_message, message_format) do
       {:ok, decoded_message} ->
         message = update(event_message, %{decoded_message: decoded_message})
         {:ok, message}

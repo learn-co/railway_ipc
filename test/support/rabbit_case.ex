@@ -92,11 +92,10 @@ defmodule Test.Support.RabbitCase do
       Publish a message. Expects message to be already encoded.
 
       """
-      def publish_message(connection, exchange, message, routing_key \\ "") do
-        {:ok, channel} = AMQP.Channel.open(connection)
+      def publish_message(channel, exchange, message, options \\ []) do
+        routing_key = ""
         AMQP.Exchange.fanout(channel, exchange, options())
-        AMQP.Basic.publish(channel, exchange, routing_key, message)
-        AMQP.Channel.close(channel)
+        AMQP.Basic.publish(channel, exchange, routing_key, message, options)
       end
 
       @doc """

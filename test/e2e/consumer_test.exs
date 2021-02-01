@@ -7,6 +7,8 @@ defmodule E2E.ConsumerTest do
 
   alias Events.AThingWasDone, as: Proto
   alias RailwayIpc.Connection
+  alias RailwayIpc.Core.MessageFormat.BinaryProtobuf
+  alias RailwayIpc.Core.MessageFormat.JsonProtobuf
   alias Test.Support.Helpers
 
   @timeout _up_to_thirty_seconds = 30_000
@@ -21,7 +23,7 @@ defmodule E2E.ConsumerTest do
     end
   end
 
-  setup_all do
+  setup do
     {:ok, connection} = open_connection("amqp://guest:guest@localhost:5672")
 
     # Publishers don't know about queues, only exchanges. If we send a
@@ -48,16 +50,8 @@ defmodule E2E.ConsumerTest do
     %{connection: connection, pid: pid}
   end
 
-  setup context do
-    exit_fn = fn ->
-      purge_queue(context.connection, "railway:test:events")
-    end
-
-    on_exit(exit_fn)
-  end
-
   @tag :e2e
-  test "successfully consume a message", context do
+  test "successfully consumes a message in binary protobuf format", context do
     # Make sure the queue is empty
     Helpers.wait_for_true(@timeout, fn ->
       assert 0 == queue_count("railway:test:events")
@@ -66,7 +60,49 @@ defmodule E2E.ConsumerTest do
     # Publish a message
     channel = Connection.publisher_channel(context.pid)
     proto = Proto.new(uuid: UUID.uuid4())
-    :ok = RailwayIpc.Publisher.publish(channel, "railway:test", proto)
+    {:ok, encoded, _type} = BinaryProtobuf.encode(proto)
+    :ok = publish_message(channel, "railway:test", encoded)
+
+    # Make sure it arrived in the queue
+    Helpers.wait_for_true(@timeout, fn ->
+      assert 1 == queue_count("railway:test:events")
+    end)
+
+    # Get the current message count
+    count_before = row_count("railway_ipc_consumed_messages")
+
+    # Start the consumer
+    start_supervised!(%{id: Subject, start: {Subject, :start_link, [:ok]}})
+
+    # Assert the consumer processed the message
+    Helpers.wait_for_true(@timeout, fn ->
+      assert 0 == queue_count("railway:test:events")
+    end)
+
+    # Make sure the message was persisted
+    count_after = row_count("railway_ipc_consumed_messages")
+    assert 1 == count_after - count_before
+  end
+
+  @tag :e2e
+  test "successfully consumes a message in json protobuf format", context do
+    # Make sure the queue is empty
+    Helpers.wait_for_true(@timeout, fn ->
+      assert 0 == queue_count("railway:test:events")
+    end)
+
+    # Publish a message
+    channel = Connection.publisher_channel(context.pid)
+    proto = Proto.new(uuid: UUID.uuid4())
+    {:ok, encoded, _type} = JsonProtobuf.encode(proto)
+
+    :ok =
+      publish_message(
+        channel,
+        "railway:test",
+        encoded,
+        headers: [message_format: "json_protobuf"]
+      )
 
     # Make sure it arrived in the queue
     Helpers.wait_for_true(@timeout, fn ->

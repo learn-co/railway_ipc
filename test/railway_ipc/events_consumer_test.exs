@@ -73,7 +73,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
 
     RailwayIpc.MessageConsumptionMock
-    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue ->
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, nil ->
       {:ok,
        %MessageConsumption{
          inbound_message: %{
@@ -111,7 +111,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     message = "{\"encoded_message\":\"\",\"type\":\"Events::SomeUnknownThing\"}"
 
     RailwayIpc.MessageConsumptionMock
-    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue ->
+    |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, nil ->
       {:ok,
        %MessageConsumption{
          inbound_message: %{

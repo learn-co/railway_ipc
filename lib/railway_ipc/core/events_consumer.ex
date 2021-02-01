@@ -9,11 +9,11 @@ defmodule RailwayIpc.Core.EventsConsumer do
                          RailwayIpc.MessageConsumption
                        )
 
-  def process(payload, module, exchange, queue, ack_func) do
+  def process(payload, module, exchange, queue, ack_func, message_format \\ nil) do
     Telemetry.track_process_message(
       %{payload: payload, module: module, exchange: exchange, queue: queue},
       fn ->
-        result = @message_consumption.process(payload, module, exchange, queue)
+        result = @message_consumption.process(payload, module, exchange, queue, message_format)
         {result |> post_processing(ack_func), %{result: result}}
       end
     )
