@@ -1,27 +1,53 @@
-# Changelog for v0.x
+# Changelog
+All notable changes to this project will be documented in this file.
 
-## v0.2.2 (2020-03-10)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Enhancements
+## [Unreleased]
+### Added
+### Changed
+### Removed
+### Fixed
 
-  * Messages can be consumed multiple times if the same message comes in on different queues
-    * See README section "Consuming the same message on multiple queues" for upgrade migration instructions
-  * Migrations have been configured so that theres one for each table and they are up to date
+## [0.3.0] - 2021-02-08
+### Added
+* Support for decoding JSON protobufs
+* [dev] End to end smoke tests
+* [dev] New tests helpers (`DataCase`, 'wait_for_true`, etc.)
+* [dev] CircleCI build with checks for Credo, formatting, etc.
 
-### Bug fixes
+### Changed
+* [BREAKING CHANGE] Remove all features that are present only to support Railway UI. These are:
+    - command messages
+    - message re-publishing
+    - direct message publishing
+* [dev] Various internal refactorings to cleanup the codebase
 
-  * Locks consumed messages for processing to avoid unintentional processing duplication
-  * Ignore re-consumption of previously successful message instead of crashing
+## [0.2.7] - ???
+No changes were recorded for this release, nor was it tagged.
 
-## v0.2.1 (2020-01-28)
+## [0.2.2] - 2020-03-10
+### Changed
+* Messages can be consumed multiple times if the same message comes in on different queues
+* See README section "Consuming the same message on multiple queues" for upgrade migration instructions
+* Migrations have been configured so that theres one for each table and they are up to date
 
-### Enhancements
+### Fixed
+* Locks consumed messages for processing to avoid unintentional processing duplication
+* Ignore re-consumption of previously successful message instead of crashing
 
-  * Update install instructions
-  * Allow migrations to be written to custom path
-  * [dev] Code formatted the project
+## [0.2.1] - 2020-01-28
+### Changed
+* Update install instructions
+* Allow migrations to be written to custom path
+* [dev] Code formatted the project
 
-### Bug fixes
+### Fixed
+* Publishing messages with UUIDs in the event that a message UUID is not passed in
+* [dev] Update config so that tests run locally
 
-  * Publishing messages with UUIDs in the event that a message UUID is not passed in
-  * [dev] Update config so that tests run locally
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/learn-co/railway_ipc/releases/tag/v0.3.0
+[0.2.7]:
+[0.2.2]: https://github.com/learn-co/railway_ipc/releases/tag/v0.2.2
+[0.2.1]: https://github.com/learn-co/railway_ipc/releases/tag/v0.2.1
