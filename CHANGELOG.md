@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 * Support for decoding JSON protobufs
 * [dev] End to end smoke tests
-* [dev] New tests helpers (`DataCase`, 'wait_for_true`, etc.)
+* [dev] New test helpers (`DataCase`, `wait_for_true`, etc.)
 * [dev] CircleCI build with checks for Credo, formatting, etc.
 
 ### Changed
