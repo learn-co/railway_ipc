@@ -46,8 +46,8 @@ No changes were recorded for this release, nor was it tagged.
 * Publishing messages with UUIDs in the event that a message UUID is not passed in
 * [dev] Update config so that tests run locally
 
-[Unreleased]: https://github.com/learn-co/railway_ipc/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/learn-co/railway_ipc/releases/tag/v0.3.0
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/learn-co/railway_ipc/releases/tag/0.3.0
 [0.2.7]: https://github.com/learn-co/railway_ipc/compare/bac8e1f8ce1d4a5ad515f274abce7813ce25c7e7..6dddf529e2e41d46ce567a1d572a4bd227049d66
-[0.2.2]: https://github.com/learn-co/railway_ipc/releases/tag/v0.2.2
-[0.2.1]: https://github.com/learn-co/railway_ipc/releases/tag/v0.2.1
+[0.2.2]: https://github.com/learn-co/railway_ipc/releases/tag/0.2.2
+[0.2.1]: https://github.com/learn-co/railway_ipc/releases/tag/0.2.1

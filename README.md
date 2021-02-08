@@ -118,6 +118,6 @@ Steps for releasing a new version:
   - create an empty [Unreleased] section with empty headings
   - update links at the bottom to reflect new version
 * commit the changes with a message like: "Prepping for release 0.3.0"
-* tag the commit with `git tag vx.x.x` where `x.x.x` is the new version number
+* tag the commit with `git tag x.x.x` where `x.x.x` is the new version number
 * push the tag to GitHub `git push --tags`
 * publish to hex using the command `mix hex.publish`
