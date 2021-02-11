@@ -49,7 +49,7 @@ defmodule RailwayIpc.RequestsConsumerTest do
   end
 
   test "acks message when successful" do
-    {:ok, request} =
+    {:ok, request, _type} =
       Requests.RequestAThing.new(correlation_id: "123", reply_to: "8675309") |> Payload.encode()
 
     response = Responses.RequestedThing.new(correlation_id: "123")

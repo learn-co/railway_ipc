@@ -19,7 +19,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
 
   describe "process/5 success with an EventMessage" do
     setup do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
@@ -142,7 +142,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
         {:error, changeset}
       end)
 
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
@@ -159,7 +159,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       exchange: exchange,
       queue: queue
     } do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
@@ -194,7 +194,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue: queue,
       consumed_message: consumed_message
     } do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
@@ -220,7 +220,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue: queue,
       consumed_message: consumed_message
     } do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123")
         |> Payload.encode()
 
@@ -246,7 +246,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue: queue,
       consumed_message: consumed_message
     } do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123", uuid: consumed_message.uuid)
         |> Payload.encode()
 
@@ -269,7 +269,7 @@ defmodule RailwayIpc.MessageConsumptionTest do
       queue: queue,
       consumed_message: consumed_message
     } do
-      {:ok, payload} =
+      {:ok, payload, _type} =
         Events.AThingWasDone.new(correlation_id: "123", uuid: consumed_message.uuid)
         |> Payload.encode()
 

@@ -5,7 +5,7 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
   import Mox
 
   test "acks message if it processes well" do
-    {:ok, payload} =
+    {:ok, payload, _type} =
       Events.AThingWasDone.new()
       |> Payload.encode()
 
@@ -66,7 +66,7 @@ defmodule RailwayIpc.Core.EventsConsumerTest do
   end
 
   test "acks and replies when reply tuple returned" do
-    {:ok, payload} = Events.AThingWasDone.new() |> Payload.encode()
+    {:ok, payload, _type} = Events.AThingWasDone.new() |> Payload.encode()
     {:ok, state} = Agent.start_link(fn -> %{acked: false} end)
 
     exchange = "exchange"

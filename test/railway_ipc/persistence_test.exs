@@ -29,7 +29,9 @@ defmodule RailwayIpc.PersistenceTest do
   @tag capture_log: true
   describe "insert_consumed_message/1" do
     test "inserts the message record" do
-      {:ok, payload} = Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()}) |> Payload.encode()
+      {:ok, payload, _type} =
+        Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()}) |> Payload.encode()
+
       {:ok, core_message} = EventMessage.new(%{payload: payload})
 
       message_consumption = %MessageConsumption{
@@ -48,7 +50,9 @@ defmodule RailwayIpc.PersistenceTest do
     end
 
     test "it inserts a message with a nil exchange" do
-      {:ok, payload} = Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()}) |> Payload.encode()
+      {:ok, payload, _type} =
+        Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()}) |> Payload.encode()
+
       {:ok, core_message} = EventMessage.new(%{payload: payload})
 
       message_consumption = %MessageConsumption{

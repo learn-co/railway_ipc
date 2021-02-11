@@ -4,7 +4,7 @@ defmodule RailwayIpc.Core.RequestsConsumerTest do
   alias RailwayIpc.Core.RequestsConsumer
 
   test "acks and replies when reply tuple returned" do
-    {:ok, request} =
+    {:ok, request, _type} =
       Requests.RequestAThing.new(
         correlation_id: "123123",
         context: %{"request_context" => "req_value"},

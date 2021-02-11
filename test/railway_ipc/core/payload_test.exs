@@ -10,13 +10,14 @@ defmodule RailwayIpc.Core.PayloadTest do
 
   test "encodes payloads properly" do
     event = Events.AThingWasDone.new(uuid: "123123")
-    {:ok, encoded} = Payload.encode(event)
+    {:ok, encoded, type} = Payload.encode(event)
     assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}"
+    assert type == "Events::AThingWasDone"
   end
 
   test "properly decodes message" do
     event = Events.AThingWasDone.new(uuid: "123123")
-    {:ok, encoded} = Payload.encode(event)
+    {:ok, encoded, _type} = Payload.encode(event)
     {:ok, decoded} = Payload.decode(encoded)
 
     assert decoded.__struct__ == Events.AThingWasDone

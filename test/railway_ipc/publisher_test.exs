@@ -77,7 +77,7 @@ defmodule RailwayIpc.PublisherTest do
           user_uuid: "user_uuid"
         })
 
-      {:ok, encoded_message} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message)
 
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
@@ -101,7 +101,7 @@ defmodule RailwayIpc.PublisherTest do
           uuid: message_uuid
         })
 
-      {:ok, encoded_message} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message)
 
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn %{uuid: uuid}, _ ->
@@ -128,7 +128,7 @@ defmodule RailwayIpc.PublisherTest do
           uuid: Ecto.UUID.generate()
         })
 
-      {:ok, encoded_message} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message)
 
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
@@ -153,7 +153,7 @@ defmodule RailwayIpc.PublisherTest do
           uuid: Ecto.UUID.generate()
         })
 
-      {:ok, encoded_message} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message)
 
       RailwayIpc.MessagePublishingMock
       |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->

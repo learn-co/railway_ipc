@@ -21,10 +21,7 @@ defmodule RailwayIpc.Core.Payload do
   end
 
   def encode(protobuf_struct) do
-    case BinaryProtobuf.encode(protobuf_struct) do
-      {:ok, json, _type} -> {:ok, json}
-      {:error, error} -> {:error, error}
-    end
+    BinaryProtobuf.encode(protobuf_struct)
   end
 
   # FIXME: This should really be returned as part of the #encode function

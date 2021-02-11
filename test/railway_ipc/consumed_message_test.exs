@@ -24,7 +24,7 @@ defmodule RailwayIpc.ConsumedMessageTest do
         correlation_id: Ecto.UUID.generate()
       }
 
-      {:ok, payload} =
+      {:ok, payload, _type} =
         message
         |> Payload.encode()
 

@@ -67,7 +67,7 @@ defmodule RailwayIpc.Publisher do
   end
 
   def prepare_message(message) do
-    {:ok, message} =
+    {:ok, message, _type} =
       message
       |> ensure_uuid()
       |> Payload.encode()

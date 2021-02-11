@@ -70,7 +70,7 @@ defmodule RailwayIpc.EventsConsumerTest do
     |> expect(:ack, fn %{pid: _pid}, "tag" -> :ok end)
 
     {:ok, pid} = BatchEventsConsumer.start_link(:ok)
-    {:ok, message} = Events.AThingWasDone.new() |> Payload.encode()
+    {:ok, message, _type} = Events.AThingWasDone.new() |> Payload.encode()
 
     RailwayIpc.MessageConsumptionMock
     |> expect(:process, fn ^message, ^consumer_module, ^exchange, ^queue, nil ->
