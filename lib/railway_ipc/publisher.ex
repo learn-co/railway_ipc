@@ -17,19 +17,6 @@ defmodule RailwayIpc.Publisher do
                       )
   require Logger
 
-  def publish(%RailwayIpc.Persistence.PublishedMessage{
-        encoded_message: encoded_message,
-        exchange: exchange
-      }) do
-    channel = RailwayIpc.Connection.publisher_channel()
-
-    @stream_adapter.publish(
-      channel,
-      exchange,
-      encoded_message
-    )
-  end
-
   def publish(channel, exchange, message) do
     message = message |> ensure_uuid()
 
