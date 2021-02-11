@@ -11,13 +11,7 @@ defmodule RailwayIpc.Core.Payload do
   alias RailwayIpc.Core.MessageFormat.JsonProtobuf
 
   def decode(payload, message_format \\ nil) do
-    case get_formatter(message_format).decode(payload) do
-      # FIXME: We should be consistent and return type for the :ok case
-      # like we do for the :unknown_message_type case
-      {:ok, proto, _type} -> {:ok, proto}
-      {:unknown_message_type, proto, type} -> {:unknown_message_type, proto, type}
-      {:error, error} -> {:error, error}
-    end
+    get_formatter(message_format).decode(payload)
   end
 
   def encode(protobuf_struct) do

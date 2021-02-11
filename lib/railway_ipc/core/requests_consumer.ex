@@ -9,7 +9,7 @@ defmodule RailwayIpc.Core.RequestsConsumer do
       %{payload: payload, module: module},
       fn ->
         case Payload.decode(payload) do
-          {:ok, message} ->
+          {:ok, message, _type} ->
             result =
               message
               |> module.handle_in

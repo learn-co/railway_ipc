@@ -11,8 +11,8 @@ defmodule RailwayIpc.Core.EventMessage do
 
   def decode(%{encoded_message: encoded_message} = event_message, message_format) do
     case Payload.decode(encoded_message, message_format) do
-      {:ok, decoded_message} ->
-        message = update(event_message, %{decoded_message: decoded_message})
+      {:ok, decoded_message, type} ->
+        message = update(event_message, %{decoded_message: decoded_message, type: type})
         {:ok, message}
 
       {:unknown_message_type, decoded_message, type} ->
