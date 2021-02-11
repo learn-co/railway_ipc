@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 ### Changed
+* Reduce Payload module coupling. Have the `Payload#encode` and `Payload#decode` functions return the type as part of their tuple.
+* Moved `Repo` to `test/support`. It's only used by tests; having it in `lib`
+  is confusing.
+
 ### Removed
 ### Fixed
 

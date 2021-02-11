@@ -18,23 +18,6 @@ defmodule RailwayIpc.Core.Payload do
     BinaryProtobuf.encode(protobuf_struct)
   end
 
-  # FIXME: This should really be returned as part of the #encode function
-  # result for two reasons:
-  #
-  # 1) It duplicates the type encoding logic
-  # 2) It tightly couples this Payload module to modules that otherwise
-  #    wouldn't need it
-  def encode_type(protobuf_struct) do
-    module = protobuf_struct.__struct__
-
-    module_name =
-      module
-      |> to_string
-
-    Regex.replace(~r/\AElixir\./, module_name, "")
-    |> String.replace(".", "::")
-  end
-
   defp get_formatter(message_format) do
     case message_format do
       "binary_protobuf" -> BinaryProtobuf

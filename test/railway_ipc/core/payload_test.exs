@@ -2,12 +2,6 @@ defmodule RailwayIpc.Core.PayloadTest do
   use ExUnit.Case
   alias RailwayIpc.Core.Payload
 
-  test "properly encodes type" do
-    event = Events.AThingWasDone.new(uuid: "123123")
-    encoded_type = Payload.encode_type(event)
-    assert encoded_type == "Events::AThingWasDone"
-  end
-
   test "encodes payloads properly" do
     event = Events.AThingWasDone.new(uuid: "123123")
     {:ok, encoded, type} = Payload.encode(event)
