@@ -30,13 +30,13 @@ defmodule RailwayIpc.Core.MessageFormat.BinaryProtobufTest do
 
   describe "#decode" do
     test "decode a message to a protobuf" do
-      msg = Events.AThingWasDone.new(uuid: "abc123")
+      msg = Events.AThingWasDone.new(uuid: "abc123", context: %{"some" => "value"})
       {:ok, encoded, _type} = BinaryProtobuf.encode(msg)
 
       expected = {
         :ok,
         %Events.AThingWasDone{
-          context: %{},
+          context: %{"some" => "value"},
           correlation_id: "",
           user_uuid: "",
           uuid: "abc123"

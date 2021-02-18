@@ -103,10 +103,27 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
   defp hydrate_protobuf_from_map({status, payload}) do
     %{module: module, encoded_message: message, type: type} = payload
     decoded_message = message |> module.new()
-    {status, decoded_message, type}
+    stringified_context = stringify_keys(decoded_message.context)
+    {status, Map.put(decoded_message, :context, stringified_context), type}
   rescue
     Protocol.UndefinedError ->
       {:error, "Cannot decode protobuf"}
+  end
+
+  defp stringify_keys(nil), do: nil
+
+  defp stringify_keys(%{} = map) do
+    map
+    |> Enum.map(fn {k, v} -> {Atom.to_string(k), stringify_keys(v)} end)
+    |> Enum.into(%{})
+  end
+
+  defp stringify_keys([head | rest]) do
+    [stringify_keys(head) | stringify_keys(rest)]
+  end
+
+  defp stringify_keys(not_a_map) do
+    not_a_map
   end
 
   defp check_that_module_is_defined({:ok, payload}) do
