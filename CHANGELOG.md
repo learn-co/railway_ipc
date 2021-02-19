@@ -6,12 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 ### Changed
-* Reduce Payload module coupling. Have the `Payload#encode` and `Payload#decode` functions return the type as part of their tuple.
-* Moved `Repo` to `test/support`. It's only used by tests; having it in `lib`
-  is confusing.
-
 ### Removed
 ### Fixed
+
+## [0.3.1] - 2021-02-19
+### Changed
+* Reduce Payload module coupling. Have the `Payload#encode` and `Payload#decode` functions return the type as part of their tuple.
+* Moved `Repo` to `test/support`. It's only used by tests; having it in `lib` is confusing.
+
+### Fixed
+* Ensure protobuf message context maps have string keys when decoding JSON protobufs.
 
 ## [0.3.0] - 2021-02-08
 ### Added
@@ -50,8 +54,9 @@ No changes were recorded for this release, nor was it tagged.
 * Publishing messages with UUIDs in the event that a message UUID is not passed in
 * [dev] Update config so that tests run locally
 
-[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.0...HEAD
-[0.3.0]: https://github.com/learn-co/railway_ipc/releases/tag/0.3.0
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.1...HEAD
+[0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.0...0.3.1
+[0.3.0]: https://github.com/learn-co/railway_ipc/compare/6dddf529e2e41d46ce567a1d572a4bd227049d66...0.3.0
 [0.2.7]: https://github.com/learn-co/railway_ipc/compare/bac8e1f8ce1d4a5ad515f274abce7813ce25c7e7..6dddf529e2e41d46ce567a1d572a4bd227049d66
-[0.2.2]: https://github.com/learn-co/railway_ipc/releases/tag/0.2.2
+[0.2.2]: https://github.com/learn-co/railway_ipc/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/learn-co/railway_ipc/releases/tag/0.2.1
