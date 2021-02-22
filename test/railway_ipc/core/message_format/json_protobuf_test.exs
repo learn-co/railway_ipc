@@ -1,11 +1,13 @@
 defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
   use ExUnit.Case, async: true
 
+  alias LearnIpc.Events.Compliance.DocumentAssignedToStudent
+  alias LearnIpc.Events.Compliance.DocumentAssignedToStudent.Data
   alias RailwayIpc.Core.MessageFormat.JsonProtobuf
   alias RailwayIpc.DefaultMessage
 
   describe "#encode" do
-    test "encode a protobuf" do
+    test "encode a protobuf without data" do
       msg = Events.AThingWasDone.new(uuid: "abc123")
 
       expected = {
@@ -14,6 +16,27 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
           ~S("data":null,"user_uuid":"","uuid":"abc123"},) <>
           ~S("type":"Events::AThingWasDone"}),
         "Events::AThingWasDone"
+      }
+
+      assert expected == JsonProtobuf.encode(msg)
+    end
+
+    test "encode a protobuf with data" do
+      msg =
+        DocumentAssignedToStudent.new(
+          uuid: "abc123",
+          context: %{"some" => "value"},
+          data: Data.new(student_uuid: "def456")
+        )
+
+      expected = {
+        :ok,
+        ~S({"encoded_message":{"context":{"some":"value"},) <>
+          ~S("correlation_id":"","data":{"document_uuid":"",) <>
+          ~S("docusign_reference_id":"","kind":"","student_uuid":"def456"},) <>
+          ~S("occurred_at":"","user_uuid":"","uuid":"abc123"},) <>
+          ~S("type":"LearnIpc::Events::Compliance::DocumentAssignedToStudent"}),
+        "LearnIpc::Events::Compliance::DocumentAssignedToStudent"
       }
 
       assert expected == JsonProtobuf.encode(msg)
@@ -31,7 +54,7 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
   end
 
   describe "#decode" do
-    test "decode a message to a protobuf" do
+    test "decode a message without data to a protobuf" do
       msg = Events.AThingWasDone.new(uuid: "abc123", context: %{"some" => "value"})
       {:ok, encoded, _type} = JsonProtobuf.encode(msg)
 
@@ -44,6 +67,37 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
           uuid: "abc123"
         },
         "Events::AThingWasDone"
+      }
+
+      assert expected == JsonProtobuf.decode(encoded)
+    end
+
+    test "decode a message with data to a protobuf" do
+      msg =
+        DocumentAssignedToStudent.new(
+          uuid: "abc123",
+          context: %{"some" => "value"},
+          data: Data.new(student_uuid: "def456")
+        )
+
+      {:ok, encoded, _type} = JsonProtobuf.encode(msg)
+
+      expected = {
+        :ok,
+        %LearnIpc.Events.Compliance.DocumentAssignedToStudent{
+          context: %{"some" => "value"},
+          correlation_id: "",
+          user_uuid: "",
+          occurred_at: "",
+          uuid: "abc123",
+          data: %LearnIpc.Events.Compliance.DocumentAssignedToStudent.Data{
+            document_uuid: "",
+            docusign_reference_id: "",
+            kind: "",
+            student_uuid: "def456"
+          }
+        },
+        "LearnIpc::Events::Compliance::DocumentAssignedToStudent"
       }
 
       assert expected == JsonProtobuf.decode(encoded)

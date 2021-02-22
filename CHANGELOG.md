@@ -9,6 +9,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Removed
 ### Fixed
 
+## [0.3.2] - 2021-02-22
+### Fixed
+* Fixed issue where protobuf `data` fields were not properly decoded when using JSON protobufs. This is a short term fix until the protobuf library we're using cuts a release with the JSON support we need.
+
 ## [0.3.1] - 2021-02-19
 ### Changed
 * Reduce Payload module coupling. Have the `Payload#encode` and `Payload#decode` functions return the type as part of their tuple.
@@ -54,7 +58,8 @@ No changes were recorded for this release, nor was it tagged.
 * Publishing messages with UUIDs in the event that a message UUID is not passed in
 * [dev] Update config so that tests run locally
 
-[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.2...HEAD
+[0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/learn-co/railway_ipc/compare/6dddf529e2e41d46ce567a1d572a4bd227049d66...0.3.0
 [0.2.7]: https://github.com/learn-co/railway_ipc/compare/bac8e1f8ce1d4a5ad515f274abce7813ce25c7e7..6dddf529e2e41d46ce567a1d572a4bd227049d66

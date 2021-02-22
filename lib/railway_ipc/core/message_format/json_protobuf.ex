@@ -72,11 +72,15 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
   end
 
   defp encode_message({:ok, payload, protobuf}) do
-    encoded_message = protobuf |> Map.from_struct()
+    proto_map = ensure_map(protobuf)
+    encoded_message = Map.put(proto_map, :data, ensure_map(protobuf.data))
     {:ok, Map.put(payload, :encoded_message, encoded_message), protobuf}
   end
 
   defp encode_message({:error, _} = error), do: error
+
+  defp ensure_map(%{__struct__: _} = struct), do: Map.from_struct(struct)
+  defp ensure_map(data), do: data
 
   defp encode_payload_as_json({:ok, payload, _}) do
     case Jason.encode(payload) do
@@ -100,15 +104,25 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
 
   defp hydrate_protobuf_from_map({:error, _} = error), do: error
 
-  defp hydrate_protobuf_from_map({status, payload}) do
-    %{module: module, encoded_message: message, type: type} = payload
-    decoded_message = message |> module.new()
+  defp hydrate_protobuf_from_map({status, %{encoded_message: message} = payload})
+       when is_map(message) do
+    %{module: module, data_module: data_module, type: type} = payload
+
+    decoded_message =
+      if Map.has_key?(message, :data) and message.data do
+        Map.put(message, :data, data_module.new(message.data)) |> module.new()
+      else
+        message |> module.new()
+      end
+
     stringified_context = stringify_keys(decoded_message.context)
     {status, Map.put(decoded_message, :context, stringified_context), type}
   rescue
     Protocol.UndefinedError ->
       {:error, "Cannot decode protobuf"}
   end
+
+  defp hydrate_protobuf_from_map(_), do: {:error, "Cannot decode protobuf"}
 
   defp stringify_keys(nil), do: nil
 
@@ -138,7 +152,9 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
   defp check_that_module_is_defined({:error, _} = error), do: error
 
   defp parse_type({:ok, %{type: type} = payload}) when is_binary(type) do
-    {:ok, Map.put(payload, :module, type_to_module(type))}
+    module = type_to_module(type)
+    data_module = type_to_module("#{type}::Data")
+    {:ok, Map.merge(payload, %{module: module, data_module: data_module})}
   end
 
   defp parse_type({:ok, %{type: type}}) when not is_binary(type) do
