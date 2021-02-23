@@ -44,9 +44,6 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
       assert expected == JsonProtobuf.encode(msg)
     end
 
-    test "encode a protobuf with data that is another protobuf" do
-    end
-
     test "only valid protobufs can be encoded" do
       {:error, error} = JsonProtobuf.encode("foo")
       assert "Argument Error: Valid Protobuf required" == error
@@ -108,7 +105,7 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
       assert expected == JsonProtobuf.decode(encoded)
     end
 
-    test "decode a message with student entity" do
+    test "decode a message with an entity to a protobuf" do
       msg =
         Registered.new(
           uuid: "abc123",
