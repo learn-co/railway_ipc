@@ -1,8 +1,10 @@
 defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
   use ExUnit.Case, async: true
 
+  alias LearnIpc.Entities.Student
   alias LearnIpc.Events.Compliance.DocumentAssignedToStudent
   alias LearnIpc.Events.Compliance.DocumentAssignedToStudent.Data
+  alias LearnIpc.Events.Student.Registered
   alias RailwayIpc.Core.MessageFormat.JsonProtobuf
   alias RailwayIpc.DefaultMessage
 
@@ -40,6 +42,9 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
       }
 
       assert expected == JsonProtobuf.encode(msg)
+    end
+
+    test "encode a protobuf with data that is another protobuf" do
     end
 
     test "only valid protobufs can be encoded" do
@@ -98,6 +103,39 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
           }
         },
         "LearnIpc::Events::Compliance::DocumentAssignedToStudent"
+      }
+
+      assert expected == JsonProtobuf.decode(encoded)
+    end
+
+    test "decode a message with student entity" do
+      msg =
+        Registered.new(
+          uuid: "abc123",
+          context: %{"some" => "value"},
+          data: Student.new(learn_uuid: "def456")
+        )
+
+      {:ok, encoded, _type} = JsonProtobuf.encode(msg)
+
+      expected = {
+        :ok,
+        %LearnIpc.Events.Student.Registered{
+          context: %{"some" => "value"},
+          correlation_id: "",
+          user_uuid: "",
+          uuid: "abc123",
+          data: %LearnIpc.Entities.Student{
+            email: "",
+            external_id: "",
+            first_name: "",
+            last_name: "",
+            learn_uuid: "def456",
+            phone_number: "",
+            username: ""
+          }
+        },
+        "LearnIpc::Events::Student::Registered"
       }
 
       assert expected == JsonProtobuf.decode(encoded)

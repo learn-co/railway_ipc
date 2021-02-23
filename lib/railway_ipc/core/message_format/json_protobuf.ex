@@ -153,7 +153,17 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
 
   defp parse_type({:ok, %{type: type} = payload}) when is_binary(type) do
     module = type_to_module(type)
-    data_module = type_to_module("#{type}::Data")
+
+    data_module =
+      if Enum.member?(
+           ["LearnIpc::Events::Student::Registered", "LearnIpc::Events::Student::UpdatedProfile"],
+           type
+         ) do
+        type_to_module("LearnIpc.Entities.Student")
+      else
+        type_to_module("#{type}::Data")
+      end
+
     {:ok, Map.merge(payload, %{module: module, data_module: data_module})}
   end
 
