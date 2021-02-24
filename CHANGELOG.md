@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased]
 ### Added
 ### Changed
+* Use own our copy of protobuf library. The master branch of the protobuf library we use has the code for handling JSON protobufs properly. However, there has not been an official release. We've opted to fork the official repo, tag it, and point Railway to use our tagged version. Once the protobuf library publishes an official release, we'll switch back to using it.
+
 ### Removed
 ### Fixed
 
