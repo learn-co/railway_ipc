@@ -31,11 +31,12 @@ defmodule RailwayIpc.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:ex_machina, "~> 2.3", only: [:test, :e2e]},
       {:google_protos, "~> 0.1"},
-      {:jason, "~> 1.1"},
+      {:jason, "~> 1.2"},
       {:mix_test_watch, "~> 0.8", only: :dev, runtime: false},
       {:mox, "~> 0.5", only: [:test, :e2e]},
       {:postgrex, ">= 0.0.0"},
-      {:protobuf, "~> 0.5.3"},
+      {:protobuf,
+       git: "https://github.com/flatiron-labs/protobuf.git", tag: "2020.11.16", override: true},
       {:telemetry, "~> 0.4"}
     ]
   end

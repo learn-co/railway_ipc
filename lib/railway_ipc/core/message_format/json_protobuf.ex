@@ -22,6 +22,7 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
 
   """
 
+  alias Protobuf.JSON.Decode, as: ProtoDecode
   alias RailwayIpc.DefaultMessage
 
   @doc """
@@ -104,40 +105,13 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
 
   defp hydrate_protobuf_from_map({:error, _} = error), do: error
 
-  defp hydrate_protobuf_from_map({status, %{encoded_message: message} = payload})
-       when is_map(message) do
-    %{module: module, data_module: data_module, type: type} = payload
-
-    decoded_message =
-      if Map.has_key?(message, :data) and message.data do
-        Map.put(message, :data, data_module.new(message.data)) |> module.new()
-      else
-        message |> module.new()
-      end
-
-    stringified_context = stringify_keys(decoded_message.context)
-    {status, Map.put(decoded_message, :context, stringified_context), type}
-  rescue
-    Protocol.UndefinedError ->
+  defp hydrate_protobuf_from_map({status, payload}) do
+    %{encoded_message: message, module: module, type: type} = payload
+    decoded_message = ProtoDecode.from_json_data(message, module)
+    {status, decoded_message, type}
+  catch
+    _error ->
       {:error, "Cannot decode protobuf"}
-  end
-
-  defp hydrate_protobuf_from_map(_), do: {:error, "Cannot decode protobuf"}
-
-  defp stringify_keys(nil), do: nil
-
-  defp stringify_keys(%{} = map) do
-    map
-    |> Enum.map(fn {k, v} -> {Atom.to_string(k), stringify_keys(v)} end)
-    |> Enum.into(%{})
-  end
-
-  defp stringify_keys([head | rest]) do
-    [stringify_keys(head) | stringify_keys(rest)]
-  end
-
-  defp stringify_keys(not_a_map) do
-    not_a_map
   end
 
   defp check_that_module_is_defined({:ok, payload}) do
@@ -152,30 +126,22 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
   defp check_that_module_is_defined({:error, _} = error), do: error
 
   defp parse_type({:ok, %{type: type} = payload}) when is_binary(type) do
-    module = type_to_module(type)
+    {:ok, Map.merge(payload, %{module: type_to_module(type)})}
+  end
 
-    data_module =
-      if Enum.member?(
-           ["LearnIpc::Events::Student::Registered", "LearnIpc::Events::Student::UpdatedProfile"],
-           type
-         ) do
-        type_to_module("LearnIpc.Entities.Student")
-      else
-        type_to_module("#{type}::Data")
-      end
-
-    {:ok, Map.merge(payload, %{module: module, data_module: data_module})}
+  defp parse_type({:ok, %{type: type}}) when is_nil(type) do
+    {:error, "Message is missing the `type` attribute"}
   end
 
   defp parse_type({:ok, %{type: type}}) when not is_binary(type) do
     {:error, "Message `type` attribute must be a string"}
   end
 
-  defp parse_type({:ok, _}), do: {:error, "Message is missing the `type` attribute"}
   defp parse_type({:error, _} = error), do: error
 
   defp decode_json(json) do
-    {:ok, Jason.decode!(json, keys: :atoms)}
+    decoded = Jason.decode!(json)
+    {:ok, %{type: decoded["type"], encoded_message: decoded["encoded_message"]}}
   rescue
     Jason.DecodeError -> {:error, "Message is invalid JSON (#{json})"}
   end
