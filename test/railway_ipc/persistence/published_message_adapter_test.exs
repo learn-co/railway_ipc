@@ -10,7 +10,9 @@ defmodule RailwayIpc.Persistence.PublishedMessageAdapterTest do
       correlation_id = Ecto.UUID.generate()
       exchange = "events:a_thing"
       message = Events.AThingWasDone.new(%{user_uuid: user_uuid, correlation_id: correlation_id})
-      message_publishing = MessagePublishing.new(message, %RoutingInfo{exchange: exchange})
+
+      message_publishing =
+        MessagePublishing.new(message, %RoutingInfo{exchange: exchange}, "json_protobuf")
 
       {:ok,
        %{

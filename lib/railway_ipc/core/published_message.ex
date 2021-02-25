@@ -3,8 +3,8 @@ defmodule RailwayIpc.Core.PublishedMessage do
   defstruct ~w[encoded_message decoded_message type]a
   alias alias RailwayIpc.Core.Payload
 
-  def new(protobuf) do
-    {:ok, encoded_message, type} = protobuf |> Payload.encode()
+  def new(protobuf, format) do
+    {:ok, encoded_message, type} = Payload.encode(protobuf, format)
 
     %__MODULE__{
       decoded_message: protobuf,

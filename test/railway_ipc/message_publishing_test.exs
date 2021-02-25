@@ -9,7 +9,7 @@ defmodule RailwayIpc.MessagePublishingTest do
   alias RailwayIpc.Persistence.PublishedMessage
   setup :verify_on_exit!
 
-  describe "process/2" do
+  describe "process" do
     test "it returns an error tuple when persistence fails" do
       message = Events.AThingWasDone.new(%{user_uuid: Ecto.UUID.generate()})
       exchange = "exchange"
@@ -29,7 +29,11 @@ defmodule RailwayIpc.MessagePublishingTest do
       end)
 
       {:error, %{error: ^changeset}} =
-        MessagePublishing.process(message, %RoutingInfo{exchange: exchange})
+        MessagePublishing.process(
+          message,
+          %RoutingInfo{exchange: exchange},
+          "json_protobuf"
+        )
     end
 
     test "it returns an ok tuple when persistence succeeds" do
@@ -47,7 +51,11 @@ defmodule RailwayIpc.MessagePublishingTest do
       end)
 
       {:ok, %{persisted_message: ^published_message_record}} =
-        MessagePublishing.process(message, %RoutingInfo{exchange: exchange})
+        MessagePublishing.process(
+          message,
+          %RoutingInfo{exchange: exchange},
+          "json_protobuf"
+        )
     end
   end
 end

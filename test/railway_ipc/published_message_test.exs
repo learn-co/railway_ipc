@@ -30,7 +30,7 @@ defmodule RailwayIpc.PublishedMessageTest do
         correlation_id: existing_message.correlation_id
       }
 
-      message_publishing = MessagePublishing.new(protobuf_message, routing_info)
+      message_publishing = MessagePublishing.new(protobuf_message, routing_info, "json_protobuf")
       {:ok, persisted_message} = RailwayIpc.PublishedMessage.create(message_publishing)
 
       assert persisted_message.uuid == existing_message.uuid
@@ -44,7 +44,7 @@ defmodule RailwayIpc.PublishedMessageTest do
         correlation_id: Ecto.UUID.generate()
       }
 
-      message_publishing = MessagePublishing.new(protobuf_message, routing_info)
+      message_publishing = MessagePublishing.new(protobuf_message, routing_info, "json_protobuf")
 
       {:ok, persisted_message} = RailwayIpc.PublishedMessage.create(message_publishing)
 

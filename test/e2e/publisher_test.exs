@@ -56,7 +56,7 @@ defmodule E2E.PublisherTest do
     # do that, haven't decided
     channel = Connection.publisher_channel(context.pid)
     proto = Proto.new(uuid: UUID.uuid4())
-    :ok = RailwayIpc.Publisher.publish(channel, "railway:test", proto)
+    :ok = RailwayIpc.Publisher.publish(channel, "railway:test", proto, "json_protobuf")
 
     # Make sure it arrived in the queue
     Helpers.wait_for_true(@timeout, fn ->

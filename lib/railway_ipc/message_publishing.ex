@@ -12,13 +12,13 @@ defmodule RailwayIpc.MessagePublishing do
     :error
   ]
 
-  def new(protobuf, %RoutingInfo{exchange: exchange, queue: queue}) do
-    outbound_message = PublishedMessage.new(protobuf)
+  def new(protobuf, %RoutingInfo{exchange: exchange, queue: queue}, format) do
+    outbound_message = PublishedMessage.new(protobuf, format)
     %__MODULE__{outbound_message: outbound_message, exchange: exchange, queue: queue}
   end
 
-  def process(protobuf, routing_info) do
-    new(protobuf, routing_info)
+  def process(protobuf, routing_info, format) do
+    new(protobuf, routing_info, format)
     |> persist_message()
   end
 

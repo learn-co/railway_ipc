@@ -109,12 +109,17 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     )
   end
 
-  def publish(channel, exchange, payload) do
+  def publish(channel, exchange, payload, format) do
     Telemetry.track_rabbit_publish(
       %{channel: channel, exchange: exchange, payload: payload},
       fn ->
         maybe_create_exchange(channel, exchange)
-        result = Basic.publish(channel, exchange, "", payload)
+
+        result =
+          Basic.publish(channel, exchange, "", payload,
+            headers: [{:message_format, :longstr, format}]
+          )
+
         {result, %{}}
       end
     )

@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Added
+* Support for publishing messages in JSON protobuf format. The `#publish` macro now takes an optional second argument which indicates the message format to use. The value can be either `"json_protobuf"` or `"binary_protobuf"`. If the argument is omitted, `"binary_protobuf"` is used.
+
 ### Changed
 * Use own our copy of protobuf library. The master branch of the protobuf library we use has the code for handling JSON protobufs properly. However, there has not been an official release. We've opted to fork the official repo, tag it, and point Railway to use our tagged version. Once the protobuf library publishes an official release, we'll switch back to using it.
 

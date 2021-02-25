@@ -43,8 +43,8 @@ defmodule RailwayIpc.PublisherTest do
     StreamMock
     |> stub(
       :publish,
-      fn _channel, _exchange, message ->
-        {:ok, _decoded, _type} = Payload.decode(message)
+      fn _channel, _exchange, message, format ->
+        {:ok, _decoded, _type} = Payload.decode(message, format)
       end
     )
 
@@ -70,17 +70,17 @@ defmodule RailwayIpc.PublisherTest do
     end
   end
 
-  describe "publish/3" do
+  describe "publish" do
     test "it adds a uuid to the message" do
       message =
         Events.AThingWasDone.new(%{
           user_uuid: "user_uuid"
         })
 
-      {:ok, encoded_message, _type} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
 
       RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn %{uuid: uuid}, _ ->
+      |> expect(:process, fn %{uuid: uuid}, _, _ ->
         assert uuid != ""
 
         {:ok,
@@ -89,7 +89,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      RailwayIpc.Publisher.publish("channel", "events:a_thing", message)
+      RailwayIpc.Publisher.publish("channel", "events:a_thing", message, "json_protobuf")
     end
 
     test "it does not overwrite existing UUID" do
@@ -101,10 +101,10 @@ defmodule RailwayIpc.PublisherTest do
           uuid: message_uuid
         })
 
-      {:ok, encoded_message, _type} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
 
       RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn %{uuid: uuid}, _ ->
+      |> expect(:process, fn %{uuid: uuid}, _, _ ->
         assert uuid == message_uuid
 
         {:ok,
@@ -113,7 +113,7 @@ defmodule RailwayIpc.PublisherTest do
          }}
       end)
 
-      RailwayIpc.Publisher.publish("channel", "events:a_thing", message)
+      RailwayIpc.Publisher.publish("channel", "events:a_thing", message, "json_protobuf")
     end
 
     test "persists the message with a status of 'sent'" do
@@ -128,17 +128,17 @@ defmodule RailwayIpc.PublisherTest do
           uuid: Ecto.UUID.generate()
         })
 
-      {:ok, encoded_message, _type} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
 
       RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
          }}
       end)
 
-      RailwayIpc.Publisher.publish("channel", exchange, message)
+      RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
     end
 
     test "it returns :ok on publish sucess" do
@@ -153,17 +153,17 @@ defmodule RailwayIpc.PublisherTest do
           uuid: Ecto.UUID.generate()
         })
 
-      {:ok, encoded_message, _type} = Payload.encode(message)
+      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
 
       RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
         {:ok,
          %MessagePublishing{
            persisted_message: build(:published_message, %{encoded_message: encoded_message})
          }}
       end)
 
-      :ok = RailwayIpc.Publisher.publish("channel", exchange, message)
+      :ok = RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
     end
 
     test "it returns the error tuple on failure" do
@@ -179,7 +179,7 @@ defmodule RailwayIpc.PublisherTest do
         })
 
       RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil} ->
+      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
         {:error,
          %MessagePublishing{
            error: "Failure to process message"
@@ -187,7 +187,7 @@ defmodule RailwayIpc.PublisherTest do
       end)
 
       {:error, "Failure to process message"} =
-        RailwayIpc.Publisher.publish("channel", exchange, message)
+        RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
     end
   end
 end

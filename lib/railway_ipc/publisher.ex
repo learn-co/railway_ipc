@@ -17,15 +17,16 @@ defmodule RailwayIpc.Publisher do
                       )
   require Logger
 
-  def publish(channel, exchange, message) do
+  def publish(channel, exchange, message, format) do
     message = message |> ensure_uuid()
 
-    case @message_publishing.process(message, %RoutingInfo{exchange: exchange}) do
+    case @message_publishing.process(message, %RoutingInfo{exchange: exchange}, format) do
       {:ok, %{persisted_message: persisted_message}} ->
         @stream_adapter.publish(
           channel,
           exchange,
-          persisted_message.encoded_message
+          persisted_message.encoded_message,
+          format
         )
 
         :ok
@@ -39,7 +40,7 @@ defmodule RailwayIpc.Publisher do
   def direct_publish(channel, queue, message) do
     message = message |> ensure_uuid()
 
-    case @message_publishing.process(message, %RoutingInfo{queue: queue}) do
+    case @message_publishing.process(message, %RoutingInfo{queue: queue}, "binary_protobuf") do
       {:ok, %{persisted_message: persisted_message}} ->
         @stream_adapter.direct_publish(
           channel,
@@ -91,14 +92,14 @@ defmodule RailwayIpc.Publisher do
 
       alias RailwayIpc.Core.Payload
 
-      def publish(message) do
+      def publish(message, format \\ "binary_protobuf") do
         channel = RailwayIpc.Connection.publisher_channel()
         exchange = unquote(Keyword.get(opts, :exchange))
 
         Telemetry.track_publisher_publish(
           %{publisher: __MODULE__, message: message, exchange: exchange, channel: channel},
           fn ->
-            result = RailwayIpc.Publisher.publish(channel, exchange, message)
+            result = RailwayIpc.Publisher.publish(channel, exchange, message, format)
             {result, %{}}
           end
         )

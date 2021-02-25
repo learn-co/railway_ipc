@@ -18,7 +18,7 @@ defmodule RailwayIpc.RabbitMQAdapterTest do
     {:ok, connection} = Rabbit.connect()
     {:ok, channel} = Rabbit.get_channel(connection)
     :ok = AMQP.Exchange.delete(channel, exchange_name)
-    :ok = Rabbit.publish(channel, exchange_name, %{})
+    :ok = Rabbit.publish(channel, exchange_name, %{}, "json_protobuf")
     assert has_exchange?(exchange_name)
   end
 
