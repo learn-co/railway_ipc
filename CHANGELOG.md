@@ -5,13 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 ### Added
+### Changed
+### Removed
+### Fixed
+
+## [0.4.0] - 2021-02-25
+### Added
 * Support for publishing messages in JSON protobuf format. The `#publish` macro now takes an optional second argument which indicates the message format to use. The value can be either `"json_protobuf"` or `"binary_protobuf"`. If the argument is omitted, `"binary_protobuf"` is used.
 
 ### Changed
 * Use own our copy of protobuf library. The master branch of the protobuf library we use has the code for handling JSON protobufs properly. However, there has not been an official release. We've opted to fork the official repo, tag it, and point Railway to use our tagged version. Once the protobuf library publishes an official release, we'll switch back to using it.
-
-### Removed
-### Fixed
 
 ## [0.3.2] - 2021-02-22
 ### Fixed
@@ -62,8 +65,9 @@ No changes were recorded for this release, nor was it tagged.
 * Publishing messages with UUIDs in the event that a message UUID is not passed in
 * [dev] Update config so that tests run locally
 
-[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.3.2...HEAD
-[0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.1...0.3.2
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/learn-co/railway_ipc/compare/0.3.2...0.4.0
+[0.3.2]: https://github.com/learn-co/railway_ipc/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/learn-co/railway_ipc/compare/6dddf529e2e41d46ce567a1d572a4bd227049d66...0.3.0
 [0.2.7]: https://github.com/learn-co/railway_ipc/compare/bac8e1f8ce1d4a5ad515f274abce7813ce25c7e7..6dddf529e2e41d46ce567a1d572a4bd227049d66
