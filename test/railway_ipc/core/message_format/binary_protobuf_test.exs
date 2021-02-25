@@ -47,6 +47,24 @@ defmodule RailwayIpc.Core.MessageFormat.BinaryProtobufTest do
       assert expected == BinaryProtobuf.decode(encoded)
     end
 
+    test "properly decodes message with whitespace" do
+      msg = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}\n"
+
+      expected = {
+        :ok,
+        %Events.AThingWasDone{
+          context: %{},
+          correlation_id: "",
+          data: nil,
+          user_uuid: "",
+          uuid: "123123"
+        },
+        "Events::AThingWasDone"
+      }
+
+      assert expected == BinaryProtobuf.decode(msg)
+    end
+
     test "message must be a string" do
       {:error, error} = BinaryProtobuf.decode(:foo)
       assert "Malformed JSON given. Must be a string. (:foo)" == error

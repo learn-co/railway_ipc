@@ -14,8 +14,8 @@ defmodule RailwayIpc.Core.Payload do
     get_formatter(message_format).decode(payload)
   end
 
-  def encode(protobuf_struct) do
-    BinaryProtobuf.encode(protobuf_struct)
+  def encode(protobuf_struct, message_format \\ nil) do
+    get_formatter(message_format).encode(protobuf_struct)
   end
 
   defp get_formatter(message_format) do

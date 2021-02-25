@@ -1,56 +1,98 @@
 defmodule RailwayIpc.Core.PayloadTest do
   use ExUnit.Case
+
+  alias RailwayIpc.Core.MessageFormat.BinaryProtobuf
+  alias RailwayIpc.Core.MessageFormat.JsonProtobuf
   alias RailwayIpc.Core.Payload
 
-  test "encodes payloads properly" do
-    event = Events.AThingWasDone.new(uuid: "123123")
-    {:ok, encoded, type} = Payload.encode(event)
-    assert encoded == "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}"
-    assert type == "Events::AThingWasDone"
+  setup do
+    %{proto: Events.AThingWasDone.new(uuid: "123123")}
   end
 
-  test "properly decodes message" do
-    event = Events.AThingWasDone.new(uuid: "123123")
-    {:ok, encoded, _type} = Payload.encode(event)
-    {:ok, decoded, type} = Payload.decode(encoded)
+  describe "#encode" do
+    test "can encode a binary protobuf", %{proto: proto} do
+      expected = {
+        :ok,
+        "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}",
+        "Events::AThingWasDone"
+      }
 
-    assert type == "Events::AThingWasDone"
-    assert decoded.__struct__ == Events.AThingWasDone
-    assert decoded.uuid == "123123"
+      assert expected == Payload.encode(proto, "binary_protobuf")
+    end
+
+    test "can encode a JSON protobuf", %{proto: proto} do
+      expected = {
+        :ok,
+        ~S({"encoded_message":{"context":{},"correlation_id":"",) <>
+          ~S("data":null,"user_uuid":"","uuid":"123123"},) <>
+          ~S("type":"Events::AThingWasDone"}),
+        "Events::AThingWasDone"
+      }
+
+      assert expected == Payload.encode(proto, "json_protobuf")
+    end
+
+    test "uses the default format if one isn't given", %{proto: proto} do
+      expected = {
+        :ok,
+        "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}",
+        "Events::AThingWasDone"
+      }
+
+      assert expected == Payload.encode(proto)
+    end
   end
 
-  test "properly decodes message with whitespace" do
-    encoded = "{\"encoded_message\":\"GgYxMjMxMjM=\",\"type\":\"Events::AThingWasDone\"}\n"
-    {:ok, decoded, _type} = Payload.decode(encoded)
+  describe "#decode" do
+    test "can decode a binary protobuf", %{proto: proto} do
+      {:ok, msg, type} = BinaryProtobuf.encode(proto)
 
-    assert decoded.__struct__ == Events.AThingWasDone
-  end
+      expected = {
+        :ok,
+        %Events.AThingWasDone{
+          context: %{},
+          correlation_id: "",
+          user_uuid: "",
+          uuid: "123123"
+        },
+        type
+      }
 
-  test "returns an error if given bad JSON" do
-    json =
-      %{bogus_key: "Banana"}
-      |> Jason.encode!()
+      assert expected == Payload.decode(msg, "binary_protobuf")
+    end
 
-    {:error, reason} = Payload.decode(json)
+    test "can decode a JSON protobuf", %{proto: proto} do
+      {:ok, msg, type} = JsonProtobuf.encode(proto)
 
-    assert reason == "Message is missing the `type` attribute"
-  end
+      expected = {
+        :ok,
+        %Events.AThingWasDone{
+          context: %{},
+          correlation_id: "",
+          user_uuid: "",
+          uuid: "123123"
+        },
+        type
+      }
 
-  test "returns an error if given bad data" do
-    {:error, reason} = Payload.decode("not_json")
-    assert reason == "Message is invalid JSON (not_json)"
-  end
+      assert expected == Payload.decode(msg, "json_protobuf")
+    end
 
-  test "returns an error if anything other than a string given" do
-    {:error, reason} = Payload.decode(123_123)
-    assert reason == "Malformed JSON given. Must be a string. (123123)"
-  end
+    test "uses default format if one isn't given", %{proto: proto} do
+      {:ok, msg, type} = BinaryProtobuf.encode(proto)
 
-  test "returns :unknown_message_type tuple if the module is unknown after decoding" do
-    json =
-      %{type: "BogusModule", encoded_message: ""}
-      |> Jason.encode!()
+      expected = {
+        :ok,
+        %Events.AThingWasDone{
+          context: %{},
+          correlation_id: "",
+          user_uuid: "",
+          uuid: "123123"
+        },
+        type
+      }
 
-    {:unknown_message_type, _message, "BogusModule"} = Payload.decode(json)
+      assert expected == Payload.decode(msg)
+    end
   end
 end
