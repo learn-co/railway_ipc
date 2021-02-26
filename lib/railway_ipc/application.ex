@@ -56,10 +56,7 @@ defmodule RailwayIpc.Application do
         [
           [:railway_ipc, :rabbit_publish, :start],
           [:railway_ipc, :rabbit_direct_publish, :start],
-          [:railway_ipc, :publisher_publish, :start],
-          [:railway_ipc, :publisher_direct_publish, :start],
-          [:railway_ipc, :publisher_rpc_publish, :start],
-          [:railway_ipc, :publisher_rpc_response, :stop]
+          [:railway_ipc, :publisher_publish, :start]
         ],
         &PublisherEvents.handle_event/4
       )

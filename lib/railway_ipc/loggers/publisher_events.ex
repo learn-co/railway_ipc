@@ -4,20 +4,6 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
   import RailwayIpc.Utils, only: [protobuf_to_json: 1]
 
   def handle_event(
-        [:railway_ipc, :publisher_direct_publish, :start],
-        _measurement,
-        metadata,
-        _config
-      ) do
-    Logger.info("Directly publishing",
-      channel: inspect(metadata.channel),
-      protobuf: protobuf_to_json(metadata.message),
-      publisher: metadata.publisher,
-      queue: metadata.queue
-    )
-  end
-
-  def handle_event(
         [:railway_ipc, :publisher_publish, :start],
         _measurement,
         metadata,
@@ -50,47 +36,5 @@ defmodule RailwayIpc.Loggers.PublisherEvents do
       queue: metadata.queue,
       payload: metadata.payload
     )
-  end
-
-  def handle_event(
-        [:railway_ipc, :publisher_rpc_publish, :start],
-        _measurement,
-        metadata,
-        _config
-      ) do
-    Logger.info("Publishing RPC Request",
-      protobuf: protobuf_to_json(metadata.message),
-      queue: inspect(metadata.queue),
-      channel: inspect(metadata.channel),
-      timeout: metadata.timeout
-    )
-  end
-
-  def handle_event(
-        [:railway_ipc, :publisher_rpc_response, :stop],
-        _measurement,
-        metadata,
-        _config
-      ) do
-    case metadata do
-      %{error: _error} ->
-        Logger.error("Received RPC Response",
-          protobuf: protobuf_to_json(metadata.message),
-          queue: inspect(metadata.queue),
-          channel: inspect(metadata.channel),
-          timeout: metadata.timeout,
-          error: metadata.error,
-          reason: metadata.reason
-        )
-
-      _ ->
-        Logger.info("Received RPC Response",
-          protobuf: protobuf_to_json(metadata.message),
-          queue: inspect(metadata.queue),
-          channel: inspect(metadata.channel),
-          timeout: metadata.timeout,
-          response_protobuf: protobuf_to_json(metadata.decoded_message)
-        )
-    end
   end
 end

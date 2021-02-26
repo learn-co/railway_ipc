@@ -35,26 +35,6 @@ defmodule RailwayIpc.Publisher do
     end
   end
 
-  def direct_publish(channel, queue, message) do
-    case @message_publishing.process(message, %RoutingInfo{queue: queue}, "binary_protobuf") do
-      {:ok, %{persisted_message: persisted_message}} ->
-        @stream_adapter.direct_publish(
-          channel,
-          queue,
-          persisted_message.encoded_message
-        )
-
-        :ok
-
-      {:error, %{error: error}} ->
-        Logger.error(
-          "Error direct publishing message #{inspect(message)}. Error: #{inspect(error)}"
-        )
-
-        {:error, error}
-    end
-  end
-
   def reply(channel, queue, reply) do
     @stream_adapter.direct_publish(
       channel,
@@ -87,87 +67,6 @@ defmodule RailwayIpc.Publisher do
           fn ->
             result = RailwayIpc.Publisher.publish(channel, exchange, message, format)
             {result, %{}}
-          end
-        )
-      end
-
-      def direct_publish(message) do
-        channel = RailwayIpc.Connection.publisher_channel()
-        queue = unquote(Keyword.get(opts, :queue))
-
-        Telemetry.track_publisher_direct_publish(
-          %{publisher: __MODULE__, message: message, queue: queue, channel: channel},
-          fn ->
-            result = RailwayIpc.Publisher.direct_publish(channel, queue, message)
-            {result, %{}}
-          end
-        )
-      end
-
-      def publish_sync(message, timeout \\ :timer.seconds(5)) do
-        channel = RailwayIpc.Connection.publisher_channel()
-
-        {:ok, %{queue: callback_queue}} =
-          @stream_adapter.create_queue(
-            channel,
-            "anonymous",
-            exclusive: true,
-            auto_delete: true
-          )
-
-        @stream_adapter.subscribe(channel, callback_queue)
-
-        Telemetry.track_rpc_publish(
-          %{
-            message: message,
-            queue: callback_queue,
-            channel: channel,
-            timeout: timeout
-          },
-          fn ->
-            result =
-              message
-              |> Map.put(:reply_to, callback_queue)
-              |> publish
-
-            {result, %{}}
-          end
-        )
-
-        Telemetry.track_rpc_response(
-          %{
-            message: message,
-            queue: callback_queue,
-            channel: channel,
-            timeout: timeout
-          },
-          fn ->
-            receive do
-              {:basic_deliver, payload, _meta} = msg ->
-                {:ok, decoded_message} = Payload.decode(payload)
-
-                if decoded_message.correlation_id == message.correlation_id do
-                  {{:ok, decoded_message},
-                   %{
-                     message: message,
-                     queue: callback_queue,
-                     channel: channel,
-                     timeout: timeout,
-                     decoded_message: decoded_message
-                   }}
-                end
-            after
-              timeout ->
-                {{:error, :timeout},
-                 %{
-                   message: message,
-                   queue: callback_queue,
-                   channel: channel,
-                   timeout: timeout,
-                   error: "Timeout reached",
-                   reason: timeout
-                 }}
-            end
           end
         )
       end
