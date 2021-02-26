@@ -41,6 +41,13 @@ defmodule RailwayIpc.Core.PayloadTest do
 
       assert expected == Payload.encode(proto)
     end
+
+    test "adds a UUID if one isn't given" do
+      {:ok, encoded, _type} = Events.AThingWasDone.new() |> Payload.encode()
+      {:ok, decoded, _type} = Payload.decode(encoded)
+      assert decoded.uuid != ""
+      assert decoded.uuid != nil
+    end
   end
 
   describe "#decode" do

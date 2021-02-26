@@ -51,71 +51,7 @@ defmodule RailwayIpc.PublisherTest do
     :ok
   end
 
-  describe "prepare_message/1" do
-    test "adds uuid to published message" do
-      event = Events.AThingWasDone.new(user_uuid: "abcabc")
-
-      with message <- RailwayIpc.Publisher.prepare_message(event),
-           {:ok, decoded, _type} <- Payload.decode(message) do
-        assert {:ok, _} = UUID.info(decoded.uuid)
-      end
-    end
-
-    test "does not overwrite UUID if one already exists" do
-      uuid = UUID.uuid1()
-      event = Events.AThingWasDone.new(user_uuid: "abcabc", uuid: uuid)
-
-      message = RailwayIpc.Publisher.prepare_message(event)
-      assert {:ok, %{uuid: ^uuid}, _type} = Payload.decode(message)
-    end
-  end
-
   describe "publish" do
-    test "it adds a uuid to the message" do
-      message =
-        Events.AThingWasDone.new(%{
-          user_uuid: "user_uuid"
-        })
-
-      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
-
-      RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn %{uuid: uuid}, _, _ ->
-        assert uuid != ""
-
-        {:ok,
-         %MessagePublishing{
-           persisted_message: build(:published_message, %{encoded_message: encoded_message})
-         }}
-      end)
-
-      RailwayIpc.Publisher.publish("channel", "events:a_thing", message, "json_protobuf")
-    end
-
-    test "it does not overwrite existing UUID" do
-      message_uuid = Ecto.UUID.generate()
-
-      message =
-        Events.AThingWasDone.new(%{
-          user_uuid: "user_uuid",
-          uuid: message_uuid
-        })
-
-      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
-
-      RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn %{uuid: uuid}, _, _ ->
-        assert uuid == message_uuid
-
-        {:ok,
-         %MessagePublishing{
-           persisted_message: build(:published_message, %{encoded_message: encoded_message})
-         }}
-      end)
-
-      RailwayIpc.Publisher.publish("channel", "events:a_thing", message, "json_protobuf")
-    end
-
     test "persists the message with a status of 'sent'" do
       user_uuid = Ecto.UUID.generate()
       correlation_id = Ecto.UUID.generate()
