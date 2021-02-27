@@ -4,12 +4,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
   @behaviour RailwayIpc.StreamBehaviour
   alias RailwayIpc.Telemetry
 
-  def connection_url do
-    Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||
-      System.get_env("RABBITMQ_CONNECTION_URL") ||
-      raise "Must set config value :railway_ipc, :rabbitmq_connection_url, or export environment variable RABBITMQ_CONNECTION_URL"
-  end
-
   def connect do
     Telemetry.track_connecting_to_rabbit(fn ->
       case Connection.open(connection_url()) do
@@ -65,36 +59,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     end
   end
 
-  def subscribe(channel, queue, consumer \\ self()) do
-    Basic.consume(channel, queue, consumer)
-  end
-
-  def create_queue(channel, queue, opts \\ [])
-
-  def create_queue(channel, "anonymous", opts) do
-    Queue.declare(channel, "", opts)
-  end
-
-  def create_queue(channel, queue, opts) do
-    Queue.declare(channel, queue, opts)
-  end
-
-  def maybe_create_exchange(_channel, nil) do
-    :ok
-  end
-
-  def maybe_create_exchange(channel, exchange) do
-    Exchange.declare(channel, exchange, :fanout, durable: true)
-  end
-
-  def maybe_bind_queue(_channel, _queue, nil) do
-    :ok
-  end
-
-  def maybe_bind_queue(channel, queue, exchange) do
-    Queue.bind(channel, queue, exchange)
-  end
-
   def ack(channel, delivery_tag) do
     Basic.ack(channel, delivery_tag)
   end
@@ -131,5 +95,39 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
 
   def close_connection(connection) do
     Connection.close(connection)
+  end
+
+  defp connection_url do
+    Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||
+      System.get_env("RABBITMQ_CONNECTION_URL") ||
+      raise "Must set config value :railway_ipc, :rabbitmq_connection_url, or export environment variable RABBITMQ_CONNECTION_URL"
+  end
+
+  defp subscribe(channel, queue, consumer) do
+    Basic.consume(channel, queue, consumer)
+  end
+
+  defp create_queue(channel, "anonymous", opts) do
+    Queue.declare(channel, "", opts)
+  end
+
+  defp create_queue(channel, queue, opts) do
+    Queue.declare(channel, queue, opts)
+  end
+
+  defp maybe_create_exchange(_channel, nil) do
+    :ok
+  end
+
+  defp maybe_create_exchange(channel, exchange) do
+    Exchange.declare(channel, exchange, :fanout, durable: true)
+  end
+
+  defp maybe_bind_queue(_channel, _queue, nil) do
+    :ok
+  end
+
+  defp maybe_bind_queue(channel, queue, exchange) do
+    Queue.bind(channel, queue, exchange)
   end
 end

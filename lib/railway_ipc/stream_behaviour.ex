@@ -1,6 +1,7 @@
 defmodule RailwayIpc.StreamBehaviour do
   @moduledoc false
   @callback connect :: {:ok, %{connection: map(), channel: map()}} | {:error, any()}
+
   @callback bind_queue(
               channel :: map(),
               %{
@@ -15,6 +16,7 @@ defmodule RailwayIpc.StreamBehaviour do
               channels :: map(),
               consumer_module :: module()
             ) :: {:ok, channel_cache :: map(), channel :: map()}
+
   @callback get_channel(connection :: map()) :: {:ok, channel :: map()} | {:error, any()}
   @callback ack(channel :: map(), deliver_tag :: binary()) :: any()
   @callback direct_publish(channel :: map(), queue :: binary(), message :: map()) :: any()
@@ -24,8 +26,6 @@ defmodule RailwayIpc.StreamBehaviour do
               message :: map(),
               format :: String.t()
             ) :: any()
-  @callback create_queue(channel :: map(), queue_name :: String.t(), opts :: list()) ::
-              {:ok, map()}
-  @callback subscribe(channel :: map(), queue :: String.t()) :: any()
+
   @callback close_connection(connection :: map() | nil) :: any()
 end
