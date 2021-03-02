@@ -1,7 +1,9 @@
 defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
   use ExUnit.Case, async: true
 
+  alias LearnIpc.Entities.AdmittedApplicant
   alias LearnIpc.Entities.Student
+  alias LearnIpc.Events.Admission.ApplicantAdmitted
   alias LearnIpc.Events.Compliance.DocumentAssignedToStudent
   alias LearnIpc.Events.Compliance.DocumentAssignedToStudent.Data
   alias LearnIpc.Events.Student.Registered
@@ -39,6 +41,37 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
           ~S("occurred_at":"","user_uuid":"","uuid":"abc123"},) <>
           ~S("type":"LearnIpc::Events::Compliance::DocumentAssignedToStudent"}),
         "LearnIpc::Events::Compliance::DocumentAssignedToStudent"
+      }
+
+      assert expected == JsonProtobuf.encode(msg)
+    end
+
+    test "encode arbitrarily nested protobufs" do
+      msg =
+        ApplicantAdmitted.new(
+          user_uuid: "abc123",
+          correlation_id: "abc123",
+          uuid: "abc123",
+          context: %{},
+          data:
+            ApplicantAdmitted.Data.new(
+              applicant:
+                AdmittedApplicant.new(
+                  uuid: "abc123",
+                  external_id: "abc123",
+                  salesforce_opportunity_id: "abc123"
+                )
+            )
+        )
+
+      expected = {
+        :ok,
+        ~S({"encoded_message":{"context":{},"correlation_id":"abc123",) <>
+          ~S("data":{"applicant":{"external_id":"abc123",) <>
+          ~S("salesforce_opportunity_id":"abc123","uuid":"abc123"}},) <>
+          ~S("user_uuid":"abc123","uuid":"abc123"},"type":) <>
+          ~S("LearnIpc::Events::Admission::ApplicantAdmitted"}),
+        "LearnIpc::Events::Admission::ApplicantAdmitted"
       }
 
       assert expected == JsonProtobuf.encode(msg)
@@ -133,6 +166,47 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobufTest do
           }
         },
         "LearnIpc::Events::Student::Registered"
+      }
+
+      assert expected == JsonProtobuf.decode(encoded)
+    end
+
+    test "decode message with nested protobufs" do
+      msg =
+        ApplicantAdmitted.new(
+          user_uuid: "abc123",
+          correlation_id: "abc123",
+          uuid: "abc123",
+          context: %{"some" => "value"},
+          data:
+            ApplicantAdmitted.Data.new(
+              applicant:
+                AdmittedApplicant.new(
+                  uuid: "abc123",
+                  external_id: "abc123",
+                  salesforce_opportunity_id: "abc123"
+                )
+            )
+        )
+
+      {:ok, encoded, _type} = JsonProtobuf.encode(msg)
+
+      expected = {
+        :ok,
+        %LearnIpc.Events.Admission.ApplicantAdmitted{
+          context: %{"some" => "value"},
+          correlation_id: "abc123",
+          user_uuid: "abc123",
+          uuid: "abc123",
+          data: %LearnIpc.Events.Admission.ApplicantAdmitted.Data{
+            applicant: %LearnIpc.Entities.AdmittedApplicant{
+              external_id: "abc123",
+              salesforce_opportunity_id: "abc123",
+              uuid: "abc123"
+            }
+          }
+        },
+        "LearnIpc::Events::Admission::ApplicantAdmitted"
       }
 
       assert expected == JsonProtobuf.decode(encoded)

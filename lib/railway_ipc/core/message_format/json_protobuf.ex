@@ -73,15 +73,19 @@ defmodule RailwayIpc.Core.MessageFormat.JsonProtobuf do
   end
 
   defp encode_message({:ok, payload, protobuf}) do
-    proto_map = ensure_map(protobuf)
-    encoded_message = Map.put(proto_map, :data, ensure_map(protobuf.data))
-    {:ok, Map.put(payload, :encoded_message, encoded_message), protobuf}
+    {:ok, Map.put(payload, :encoded_message, ensure_map(protobuf)), protobuf}
   end
 
   defp encode_message({:error, _} = error), do: error
 
-  defp ensure_map(%{__struct__: _} = struct), do: Map.from_struct(struct)
-  defp ensure_map(data), do: data
+  defp ensure_map(protobuf) do
+    protobuf
+    |> Map.from_struct()
+    |> Map.new(fn
+      {k, %_{} = struct} -> {k, ensure_map(struct)}
+      {k, v} -> {k, v}
+    end)
+  end
 
   defp encode_payload_as_json({:ok, payload, _}) do
     case Jason.encode(payload) do
