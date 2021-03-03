@@ -18,7 +18,9 @@ defmodule RailwayIpc.Publisher do
   require Logger
 
   def publish(channel, exchange, message, format) do
-    case @message_publishing.process(message, %RoutingInfo{exchange: exchange}, format) do
+    protobuf = message |> ensure_uuid()
+
+    case @message_publishing.process(protobuf, %RoutingInfo{exchange: exchange}, format) do
       {:ok, %{persisted_message: persisted_message}} ->
         @stream_adapter.publish(
           channel,
@@ -30,7 +32,7 @@ defmodule RailwayIpc.Publisher do
         :ok
 
       {:error, %{error: error}} ->
-        Logger.error("Error publishing message #{inspect(message)}. Error: #{inspect(error)}")
+        Logger.error("Error publishing message #{inspect(protobuf)}. Error: #{inspect(error)}")
         {:error, error}
     end
   end
@@ -47,6 +49,12 @@ defmodule RailwayIpc.Publisher do
     {:ok, message, _type} = Payload.encode(message)
     message
   end
+
+  defp ensure_uuid(%{uuid: uuid} = message) when is_nil(uuid) or "" == uuid do
+    Map.put(message, :uuid, Ecto.UUID.generate())
+  end
+
+  defp ensure_uuid(message), do: message
 
   defmacro __using__(opts) do
     quote do
