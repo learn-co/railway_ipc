@@ -29,4 +29,30 @@ defmodule Test.Support.Helpers do
   end
 
   def wait_for_true(_timeout, fun), do: fun.()
+
+  @doc """
+  Given an `expr` that evaluates to an integer, execute `expr` and store the
+  result. Then execute `block` which should trigger a side effect that changes
+  the result of `expr`. The before and after results of `expr` are compared to
+  the value of `by`, ensuring they are equal.
+
+  ## Example
+
+  Asserts that a database table row count was changed.
+
+  ```
+  assert_difference row_count("railway_ipc_published_messages"), by: 1 do
+    :ok = Client.publish("railwayipc:test", proto, "json_protobuf")
+  end
+  ```
+
+  """
+  defmacro assert_difference(expr, [by: by], do: block) do
+    quote do
+      before = unquote(expr)
+      unquote(block)
+      after_ = unquote(expr)
+      assert unquote(by) == after_ - before
+    end
+  end
 end
