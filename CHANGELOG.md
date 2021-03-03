@@ -7,9 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 ### Changed
 ### Removed
+### Fixed
+
+## [0.5.0] - 2021-03-03
+### Changed
+* Various internal refactorings that don't have an impact on the public API.
+
+### Removed
 * [BREAKING CHANGE] Remove publisher RPC support.
 
 ### Fixed
+* Allow JSON encoding of arbitrarily nested protobufs.
 
 ## [0.4.0] - 2021-02-25
 ### Added
@@ -67,7 +75,8 @@ No changes were recorded for this release, nor was it tagged.
 * Publishing messages with UUIDs in the event that a message UUID is not passed in
 * [dev] Update config so that tests run locally
 
-[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/learn-co/railway_ipc/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/learn-co/railway_ipc/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/learn-co/railway_ipc/compare/0.3.2...0.4.0
 [0.3.2]: https://github.com/learn-co/railway_ipc/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/learn-co/railway_ipc/compare/0.3.0...0.3.1

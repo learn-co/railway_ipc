@@ -120,4 +120,4 @@ Steps for releasing a new version:
 * commit the changes with a message like: "Prepping for release 0.3.0"
 * tag the commit with `git tag x.x.x` where `x.x.x` is the new version number
 * push the tag to GitHub `git push --tags`
-* publish to hex using the command `mix hex.publish`
+* publish to hex using the command `mix hex.publish` (_Note_: Since we're using a [forked version](https://github.com/learn-co/railway_ipc/blob/master/CHANGELOG.md#changed-1) of the `elixir/protobuf` library, we cannot publish to Hex. Once we're able to get back on the official `elixir/protobuf` version we'll start publishing to Hex again. We _are_ still creating Git tags for each release, however.)
