@@ -106,4 +106,18 @@ defmodule RailwayIpc.Telemetry do
       nil
     )
   end
+
+  @doc """
+  Emit telemetry information. Automatically adds additional measurement
+  information common to all requests (such as system time).
+
+  """
+  def emit(event, metadata) do
+    emit(event, %{}, metadata)
+  end
+
+  def emit(event, measurements, metadata) do
+    additional = %{system_time: System.system_time()}
+    :telemetry.execute(event, Map.merge(measurements, additional), metadata)
+  end
 end
