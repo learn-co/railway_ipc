@@ -6,7 +6,6 @@ defmodule RailwayIpc.Publisher do
                     RailwayIpc.RabbitMQ.RabbitMQAdapter
                   )
 
-  alias RailwayIpc.Core.Payload
   alias RailwayIpc.Core.RoutingInfo
   alias RailwayIpc.Telemetry
 
@@ -35,19 +34,6 @@ defmodule RailwayIpc.Publisher do
         Logger.error("Error publishing message #{inspect(protobuf)}. Error: #{inspect(error)}")
         {:error, error}
     end
-  end
-
-  def reply(channel, queue, reply) do
-    @stream_adapter.direct_publish(
-      channel,
-      queue,
-      prepare_message(reply)
-    )
-  end
-
-  def prepare_message(message) do
-    {:ok, message, _type} = Payload.encode(message)
-    message
   end
 
   defp ensure_uuid(%{uuid: uuid} = message) when is_nil(uuid) or "" == uuid do
