@@ -10,22 +10,50 @@ defmodule RailwayIpc.MessageBus.RabbitMQ.Adapter do
 
   use AMQP
 
+  alias RailwayIpc.MessageBus.Publisher
   alias RailwayIpc.MessageBus.RabbitMQ.Telemetry
 
   @doc """
-  Connect to RabbitMQ using the given `uri`. Returns the `connection`. If
-  unable to connect, keep re-trying.
-
-  If `uri` is not provided, attempt to determine the URI by checking the
-  following configuration variables in this order:
-
-  1. `:rabbitmq_connection_url` value in the `:railway_ipc` application config
-  2. `RABBITMQ_CONNECTION_URL` environment variable
-
-  If all of these fallbacks fail, an error is raised.
+  Publishes `payload` to the given `exchange` using the `channel`. Uses
+  `format` to the set the message format header.
 
   """
-  def connect(uri \\ connection_uri()) do
+  @impl RailwayIpc.MessageBus
+  def publish(channel, exchange, payload, format) do
+    Exchange.declare(channel, exchange, :fanout, durable: true)
+
+    routing_key = ""
+    headers = [{:message_format, :longstr, format}]
+
+    case Basic.publish(channel, exchange, routing_key, payload, headers) do
+      :ok -> {:ok, true}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  @doc """
+  Sets up publisher connection and channel.
+
+  """
+  @impl RailwayIpc.MessageBus
+  def setup_publisher do
+    {:ok, connection} = connect()
+    {:ok, channel} = Channel.open(connection)
+    {:ok, %Publisher{channel: channel, connection: connection}}
+  end
+
+  @doc """
+  Cleans up publisher by closing its connection and channel.
+
+  """
+  @impl RailwayIpc.MessageBus
+  def cleanup_publisher(%Publisher{connection: connection, channel: channel}) do
+    :ok = close_channel(channel)
+    :ok = disconnect(connection)
+    :ok
+  end
+
+  defp connect(uri \\ connection_uri()) do
     case Connection.open(uri) do
       {:ok, connection} ->
         Telemetry.emit_connection_open(__MODULE__)
@@ -38,11 +66,7 @@ defmodule RailwayIpc.MessageBus.RabbitMQ.Adapter do
     end
   end
 
-  @doc """
-  Disconnect the given `connection` from RabbitMQ.
-
-  """
-  def disconnect(connection) when not is_nil(connection) do
+  defp disconnect(connection) when not is_nil(connection) do
     if Process.alive?(connection.pid) do
       Connection.close(connection)
       Telemetry.emit_connection_closed(__MODULE__)
@@ -51,7 +75,14 @@ defmodule RailwayIpc.MessageBus.RabbitMQ.Adapter do
     :ok
   end
 
-  def disconnect(_), do: :ok
+  defp disconnect(_), do: :ok
+
+  defp close_channel(channel) when not is_nil(channel) do
+    if Process.alive?(channel.pid), do: Channel.close(channel)
+    :ok
+  end
+
+  defp close_channel(_), do: :ok
 
   defp connection_uri do
     Application.get_env(:railway_ipc, :rabbitmq_connection_url) ||

@@ -4,15 +4,35 @@ defmodule RailwayIpc.MessageBus do
 
   """
 
+  defmodule Publisher do
+    @moduledoc """
+    Configuration for all publishers.
+
+    """
+    defstruct [:channel, :connection]
+  end
+
   @doc """
-  Open a new message bus connection.
+  Publish a message.
 
   """
-  @callback connect(uri :: binary) :: {:ok, term}
+  @callback publish(
+              channel :: term,
+              exchange :: term,
+              payload :: term,
+              format :: String.t()
+            ) :: {:ok, true} | {:error, term}
 
   @doc """
-  Close the message bus connection.
+  Setup infrastructure for a publisher. Returns a
+  `RailwayIpc.MessageBus.Publisher` struct.
 
   """
-  @callback disconnect(connection :: term) :: :ok
+  @callback setup_publisher() :: {:ok, %__MODULE__.Publisher{}} | {:error, term}
+
+  @doc """
+  Cleanup and close/disconnect publisher infrastructure.
+
+  """
+  @callback cleanup_publisher(publisher :: %__MODULE__.Publisher{}) :: :ok
 end

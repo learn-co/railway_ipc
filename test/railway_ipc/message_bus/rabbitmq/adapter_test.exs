@@ -1,14 +1,18 @@
 defmodule RailwayIpc.MessageBus.RabbitMQ.AdapterTest do
   use ExUnit.Case
+  use Test.Support.RabbitCase
 
+  alias RailwayIpc.MessageBus.Publisher
   alias RailwayIpc.MessageBus.RabbitMQ.Adapter
   alias RailwayIpc.MessageBus.RabbitMQ.Logger, as: RabbitLog
 
   setup :attach_telemetry_handlers
 
-  test "connect to RabbitMQ" do
-    assert {:ok, %AMQP.Connection{pid: pid}} = Adapter.connect()
-    assert Process.alive?(pid)
+  test "setup publisher" do
+    {:ok, %Publisher{connection: connection, channel: channel}} = Adapter.setup_publisher()
+
+    assert Process.alive?(connection.pid)
+    assert Process.alive?(channel.pid)
 
     assert_receive {
       :telemetry_event,
@@ -18,10 +22,13 @@ defmodule RailwayIpc.MessageBus.RabbitMQ.AdapterTest do
     }
   end
 
-  test "disconnect from RabbitMQ" do
-    {:ok, pid} = Adapter.connect()
+  test "cleanup publisher" do
+    {:ok, %Publisher{connection: connection, channel: channel} = state} =
+      Adapter.setup_publisher()
 
-    assert :ok = Adapter.disconnect(pid)
+    :ok = Adapter.cleanup_publisher(state)
+    refute Process.alive?(connection.pid)
+    refute Process.alive?(channel.pid)
 
     assert_receive {
       :telemetry_event,
@@ -31,15 +38,17 @@ defmodule RailwayIpc.MessageBus.RabbitMQ.AdapterTest do
     }
   end
 
-  test "disconnect when connection is nil" do
-    assert :ok = Adapter.disconnect(nil)
+  test "cleanup publisher when connection and channel are already closed" do
+    {:ok, %Publisher{connection: connection, channel: channel} = state} =
+      Adapter.setup_publisher()
+
+    :ok = close_channel(channel)
+    :ok = close_connection(connection)
+    assert :ok == Adapter.cleanup_publisher(state)
   end
 
-  test "disconnect when connection is already closed" do
-    {:ok, pid} = Adapter.connect()
-
-    assert :ok = Adapter.disconnect(pid)
-    assert :ok = Adapter.disconnect(pid)
+  test "cleanup publisher when connection and channel are nil" do
+    assert :ok == Adapter.cleanup_publisher(%Publisher{})
   end
 
   defp attach_telemetry_handlers(%{test: test}) do
