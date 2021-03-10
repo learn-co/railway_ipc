@@ -14,55 +14,43 @@ defmodule RailwayIpc.DataCase do
 
   use ExUnit.CaseTemplate
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias RailwayIpc.Dev.Repo
+  alias RailwayIpc.Storage.DB.PublishedMessage
 
   using do
     quote do
-      alias RailwayIpc.Dev.Repo
-
-      import Ecto
-      import Ecto.Changeset
-      import Ecto.Query
       import RailwayIpc.DataCase
     end
   end
 
-  setup tags do
-    # credo:disable-for-next-line Credo.Check.Design.AliasUsage
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(RailwayIpc.Dev.Repo)
+  setup context do
+    :ok = Sandbox.checkout(Repo)
 
-    unless tags[:async] do
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
-      Ecto.Adapters.SQL.Sandbox.mode(RailwayIpc.Dev.Repo, {:shared, self()})
+    unless context[:async] do
+      Sandbox.mode(Repo, {:shared, self()})
     end
 
-    :ok
+    context
   end
 
   @doc """
-  A helper that transforms changeset errors into a map of messages.
+  Retrieves the current row count for the given table.
 
-      assert {:error, changeset} = Accounts.create_user(%{password: "short"})
-      assert "password is too short" in errors_on(changeset).password
-      assert %{password: ["password is too short"]} = errors_on(changeset)
-
-  """
-  def errors_on(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
-      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
-  end
-
-  @doc """
-  Retrieves the current row count for the given table. Since SQL `count`
-  requires a column, we have to provide that as well. This defaults the
-  column name to UUID since all Railway tables have it, but you can override
-  it if you want.
+  Since SQL `count` requires a column, we have to provide that as well. This
+  defaults the column name to UUID since all Railway tables have it, but you
+  can override it if you want.
 
   """
   def row_count(table, column \\ :uuid) do
     Repo.aggregate(table, :count, column)
+  end
+
+  @doc """
+  Retrieves a published message by UUID, raises an error if not found.
+
+  """
+  def get_published_message!(uuid) do
+    Repo.get!(PublishedMessage, uuid)
   end
 end
