@@ -19,13 +19,5 @@ defmodule RailwayIpc.StreamBehaviour do
 
   @callback get_channel(connection :: map()) :: {:ok, channel :: map()} | {:error, any()}
   @callback ack(channel :: map(), deliver_tag :: binary()) :: any()
-  @callback direct_publish(channel :: map(), queue :: binary(), message :: map()) :: any()
-  @callback publish(
-              channel :: map(),
-              exchange :: binary(),
-              message :: map(),
-              format :: String.t()
-            ) :: any()
-
   @callback close_connection(connection :: map() | nil) :: any()
 end

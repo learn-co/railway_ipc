@@ -7,28 +7,6 @@ defmodule RailwayIpc.ConnectionTest do
   alias RailwayIpc.Connection
   alias RailwayIpc.StreamMock
 
-  test "Connects to stream correctly" do
-    channel = %{pid: self()}
-    connection = %{pid: self()}
-
-    StreamMock
-    |> expect(
-      :connect,
-      fn ->
-        {:ok, connection}
-      end
-    )
-    |> expect(
-      :get_channel,
-      fn ^connection ->
-        {:ok, channel}
-      end
-    )
-
-    {:ok, pid} = Connection.start_link()
-    assert Connection.publisher_channel(pid) == channel
-  end
-
   test "consumes exchange and queue" do
     channel = %{pid: self()}
     connection = %{pid: self()}
@@ -48,12 +26,6 @@ defmodule RailwayIpc.ConnectionTest do
           :ok,
           connection
         }
-      end
-    )
-    |> expect(
-      :get_channel,
-      fn ^connection ->
-        {:ok, channel}
       end
     )
     |> expect(
@@ -84,12 +56,6 @@ defmodule RailwayIpc.ConnectionTest do
       :connect,
       fn ->
         {:ok, connection}
-      end
-    )
-    |> expect(
-      :get_channel,
-      fn ^connection ->
-        {:ok, channel}
       end
     )
     |> expect(

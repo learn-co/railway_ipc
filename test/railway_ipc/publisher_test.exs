@@ -1,129 +1,201 @@
 defmodule RailwayIpc.PublisherTest do
-  use ExUnit.Case
-  import Mox
-  import RailwayIpc.Factory
-  setup :set_mox_global
-  setup :verify_on_exit!
+  use RailwayIpc.DataCase, async: true
 
-  alias RailwayIpc.Core.Payload
-  alias RailwayIpc.Test.BatchEventsPublisher
-  alias RailwayIpc.{Connection, MessagePublishing, StreamMock}
+  import Test.Support.Helpers
+
+  alias RailwayIpc.Publisher
+  alias RailwayIpc.Publisher.Logger, as: PublishLog
+  alias Test.Support.FakeQueue
+
+  @uuid "49b38c1b-8cc3-4b1c-a58a-5a3dd206cd92"
+
+  setup :attach_telemetry_handlers
 
   setup do
-    StreamMock
-    |> stub(
-      :connect,
-      fn ->
-        {:ok, %{pid: self()}}
-      end
-    )
-    |> stub(
-      :get_channel,
-      fn _conn ->
-        {:ok, %{pid: self()}}
-      end
-    )
-    |> stub(
-      :get_channel_from_cache,
-      fn _connection, _channels, _consumer_module ->
-        {
-          :ok,
-          %{
-            BatchEventsPublisher => %{
-              pid: self()
-            }
-          },
-          %{pid: self()}
-        }
-      end
-    )
-
-    Connection.start_link(name: Connection)
-
-    StreamMock
-    |> stub(
-      :publish,
-      fn _channel, _exchange, message, format ->
-        {:ok, _decoded, _type} = Payload.decode(message, format)
-      end
-    )
-
+    {:ok, _} = FakeQueue.init()
     :ok
   end
 
-  describe "publish" do
-    test "persists the message with a status of 'sent'" do
-      user_uuid = Ecto.UUID.generate()
-      correlation_id = Ecto.UUID.generate()
-      exchange = "events:a_thing"
-
-      message =
-        Events.AThingWasDone.new(%{
-          user_uuid: user_uuid,
-          correlation_id: correlation_id,
-          uuid: Ecto.UUID.generate()
-        })
-
-      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
-
-      RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
-        {:ok,
-         %MessagePublishing{
-           persisted_message: build(:published_message, %{encoded_message: encoded_message})
-         }}
-      end)
-
-      RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
+  describe "successful publish" do
+    setup do
+      %{proto: Events.AThingWasDone.new(uuid: @uuid)}
     end
 
-    test "it returns :ok on publish sucess" do
-      user_uuid = Ecto.UUID.generate()
-      correlation_id = Ecto.UUID.generate()
-      exchange = "events:a_thing"
+    test "telemetry start is emitted", %{proto: proto} do
+      {:ok, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
 
-      message =
-        Events.AThingWasDone.new(%{
-          user_uuid: user_uuid,
-          correlation_id: correlation_id,
-          uuid: Ecto.UUID.generate()
-        })
-
-      {:ok, encoded_message, _type} = Payload.encode(message, "json_protobuf")
-
-      RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
-        {:ok,
-         %MessagePublishing{
-           persisted_message: build(:published_message, %{encoded_message: encoded_message})
-         }}
-      end)
-
-      :ok = RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
+      assert_receive {
+        :telemetry_event,
+        [:railway_ipc, :publisher, :publish, :start],
+        %{system_time: _},
+        %{module: _, exchange: _, protobuf: _}
+      }
     end
 
-    test "it returns the error tuple on failure" do
-      user_uuid = Ecto.UUID.generate()
-      correlation_id = Ecto.UUID.generate()
-      exchange = "events:a_thing"
-
-      message =
-        Events.AThingWasDone.new(%{
-          user_uuid: user_uuid,
-          correlation_id: correlation_id,
-          uuid: Ecto.UUID.generate()
-        })
-
-      RailwayIpc.MessagePublishingMock
-      |> expect(:process, fn ^message, %{exchange: ^exchange, queue: nil}, _ ->
-        {:error,
-         %MessagePublishing{
-           error: "Failure to process message"
-         }}
-      end)
-
-      {:error, "Failure to process message"} =
-        RailwayIpc.Publisher.publish("channel", exchange, message, "json_protobuf")
+    test "message is stored", %{proto: proto} do
+      assert_difference row_count("railway_ipc_published_messages"), by: 1 do
+        {:ok, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
     end
+
+    test "message is published to message bus", %{proto: proto} do
+      assert_difference FakeQueue.message_count(), by: 1 do
+        {:ok, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+
+      expected_msg = %{
+        exchange: "railwayipc:test",
+        format: "json_protobuf",
+        encoded:
+          ~s({"encoded_message":{"context":{},"correlation_id":"",) <>
+            ~s("data":null,"user_uuid":"",) <>
+            ~s("uuid":"#{@uuid}"},) <>
+            ~s("type":"Events::AThingWasDone"})
+      }
+
+      assert FakeQueue.has_message?(expected_msg),
+             "#{inspect(expected_msg, pretty: true)} not found in #{
+               inspect(FakeQueue.messages(), pretty: true)
+             }"
+    end
+
+    test "telemetry finish is emitted", %{proto: proto} do
+      {:ok, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+
+      assert_receive {
+        :telemetry_event,
+        [:railway_ipc, :publisher, :publish, :stop],
+        %{system_time: _, duration: _},
+        %{module: _, exchange: _, protobuf: _, message: _}
+      }
+    end
+  end
+
+  describe "failed to encode message" do
+    setup do
+      %{proto: "not a protobuf"}
+    end
+
+    test "returns an error tuple with an error message", %{proto: proto} do
+      expected = {:error, "Argument Error: Valid Protobuf required"}
+      assert expected == Publisher.publish("railwayipc:test", proto, "json_protobuf")
+    end
+
+    test "message is not stored", %{proto: proto} do
+      assert_difference row_count("railway_ipc_published_messages"), by: 0 do
+        {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+    end
+
+    test "message is not published", %{proto: proto} do
+      assert_difference FakeQueue.message_count(), by: 0 do
+        {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+    end
+
+    test "telemetry error is emitted", %{proto: proto} do
+      {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+
+      assert_receive {
+        :telemetry_event,
+        [:railway_ipc, :publisher, :publish, :error],
+        %{system_time: _},
+        %{
+          module: _,
+          exchange: _,
+          protobuf: _,
+          reason: "Argument Error: Valid Protobuf required"
+        }
+      }
+    end
+  end
+
+  describe "failed to store message" do
+    setup do
+      %{proto: Events.AThingWasDone.new()}
+    end
+
+    test "returns an error tuple with an error message", %{proto: proto} do
+      expected = {:error, "Uuid can't be blank"}
+      assert expected == Publisher.publish("railwayipc:test", proto, "json_protobuf")
+    end
+
+    test "message is not stored", %{proto: proto} do
+      assert_difference row_count("railway_ipc_published_messages"), by: 0 do
+        {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+    end
+
+    test "message is not published", %{proto: proto} do
+      assert_difference FakeQueue.message_count(), by: 0 do
+        {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+    end
+
+    test "telemetry error is emitted", %{proto: proto} do
+      {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+
+      assert_receive {
+        :telemetry_event,
+        [:railway_ipc, :publisher, :publish, :error],
+        %{system_time: _},
+        %{
+          module: _,
+          exchange: _,
+          protobuf: _,
+          reason: "Uuid can't be blank"
+        }
+      }
+    end
+  end
+
+  describe "failed to publish message" do
+    setup do
+      %{proto: Events.AThingWasDone.new(uuid: @uuid, context: %{publish: false})}
+    end
+
+    test "returns an error tuple with an error message", %{proto: proto} do
+      {:error, msg} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      assert "failed to publish" == msg
+    end
+
+    @tag :skip
+    test "message is not stored? or stored? if stored status should not be 'sent'"
+
+    test "message is not published", %{proto: proto} do
+      assert_difference FakeQueue.message_count(), by: 0 do
+        {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+      end
+    end
+
+    test "telemetry error is emitted", %{proto: proto} do
+      {:error, _} = Publisher.publish("railwayipc:test", proto, "json_protobuf")
+
+      assert_receive {
+        :telemetry_event,
+        [:railway_ipc, :publisher, :publish, :error],
+        %{system_time: _},
+        %{
+          module: _,
+          exchange: _,
+          protobuf: _,
+          reason: "failed to publish"
+        }
+      }
+    end
+  end
+
+  defp attach_telemetry_handlers(%{test: test}) do
+    self = self()
+
+    :ok =
+      :telemetry.attach_many(
+        "#{test}",
+        PublishLog.events(),
+        fn name, measurements, metadata, _config ->
+          send(self, {:telemetry_event, name, measurements, metadata})
+        end,
+        nil
+      )
   end
 end

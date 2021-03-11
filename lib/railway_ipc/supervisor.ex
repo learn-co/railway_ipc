@@ -13,6 +13,7 @@ defmodule RailwayIpc.Connection.Supervisor do
       fn ->
         children = [
           {RailwayIpc.Connection, name: RailwayIpc.Connection},
+          {RailwayIpc.Publisher, name: RailwayIpc.Publisher},
           %{
             id: Supervisor,
             start:

@@ -7,7 +7,6 @@ defmodule RailwayIpc.Connection do
                   )
 
   defstruct connection: nil,
-            publisher_channel: nil,
             consumer_channels: %{}
 
   use GenServer
@@ -20,10 +19,6 @@ defmodule RailwayIpc.Connection do
 
   def init(:ok) do
     {:ok, %__MODULE__{}, {:continue, :open_connection}}
-  end
-
-  def publisher_channel(connection \\ __MODULE__) do
-    GenServer.call(connection, :publisher_channel)
   end
 
   def consume(connection \\ __MODULE__, spec) do
@@ -51,10 +46,6 @@ defmodule RailwayIpc.Connection do
 
   def handle_info({:DOWN, _ref, :process, _object, _reason}, state) do
     {:stop, :normal, state}
-  end
-
-  def handle_call(:publisher_channel, _from, %{publisher_channel: channel} = state) do
-    {:reply, channel, state}
   end
 
   def handle_call(
@@ -92,13 +83,13 @@ defmodule RailwayIpc.Connection do
   end
 
   defp connect(state) do
-    with {:ok, connection} <- @stream_adapter.connect(),
-         {:ok, channel} <- @stream_adapter.get_channel(connection) do
-      Process.monitor(connection.pid)
-      Process.monitor(channel.pid)
-      {:ok, %{state | connection: connection, publisher_channel: channel}}
-    else
-      {:error, _error} = e -> e
+    case @stream_adapter.connect() do
+      {:ok, connection} ->
+        Process.monitor(connection.pid)
+        {:ok, %{state | connection: connection}}
+
+      {:error, _error} = e ->
+        e
     end
   end
 end

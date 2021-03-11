@@ -6,7 +6,6 @@ defmodule E2E.ConsumerTest do
   use Test.Support.RabbitCase
 
   alias Events.AThingWasDone, as: Proto
-  alias RailwayIpc.Connection
   alias RailwayIpc.Core.MessageFormat.BinaryProtobuf
   alias RailwayIpc.Core.MessageFormat.JsonProtobuf
   alias Test.Support.Helpers
@@ -25,6 +24,7 @@ defmodule E2E.ConsumerTest do
 
   setup do
     {:ok, connection} = open_connection("amqp://guest:guest@localhost:5672")
+    {:ok, channel} = open_channel(connection)
 
     # Publishers don't know about queues, only exchanges. If we send a
     # message to an exchange that doesn't have a queue bound to it, the
@@ -34,20 +34,15 @@ defmodule E2E.ConsumerTest do
     # not set up, otherwise the test message will be lost.
     create_and_bind_queue(connection, "railway:test:events", "railway:test")
 
-    pid =
-      start_supervised!(%{
-        id: RailwayIpc.Connection,
-        start: {RailwayIpc.Connection, :start_link, []}
-      })
-
     exit_fn = fn ->
       delete_queue(connection, "railway:test:events")
       delete_exchange(connection, "railway:test")
+      close_channel(channel)
       close_connection(connection)
     end
 
     on_exit(exit_fn)
-    %{connection: connection, pid: pid}
+    %{connection: connection, channel: channel}
   end
 
   @tag :e2e
@@ -58,10 +53,9 @@ defmodule E2E.ConsumerTest do
     end)
 
     # Publish a message
-    channel = Connection.publisher_channel(context.pid)
     proto = Proto.new(uuid: UUID.uuid4())
     {:ok, encoded, _type} = BinaryProtobuf.encode(proto)
-    :ok = publish_message(channel, "railway:test", encoded)
+    :ok = publish_message(context.channel, "railway:test", encoded)
 
     # Make sure it arrived in the queue
     Helpers.wait_for_true(@timeout, fn ->
@@ -92,13 +86,12 @@ defmodule E2E.ConsumerTest do
     end)
 
     # Publish a message
-    channel = Connection.publisher_channel(context.pid)
     proto = Proto.new(uuid: UUID.uuid4())
     {:ok, encoded, _type} = JsonProtobuf.encode(proto)
 
     :ok =
       publish_message(
-        channel,
+        context.channel,
         "railway:test",
         encoded,
         headers: [message_format: "json_protobuf"]

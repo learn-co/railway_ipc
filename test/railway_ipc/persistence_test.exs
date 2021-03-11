@@ -2,35 +2,8 @@ defmodule RailwayIpc.PersistenceTest do
   use ExUnit.Case
   use RailwayIpc.DataCase
 
-  alias RailwayIpc.Core.{EventMessage, Payload, RoutingInfo}
-  alias RailwayIpc.{MessageConsumption, MessagePublishing, Persistence}
-
-  @tag capture_log: true
-  describe "insert_published_message/3" do
-    test "inserts the message record" do
-      event = Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()})
-      exchange = "ipc:batch:events"
-
-      message_publishing =
-        MessagePublishing.new(event, %RoutingInfo{exchange: exchange}, "json_protobuf")
-
-      assert {:ok, message} = Persistence.insert_published_message(message_publishing)
-      assert message.exchange == exchange
-      assert message.uuid != nil
-      assert message.status == "sent"
-      assert message.message_type == "Events::AThingWasDone"
-    end
-
-    test "it inserts a message with a nil exchange" do
-      event = Events.AThingWasDone.new(%{uuid: Ecto.UUID.generate()})
-      queue = "queue"
-
-      message_publishing =
-        MessagePublishing.new(event, %RoutingInfo{queue: queue}, "json_protobuf")
-
-      assert {:ok, message} = Persistence.insert_published_message(message_publishing)
-    end
-  end
+  alias RailwayIpc.Core.{EventMessage, Payload}
+  alias RailwayIpc.{MessageConsumption, Persistence}
 
   @tag capture_log: true
   describe "insert_consumed_message/1" do

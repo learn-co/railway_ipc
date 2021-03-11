@@ -2,29 +2,10 @@ defmodule RailwayIpc.Persistence do
   @moduledoc false
   @behaviour RailwayIpc.PersistenceBehaviour
   @repo Application.get_env(:railway_ipc, :repo, RailwayIpc.Dev.Repo)
-  alias RailwayIpc.Persistence.{
-    ConsumedMessage,
-    ConsumedMessageAdapter,
-    PublishedMessage,
-    PublishedMessageAdapter
-  }
+  alias RailwayIpc.Persistence.{ConsumedMessage, ConsumedMessageAdapter}
 
-  alias RailwayIpc.{MessageConsumption, MessagePublishing}
+  alias RailwayIpc.MessageConsumption
   import Ecto.Query
-
-  def insert_published_message(%MessagePublishing{
-        exchange: exchange,
-        queue: queue,
-        outbound_message: outbound_message
-      }) do
-    {:ok, persistence_attrs} =
-      outbound_message
-      |> PublishedMessageAdapter.to_persistence(exchange, queue)
-
-    %PublishedMessage{}
-    |> PublishedMessage.changeset(persistence_attrs)
-    |> @repo.insert()
-  end
 
   def insert_consumed_message(%MessageConsumption{
         exchange: exchange,
@@ -44,15 +25,6 @@ defmodule RailwayIpc.Persistence do
     message_record
     |> ConsumedMessage.changeset(attrs)
     |> @repo.update()
-  end
-
-  def get_published_message(message_uuid) do
-    query =
-      from(m in PublishedMessage,
-        where: m.uuid == ^message_uuid
-      )
-
-    @repo.one(query)
   end
 
   def get_consumed_message(message_params) do

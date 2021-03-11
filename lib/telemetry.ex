@@ -58,18 +58,6 @@ defmodule RailwayIpc.Telemetry do
     span(:get_rabbit_channel, %{}, func)
   end
 
-  def track_rabbit_publish(meta, func) when is_function(func, 0) do
-    span(:rabbit_publish, meta, func)
-  end
-
-  def track_rabbit_direct_publish(meta, func) when is_function(func, 0) do
-    span(:rabbit_direct_publish, meta, func)
-  end
-
-  def track_publisher_publish(meta, func) when is_function(func, 0) do
-    span(:publisher_publish, meta, func)
-  end
-
   def track_adding_consumer(meta, func) when is_function(func, 0) do
     span(:add_consumer, meta, func)
   end

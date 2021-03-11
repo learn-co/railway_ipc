@@ -7,14 +7,14 @@ defmodule RailwayIpc.Application do
   @start_supervisor Application.get_env(:railway_ipc, :start_supervisor)
   @mix_env Application.get_env(:railway_ipc, :mix_env, :prod)
   alias RailwayIpc.Loggers.ConsumerEvents
-  alias RailwayIpc.Loggers.PublisherEvents
+  alias RailwayIpc.Publisher.Logger, as: PublisherLog
   alias RailwayIpc.Telemetry
 
   def start(_type, _args) do
     setup_rabbit_log_level()
 
     attach_consumer_loggers()
-    attach_publisher_loggers()
+    :ok = PublisherLog.attach()
     opts = [strategy: :one_for_one, name: RailwayIpc.Supervisor]
     Supervisor.start_link(children(@use_dev_repo, @start_supervisor, @mix_env), opts)
   end
@@ -36,7 +36,8 @@ defmodule RailwayIpc.Application do
 
   def children(true, _, :test) do
     [
-      @repo
+      @repo,
+      {RailwayIpc.Publisher, name: RailwayIpc.Publisher}
     ]
   end
 
@@ -48,19 +49,6 @@ defmodule RailwayIpc.Application do
   end
 
   def children(_, _, _), do: []
-
-  defp attach_publisher_loggers do
-    :ok =
-      Telemetry.attach_many(
-        "log-publisher-events",
-        [
-          [:railway_ipc, :rabbit_publish, :start],
-          [:railway_ipc, :rabbit_direct_publish, :start],
-          [:railway_ipc, :publisher_publish, :start]
-        ],
-        &PublisherEvents.handle_event/4
-      )
-  end
 
   defp attach_consumer_loggers do
     :ok =

@@ -1,9 +1,6 @@
 use Mix.Config
 
 config :railway_ipc,
-  stream_adapter: RailwayIpc.StreamMock
-
-config :railway_ipc,
   ecto_repos: [RailwayIpc.Dev.Repo]
 
 config :logger, level: :info
@@ -18,7 +15,8 @@ config :railway_ipc, RailwayIpc.Dev.Repo,
 
 config :railway_ipc,
   persistence: RailwayIpc.PersistenceMock,
-  railway_ipc: RailwayIpcMock,
   repo: RailwayIpc.Dev.Repo,
-  message_publishing: RailwayIpc.MessagePublishingMock,
-  message_consumption: RailwayIpc.MessageConsumptionMock
+  message_consumption: RailwayIpc.MessageConsumptionMock,
+  stream_adapter: RailwayIpc.StreamMock,
+  message_bus: Test.Support.FakeQueue,
+  storage: RailwayIpc.Storage.DB.Adapter

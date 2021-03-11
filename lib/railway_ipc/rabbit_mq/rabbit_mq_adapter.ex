@@ -63,32 +63,6 @@ defmodule RailwayIpc.RabbitMQ.RabbitMQAdapter do
     Basic.ack(channel, delivery_tag)
   end
 
-  def direct_publish(channel, queue, payload) do
-    Telemetry.track_rabbit_direct_publish(
-      %{channel: channel, queue: queue, payload: payload},
-      fn ->
-        result = Basic.publish(channel, "", queue, payload)
-        {result, %{}}
-      end
-    )
-  end
-
-  def publish(channel, exchange, payload, format) do
-    Telemetry.track_rabbit_publish(
-      %{channel: channel, exchange: exchange, payload: payload},
-      fn ->
-        maybe_create_exchange(channel, exchange)
-
-        result =
-          Basic.publish(channel, exchange, "", payload,
-            headers: [{:message_format, :longstr, format}]
-          )
-
-        {result, %{}}
-      end
-    )
-  end
-
   def close_connection(nil) do
     :ok
   end

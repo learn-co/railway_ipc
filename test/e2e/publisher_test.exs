@@ -1,12 +1,12 @@
 defmodule E2E.PublisherTest do
-  # Note that we need to use async: false since tests interact
+  # Note that we need to use `async: false` since tests interact
   # with external Rabbit exchanges, queues, etc.
   use ExUnit.Case, async: false
   use RailwayIpc.DataCase
   use Test.Support.RabbitCase
 
   alias Events.AThingWasDone, as: Proto
-  alias RailwayIpc.Connection
+  alias RailwayIpc.Publisher
   alias Test.Support.Helpers
 
   @timeout _up_to_thirty_seconds = 30_000
@@ -22,8 +22,6 @@ defmodule E2E.PublisherTest do
     # not set up, otherwise the test message will be lost.
     create_and_bind_queue(connection, "railway:test:events", "railway:test")
 
-    pid = start_supervised!(%{id: Connection, start: {Connection, :start_link, []}})
-
     exit_fn = fn ->
       delete_queue(connection, "railway:test:events")
       delete_exchange(connection, "railway:test")
@@ -31,7 +29,7 @@ defmodule E2E.PublisherTest do
     end
 
     on_exit(exit_fn)
-    %{connection: connection, pid: pid}
+    %{connection: connection}
   end
 
   setup context do
@@ -43,7 +41,7 @@ defmodule E2E.PublisherTest do
   end
 
   @tag :e2e
-  test "successfully publish a message", context do
+  test "successfully publish a message" do
     # Make sure the queue is empty
     Helpers.wait_for_true(@timeout, fn ->
       assert 0 == queue_count("railway:test:events")
@@ -54,9 +52,8 @@ defmodule E2E.PublisherTest do
 
     # Publish a message; this doesn't go through the macro - might want to
     # do that, haven't decided
-    channel = Connection.publisher_channel(context.pid)
-    proto = Proto.new()
-    :ok = RailwayIpc.Publisher.publish(channel, "railway:test", proto, "json_protobuf")
+    proto = Proto.new(uuid: UUID.uuid4())
+    {:ok, _} = Publisher.publish("railway:test", proto, "json_protobuf")
 
     # Make sure it arrived in the queue
     Helpers.wait_for_true(@timeout, fn ->

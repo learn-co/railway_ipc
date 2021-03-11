@@ -1,8 +1,10 @@
 use Mix.Config
 
-# Configure your database
 config :railway_ipc,
-  ecto_repos: [RailwayIpc.Dev.Repo]
+  ecto_repos: [RailwayIpc.Dev.Repo],
+  repo: RailwayIpc.Dev.Repo,
+  message_bus: RailwayIpc.MessageBus.RabbitMQ.Adapter,
+  storage: RailwayIpc.Storage.DB.Adapter
 
 config :railway_ipc, RailwayIpc.Dev.Repo,
   username: "postgres",
